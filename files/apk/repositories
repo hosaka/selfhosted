@@ -1,0 +1,5 @@
+http://ftp.udx.icscoe.jp/Linux/alpine/v3.16/main
+http://ftp.udx.icscoe.jp/Linux/alpine/v3.16/community
+@edge http://ftp.udx.icscoe.jp/Linux/alpine/edge/main
+@edge-community http://ftp.udx.icscoe.jp/Linux/alpine/edge/community
+@edge-testing http://ftp.udx.icscoe.jp/Linux/alpine/edge/testing

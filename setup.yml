@@ -1,0 +1,5 @@
+---
+- configure freshly booted alpine linux
+  hosts: box
+  tasks:
+    - include_tasks: tasks/update.yml
