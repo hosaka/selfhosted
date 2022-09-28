@@ -1,0 +1,47 @@
+# Example answer file for setup-alpine script
+# If you don't want to use a certain option, then comment it out
+
+# Use US layout with US variant
+KEYMAPOPTS="us us"
+
+# Set hostname
+HOSTNAMEOPTS=box
+
+# Set device manager to mdev
+DEVDOPTS=mdev
+
+# Contents of /etc/network/interfaces
+INTERFACESOPTS="auto lo
+iface lo inet loopback
+
+auto eth0
+iface eth0 inet dhcp
+    hostname alpine-test
+"
+
+# Search domain of example.com, Google public nameserver
+# DNSOPTS="-d example.com 8.8.8.8"
+
+# Set timezone to UTC
+TIMEZONEOPTS="UTC"
+
+# set http/ftp proxy
+PROXYOPTS=none
+
+# Add first mirror (CDN)
+APKREPOSOPTS="-1"
+
+# Create admin user
+USEROPTS="-a -u -g audio,video,netdev,wheel alex"
+USERSSHKEY="ssh-ed25519 AAA user@host"
+
+# Install Openssh
+SSHDOPTS=openssh
+ROOTSSHKEY=""
+
+# Use openntpd
+NTPOPTS="openntpd"
+
+# Use /dev/sda as a sys disk
+ROOTFS=btrfs
+DISKOPTS="-m sys -s 0 /dev/sda /dev/sdb"

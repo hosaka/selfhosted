@@ -1,5 +1,0 @@
----
-- name: ensure nano is present
-  community.general.apk:
-    name: nano
-    update_cache: true
