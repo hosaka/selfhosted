@@ -1,0 +1,15 @@
+---
+- name: install libvirt and qemu
+  apk:
+    name: qemu-img,qemu-system-x86_64,libvirt-qemu
+    update_cache: true
+
+- name: add user to libvirt group
+  shell: "addgroup {{ box_username }} libvirt"
+
+- name: enable and start libvirt service
+  service:
+    name: libvirtd
+    enabled: yes
+    state: started
+    runlevel: boot

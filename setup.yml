@@ -1,5 +1,23 @@
 ---
-- configure freshly booted alpine linux
+- name: setup alpine linux
   hosts: box
   tasks:
-    - include_tasks: tasks/update.yml
+    - name: apply setup-apline template
+      template:
+        src: files/setup-alpine.j2
+        dest: /root/setup-alpine.txt
+
+    - name: run setup-alpine with template
+      shell: "yes | ROOTFS={{ box_rootfs }} setup-alpine -e -f /root/setup-alpine.txt"
+
+    - name: reboot
+      reboot:
+
+    - name: copy apk repositories
+      template:
+        src: files/etc/apk/repositories
+        dest: /etc/apk/repositories
+
+    - name: update apk repsitories
+      apk:
+        update_cache: true

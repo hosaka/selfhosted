@@ -1,0 +1,15 @@
+---
+- name: install docker
+  apk:
+    name: docker
+    update_cache: true
+
+- name: add user to docker group
+  shell: "addgroup {{ box_username }} docker"
+
+- name: enable and start docker service
+  service:
+    name: docker
+    enabled: yes
+    state: started
+    runlevel: boot
