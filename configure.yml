@@ -1,7 +1,0 @@
----
-- name: configure alpine linux
-  hosts: box
-  tasks:
-    - include_tasks: tasks/host-docker.yml
-    - include_tasks: tasks/host-libvirt.yml
-    - include_tasks: tasks/host-filesystem.yml

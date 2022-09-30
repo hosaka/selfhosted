@@ -1,9 +1,19 @@
 ---
-- name: install btrfs tools
-  apk:
-    name: btrfs-progs
-
 - name: install mergerfs and snapraid
   apk:
     name: mergerfs@edge-testing,snapraid@edge-testing
     update_cache: true
+
+- name: format snapraid devices as ext4
+  filesystem:
+    fstype: ext4
+    device: "{{ item }}"
+  loop:
+    - /dev/sde
+    - /dev/sdf
+    - /dev/sdg
+- name: format docker device as btrfs
+  filesystem:
+    fstype: btrfs
+    device: /dev/sdh
+    opts: -L docker

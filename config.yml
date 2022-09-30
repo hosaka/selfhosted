@@ -1,0 +1,22 @@
+---
+- name: configure alpine linux
+  hosts: box
+  tasks:
+    - include_tasks: tasks/host-docker.yml
+    - include_tasks: tasks/host-libvirt.yml
+    - include_tasks: tasks/host-filesystem.yml
+    - name: create mount directories
+      file:
+        path: "/mnt/{{ item }}"
+        state: directory
+      loop:
+        - disk1
+        - disk2
+        - parity
+        - docker
+        - storage
+
+    - name: copy fstab config
+      template:
+        src: files/etc/fstab
+        dest: /etc/fstab
