@@ -1,0 +1,5 @@
+---
+- name: install hardware management tools
+  apk:
+    name: e2fsprogs-extra,pciutils,smartmontools,nvme-cli
+    update_cache: true

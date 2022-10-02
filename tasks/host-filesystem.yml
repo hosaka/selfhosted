@@ -4,16 +4,32 @@
     name: mergerfs@edge-testing,snapraid@edge-testing
     update_cache: true
 
-- name: format snapraid devices as ext4
-  filesystem:
-    fstype: ext4
-    device: "{{ item }}"
-  loop:
-    - /dev/sde
-    - /dev/sdf
-    - /dev/sdg
-- name: format docker device as btrfs
-  filesystem:
-    fstype: btrfs
-    device: /dev/sdh
-    opts: -L docker
+# - name: format docker device as btrfs
+#   filesystem:
+#     fstype: btrfs
+#     device: /dev/nvme0n1
+#     opts: -L docker
+
+# - name: format snapraid devices as ext4
+#   filesystem:
+#     fstype: ext4
+#     device: "{{ item }}"
+#   loop:
+#     - /dev/sda
+#     - /dev/sdb
+
+#   - name: create mount directories
+#     file:
+#       path: "/mnt/{{ item }}"
+#       state: directory
+#     loop:
+#       - disk1
+#       - disk2
+#       - parity
+#       - docker
+#       - storage
+
+#   - name: copy fstab config
+#     template:
+#       src: files/etc/fstab
+#       dest: /etc/fstab
