@@ -3,3 +3,8 @@
   apk:
     name: e2fsprogs-extra,pciutils,smartmontools,nvme-cli
     update_cache: true
+
+- name: install cli tools
+  apk:
+    name: zellij
+    update_cache: true

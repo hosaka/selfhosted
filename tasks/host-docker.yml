@@ -4,6 +4,11 @@
     name: docker
     update_cache: true
 
+- name: copy docker daemon config
+  template:
+    src: files/etc/docker/daemon.json
+    dest: /etc/docker/daemon.json
+
 - name: enable and start docker service
   service:
     name: docker

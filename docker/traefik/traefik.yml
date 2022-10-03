@@ -1,0 +1,6 @@
+---
+- name: install and configure traefik container
+  hosts: all
+
+  tasks:
+    - name: setup docker compose file

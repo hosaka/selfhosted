@@ -1,0 +1,93 @@
+---
+- name: prepare filesystems on storage drives
+  hosts: all
+  vars:
+    devices:
+      # - label: disk1
+      #   device: sda
+      #   partition: sda1
+      #   format: no
+      #   fstype: btrfs
+      #   mount: /mnt/disk1
+
+      # - label: disk2
+      #   device: sdb
+      #   partition: sdb1
+      #   format: no
+      #   fstype: btrfs
+      #   mount: /mnt/disk2
+
+      # - label: disk3
+      #   device: sdc
+      #   partition: sdc1
+      #   format: no
+      #   fstype: ext4
+      #   mount: /mnt/disk3
+
+      # - label: disk4
+      #   device: sdd
+      #   partition: sdd1
+      #   format: no
+      #   fstype: ext4
+      #   mount: /mnt/disk4
+
+      # - label: disk5
+      #   device: sde
+      #   partition: sde1
+      #   format: no
+      #   fstype: ext4
+      #   mount: /mnt/disk5
+
+      - label: docker
+        device: nvme0n1
+        partition: nvme0n1p1
+        fstype: btrfs
+        mount: /var/lib/docker
+
+  tasks:
+    - name: ensure devices exist on the host
+      fail:
+        msg: "Device {{ item.device }} doesn't exist"
+      when: ansible_devices[item.device] is not defined
+      loop: "{{ devices }}"
+      loop_control:
+        label: "{{ item.device}}"
+
+    # - name: debug print
+    #   debug:
+    #     var: ansible_devices
+
+    - name: unmount all devices
+      mount:
+        path: "{{ item.partition }}"
+        state: unmounted
+      loop: "{{ devices }}"
+      loop_control:
+        label: "{{ item.device}}"
+
+    - name: make a single partition on all devices
+      parted:
+        device: "/dev/{{ item.device }}"
+        number: 1
+        fs_type: "{{ item.fstype }}"
+        state: present
+      loop: "{{ devices }}"
+      loop_control:
+        label: "{{ item.device }}"
+
+    - name: format partitions with appropriate filesystems
+      filesystem:
+        fstype: "{{ item.fstype }}"
+        state: present
+        device: "/dev/{{ item.partition }}"
+        opts: "-L {{ item.label }}"
+      ignore_errors: "{{ item.fstype }} == 'btrfs'"
+      loop: "{{ devices }}"
+      loop_control:
+        label: "{{ item.device }} with {{ item.fstype }}"
+
+#   - name: create mount directories
+#     file:
+#       path: "/mnt/{{ item }}"
+#       state: directory
+#     loop:
