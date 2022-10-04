@@ -1,23 +1,183 @@
 ---
 - name: setup alpine linux
   hosts: box
+  vars:
+    box_root_fs: "btrfs"
+    box_root_devices: "/dev/sda /dev/sdb"
+
+    root_subvolumes:
+    - name: "@"
+      mountpoint: ""
+
+    - name: "@home"
+      mountpoint: "home"
+
+    - name: "@tmp"
+      mountpoint: "tmp"
+
+    - name: "@varlog"
+      mountpoint: "var/log"
+
+    snap_devices:
+      - label: disk1
+        device: sdc
+        partition: sdc1
+        fstype: ext4
+        mount: /mnt/disk1
+
+      - label: disk2
+        device: sdd
+        partition: sdd1
+        fstype: ext4
+        mount: /mnt/disk2
+
+      - label: disk3
+        device: sde
+        partition: sde1
+        fstype: ext4
+        mount: /mnt/disk3
+
+    pool_devices:
+      - label: disk4
+        device: sdf
+        partition: sdf1
+        fstype: btrfs
+        mount: /mnt/disk4
+
+      - label: disk5
+        device: sdg
+        partition: sdg1
+        fstype: btrfs
+        mount: /mnt/disk5
+
+    cache_devices:
+      - label: docker
+        device: nvme0n1
+        partition: nvme0n1p1
+        fstype: btrfs
+        mount: /var/lib/docker
+
+    all_devices: "{{ snap_devices + pool_devices + cache_devices }}"
+
   tasks:
+    - name: ensure devices exist on the host
+      fail:
+        msg: "Device doesn't exist"
+      when: ansible_devices[item.device] is not defined
+      loop: "{{ all_devices }}"
+      loop_control:
+        label: "{{ item.device}}"
+
     - name: apply setup-apline template
       template:
         src: files/setup-alpine.j2
         dest: /root/setup-alpine.txt
 
     - name: run setup-alpine with template
-      shell: "yes | ROOTFS={{ box_rootfs }} setup-alpine -e -f /root/setup-alpine.txt"
+      shell:
+        cmd: "yes | ROOTFS={{ box_root_fs }} setup-alpine -e -f /root/setup-alpine.txt"
 
-    - name: reboot
-      reboot:
+    - name: mount the filesystem
+      mount:
+        src: "/dev/md1"
+        path: "/mnt"
+        fstype: btrfs
+        state: mounted
 
-    - name: copy apk repositories
+    - name: wipe the filesystem
+      shell:
+        cmd: rm -rf /mnt/*
+
+    - name: create btrfs subvolumes
+      shell:
+        cmd: "btrfs subvolume create /mnt/{{ item.name }}"
+      loop: "{{ root_subvolumes }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: umount the filesystem
+      mount:
+        path: "/mnt"
+        state: unmounted
+
+    - name: remount with btrfs subvolumes
+      mount:
+        src: "/dev/md1"
+        path: "/mnt/{{ item.mountpoint }}"
+        fstype: btrfs
+        opts: "subvol={{ item.name }}"
+        state: mounted
+      loop: "{{ root_subvolumes }}"
+      loop_control:
+        label: "{{ item.name }} on /mnt/{{ item.mountpoint }}"
+
+    - name: create boot mountpoint
+      file:
+        path: /mnt/boot/efi
+        state: directory
+    
+    - name: mount boot partition
+      mount:
+        src: "/dev/md0"
+        path: "/mnt/boot/efi"
+        fstype: vfat
+        state: mounted
+
+    - name: copy apk repositories config
       template:
         src: files/etc/apk/repositories
         dest: /etc/apk/repositories
 
-    - name: update apk repsitories
+    - name: install required tools
       apk:
+        name: parted,mergerfs@edge-testing,snapraid@edge-testing
         update_cache: true
+
+    - name: make partitions on snapraid devices
+      parted:
+        device: "/dev/{{ item.device }}"
+        number: 1
+        fs_type: "{{ item.fstype }}"
+        state: present
+      loop: "{{ snap_devices }}"
+      loop_control:
+        label: "{{ item.device }}"
+
+    - name: format partitions on snapraid devices
+      filesystem:
+        fstype: "{{ item.fstype }}"
+        state: present
+        device: "/dev/{{ item.partition }}"
+        opts: "-L {{ item.label }}"
+      loop: "{{ snap_devices }}"
+      loop_control:
+        label: "{{ item.device }} with {{ item.fstype }}"
+
+    # todo: do the same for pool devices (using btrfs or zfs raid)
+    # mount devices under their respective paths under /mnt before rebuilding the fs
+
+    # todo: configure snapraid/mergerfs
+
+    # todo: do the same for docker device and mount under /mnt/var/lib/docker
+
+    - name: rebuild new filesystem
+      shell:
+        cmd: "setup-disk -m sys /mnt"
+
+    # todo: template the fstab.j2 and copy it to /mnt/etc/fstab
+
+    - name: umount boot partition
+      mount:
+        path: "/mnt/boot/efi"
+        state: unmounted
+
+    - name: umount btrfs subvolumes and root
+      mount:
+        path: "/mnt/{{ item.mountpoint }}"
+        state: unmounted
+      loop: "{{ root_subvolumes|reverse }}"
+      loop_control:
+        label: "{{ item.name }} from /mnt/{{ item.mountpoint }}"
+
+    - name: reboot
+      reboot:

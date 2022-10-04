@@ -1,11 +1,14 @@
-/dev/md1    /           btrfs   rw,realtime,space_cache=v2,subvolid=5,subvol=/ 0 1
-UUID=E687-F2E8    /boot       ext4    rw,realtime 0 2
+/dev/md1        /               btrfs   rw,relatime,space_cache=v2,subvol=/@ 0 1
+/dev/md1        /home           btrfs   rw,relatime,space_cache=v2,subvol=/@home 0 2
+/dev/md1        /tmp            btrfs   rw,relatime,space_cache=v2,subvol=/@tmp 0 2
+/dev/md1        /var/log        btrfs   rw,relatime,space_cache=v2,subvol=/@varlog 0 2
+/dev/md0        /boot/efi       vfat    rw,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=utf8,shortname=mixed,errors=remount-ro 0 2
 
-/dev/sde    /mnt/disk1  ext4    defaults 0 0
-/dev/sdf    /mnt/disk2  ext4    defaults 0 0
-/dev/sdg    /mnt/parity ext4    defaults 0 0
+/dev/sde        /mnt/disk1      ext4    defaults 0 0
+/dev/sdf        /mnt/disk2      ext4    defaults 0 0
+/dev/sdg        /mnt/parity     ext4    defaults 0 0
 
-UUID=7045a8df-b082-49e9-b741-de15bd8e6141 /var/lib/docker btrfs rw,noatime,ssd,discard=async 0 0
+/dev/nvme0n1p1  /var/lib/docker btrfs rw,noatime,ssd,discard=async 0 0
 
 # /mnt/disk*  /mnt/storage fuse.mergerfs defaults,nonempty,allow_other,use_ino,cache.files=off,dropcacheonclose=true,fsname=mergerfs 0 0
 tmpfs       /tmp        tmpfs   nosuid,nodev 0 0

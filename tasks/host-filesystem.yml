@@ -1,5 +1,0 @@
----
-- name: install mergerfs and snapraid
-  apk:
-    name: mergerfs@edge-testing,snapraid@edge-testing
-    update_cache: true

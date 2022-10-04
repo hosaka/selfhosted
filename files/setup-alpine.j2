@@ -39,4 +39,4 @@ ROOTSSHKEY="{{ box_ssh_key }}"
 NTPOPTS="openntpd"
 
 # Setup filesystem on devices (RAID1 used for 2 devices)
-DISKOPTS="-m sys -s 0 {{ box_rootfs_devices }}"
+DISKOPTS="-m sys -s 0 {{ box_root_devices }}"
