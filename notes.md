@@ -11,7 +11,7 @@ setup-sshd -k "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIqQwgcXplAfUV/YeJC8FIpZgl0Hr
 ```
 
 # From Ansible
-
 ```
-echo "MOTD" > /etc/motd
+apk add e2fsprogs mdadm sgdisk gptfdisk grub-efi efibootmgr btrfs-progs dosfstools zfs zfs-lts lz4
+
 ```

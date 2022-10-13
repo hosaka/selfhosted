@@ -2,46 +2,19 @@
 - name: setup box filesystem
   hosts: box
   vars:
+    pool_name: "pool"
+
     pool_devices:
-      - label: disk1
-        device: sdc
-        partition: sdc1
-        fstype: btrfs
-        mount: /mnt/disk1
-
-      - label: disk2
-        device: sdd
-        partition: sdd1
-        fstype: btrfs
-        mount: /mnt/disk2
-
-    snap_devices:
-      - label: disk3
-        device: sde
-        partition: sde1
-        fstype: ext4
-        mount: /mnt/disk3
-
-      - label: disk4
-        device: sdf
-        partition: sdf1
-        fstype: ext4
-        mount: /mnt/disk4
-
-      - label: parity1
-        device: sdg
-        partition: sdg1
-        fstype: ext4
-        mount: /mnt/parity1
+      - device: sda
+      - device: sdb
+      - device: sdc
+      - device: sdd
+      - device: sde
 
     cache_devices:
-      - label: docker
-        device: nvme0n1
-        partition: nvme0n1p1
-        fstype: btrfs
-        mount: /var/lib/docker
+      - device: nvme0n1p1
 
-    all_devices: "{{ pool_devices + snap_devices + cache_devices }}"
+    all_devices: "{{ pool_devices + cache_devices }}"
 
   tasks:
     - name: ensure devices exist on the host
@@ -52,67 +25,15 @@
       loop_control:
         label: "{{ item.device}}"
 
-    - name: install required tools
+    - name: install zfs and required tools
       apk:
-        name: parted,mergerfs@edge-testing,snapraid@edge-testing
+        name: zfs,zfs-lts,lz4
         update_cache: true
 
-    - name: make partitions on snapraid devices
-      parted:
-        device: "/dev/{{ item.device }}"
-        number: 1
-        fs_type: "{{ item.fstype }}"
+    - name: create zfs pool
+      zfs:
+        name: pool
         state: present
-      loop: "{{ snap_devices }}"
-      loop_control:
-        label: "{{ item.device }}"
 
-    - name: format partitions on snapraid devices
-      filesystem:
-        fstype: "{{ item.fstype }}"
-        force: true
-        state: present
-        device: "/dev/{{ item.partition }}"
-        opts: "-L {{ item.label }}"
-      loop: "{{ snap_devices }}"
-      loop_control:
-        label: "{{ item.device }} with {{ item.fstype }}"
-      
-    - name: make partitions on pool devices
-      parted:
-        device: "/dev/{{ item.device }}"
-        number: 1
-        fs_type: "{{ item.fstype }}"
-        state: present
-      loop: "{{ pool_devices }}"
-      loop_control:
-        label: "{{ item.device }}"
-
-    - name: format pool devices with btrfs
-      command:
-        cmd: "mkfs.btrfs -q -f -m raid1 -d raid1 {{ ['/dev/'] | product(pool_devices | map(attribute='partition')) | map('join') | join(' ')}}"
-
-    - name: make partitions on cache devices
-      parted:
-        device: "/dev/{{ item.device }}"
-        number: 1 
-        fs_type: "{{ item.fstype }}"
-        state: present
-      loop: "{{ cache_devices }}"
-      loop_control:
-        label: "{{ item.device }}"
-
-    - name: format partitions on cache devices
-      filesystem:
-        fstype: "{{ item.fstype }}"
-        force: true
-        state: present
-        device: "/dev/{{ item.partition }}"
-        opts: "-L {{ item.label }}"
-      loop: "{{ cache_devices }}"
-      loop_control:
-        label: "{{ item.device }} with {{ item.fstype }}"
-
-    # mount devices under their respective paths under /mnt
-    # todo: configure snapraid/mergerfs
-    # todo: template the fstab.j2 and copy it to /mnt/etc/fstab
+    # todo: add zfs to /etc/modules and create zpool/datasets
+    # zpool create -m none -o ashift=12 -O atime=off -O compression=lz4 {{ pool_name }} raidz1 {{ pool_devices }}

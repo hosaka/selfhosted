@@ -5,14 +5,14 @@ KEYMAPOPTS="us us"
 HOSTNAMEOPTS="{{ box_hostname }}"
 
 # Set device manager to mdev
-DEVDOPTS=mdev
+DEVDOPTS=mdevd
 
 # Contents of /etc/network/interfaces
 INTERFACESOPTS="auto lo
 iface lo inet loopback
 
-auto eth0
-iface eth0 inet dhcp
+auto {{ box_net_iface }}
+iface {{ box_net_iface }} inet dhcp
 "
 
 # Search domain of example.com, Google public nameserver
@@ -38,5 +38,5 @@ ROOTSSHKEY="{{ box_ssh_key }}"
 # Use openntpd
 NTPOPTS="openntpd"
 
-# Setup filesystem on devices (RAID1 used for 2 devices)
-DISKOPTS="-m sys -s 0 {{ box_root_devices }}"
+# Setup filesystem on mounted path
+DISKOPTS="-m sys -s 0 {{ box_root_mount }}"

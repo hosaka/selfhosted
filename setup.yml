@@ -2,99 +2,30 @@
 - name: setup alpine linux
   hosts: box
   vars:
+    box_timezone: "UTC"
     box_root_fs: "btrfs"
-    box_root_devices: "/dev/sda /dev/sdb"
-
-    root_subvolumes:
-    - name: "@"
-      mountpoint: ""
-
-    - name: "@home"
-      mountpoint: "home"
-
-    - name: "@tmp"
-      mountpoint: "tmp"
-
-    - name: "@varlog"
-      mountpoint: "var/log"
+    box_root_mount: "/mnt"
+    box_net_iface: "eth0"
 
   tasks:
-    - name: apply setup-apline template
+    - name: copy setup-apline template
       template:
         src: files/setup-alpine.j2
         dest: /root/setup-alpine.txt
 
     - name: run setup-alpine with template
       shell:
-        cmd: "yes | ROOTFS=btrfs setup-alpine -e -f /root/setup-alpine.txt"
+        cmd: "yes | setup-alpine -e -f /root/setup-alpine.txt"
 
-    - name: mount the filesystem
-      mount:
-        src: "/dev/md1"
-        path: "/mnt"
-        fstype: btrfs
-        state: mounted
+    - name: reboot
+      reboot:
 
-    - name: wipe the filesystem
-      shell:
-        cmd: rm -rf /mnt/*
-
-    - name: create btrfs subvolumes
-      shell:
-        cmd: "btrfs subvolume create /mnt/{{ item.name }}"
-      loop: "{{ root_subvolumes }}"
-      loop_control:
-        label: "{{ item.name }}"
-
-    - name: umount the filesystem
-      mount:
-        path: "/mnt"
-        state: unmounted
-
-    - name: remount with btrfs subvolumes
-      mount:
-        src: "/dev/md1"
-        path: "/mnt/{{ item.mountpoint }}"
-        fstype: btrfs
-        opts: "discard=async,subvol={{ item.name }}"
-        state: mounted
-      loop: "{{ root_subvolumes }}"
-      loop_control:
-        label: "{{ item.name }} on /mnt/{{ item.mountpoint }}"
-
-    - name: create boot mountpoint
-      file:
-        path: /mnt/boot/efi
-        state: directory
-    
-    - name: mount boot partition
-      mount:
-        src: "/dev/md0"
-        path: "/mnt/boot/efi"
-        fstype: vfat
-        state: mounted
+    - name: copy fstab
+      template:
+        src: files/etc/fstab
+        dest: /etc/fstab
 
     - name: copy apk repositories config
       template:
         src: files/etc/apk/repositories
         dest: /etc/apk/repositories
-
-    - name: rebuild new filesystem
-      shell:
-        cmd: "setup-disk -m sys /mnt"
-
-    - name: umount boot partition
-      mount:
-        path: "/mnt/boot/efi"
-        state: unmounted
-
-    - name: umount btrfs subvolumes and root
-      mount:
-        path: "/mnt/{{ item.mountpoint }}"
-        state: unmounted
-      loop: "{{ root_subvolumes|reverse }}"
-      loop_control:
-        label: "{{ item.name }} from /mnt/{{ item.mountpoint }}"
-
-    - name: reboot
-      reboot:

@@ -9,4 +9,4 @@
     name: libvirtd
     enabled: yes
     state: started
-    runlevel: boot
+    runlevel: default
