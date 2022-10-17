@@ -1,0 +1,20 @@
+---
+- name: setup samba
+  hosts: box
+
+  tasks:
+    - name: install samba
+      apk:
+        name: samba
+        update_cache: true
+
+    - name: copy samba config
+      template:
+        src: files/etc/samba/smb.conf
+        dest: /etc/samba/smb.conf
+
+    - name: enable and start samba service
+      service:
+        name: samba
+        enabled: yes
+        state: started

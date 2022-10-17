@@ -1,10 +1,16 @@
 ---
+- name: update packages
+  apk:
+    update_cache: true
+
 - name: install hardware management tools
   apk:
-    name: e2fsprogs-extra,pciutils,smartmontools,nvme-cli
-    update_cache: true
+    name: e2fsprogs-extra,pciutils,smartmontools,nvme-cli,iotop
+
+- name: bash
+  apk:
+    name: bash,bash-completion
 
 - name: install cli tools
   apk:
-    name: zellij
-    update_cache: true
+    name: file,neovim,zellij@edge,bat,ripgrep,fd,lsd,zoxide,skim,ouch@edge,starship

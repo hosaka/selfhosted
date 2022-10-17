@@ -9,6 +9,10 @@
     src: files/etc/docker/daemon.json
     dest: /etc/docker/daemon.json
 
+  # consider: enable container isolation
+  # https://docs.docker.com/engine/security/userns-remap/
+  # https://wiki.alpinelinux.org/wiki/Docker#Isolate_containers_with_a_user_namespace
+
 - name: enable and start docker service
   service:
     name: docker
