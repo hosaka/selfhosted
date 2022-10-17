@@ -1,0 +1,33 @@
+version: "3"
+
+networks:
+  proxy_private:
+    external: true
+
+services:
+  traefik:
+    image: docker.io/traefik:2.9.1
+    restart: unless-stopped
+    depends_on:
+      - dockerproxy
+    networks:
+      - proxy_private
+    volumes:
+      - ./traefik:/etc/traefik
+    ports:
+      - 80:80
+      - 443:443
+      # dashboard
+      - 8080:8080
+
+  dockerproxy:
+    image: ghcr.io/tecnativa/docker-socket-proxy:0.1
+    restart: unless-stopped
+    networks:
+      - proxy_private
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - 2375
+    environment:
+      - CONTAINERS=1
