@@ -1,0 +1,35 @@
+version: "3"
+
+networks:
+  proxy_private:
+    external: true
+
+volumes:
+  jellyfin_cache:
+  jellyfin_config:
+  jellyfin_media:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: ${JELLYFIN_MEDIA_PATH}
+
+services:
+  jellyfin:
+    image: jellyfin/jellyfin:10.8.5
+    group_add:
+      - ${JELLYFIN_VIDEO_GROUP}
+    restart: unless-stopped
+    networks:
+      - proxy_private
+    volumes:
+      - jellyfin_cache:/config
+      - jellyfin_config:/cache
+      - jellyfin_media:/media
+    devices:
+      - ${JELLYFIN_CARD}:/dev/dri/card0
+      - ${JELLYFIN_RENDER}:/dev/dri/renderD128
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.jellyfin.rule=Host(`192.168.2.181`) && PathPrefix(`/jellyfin`)
+      - traefik.http.services.jellyfin.loadbalancer.server.port=8096

@@ -7,9 +7,10 @@ networks:
 services:
   whoami:
     image: docker.io/traefik/whoami:v1.8
+    restart: unless-stopped
     networks:
       - proxy_private
     labels:
       - traefik.enable=true
-      - traefik.http.routers.whoami.rule=(Host(`0.0.0.0`) && Path(`/whoami`))
+      - traefik.http.routers.whoami.rule=Host(`0.0.0.0`) && Path(`/whoami`)
       - traefik.http.services.whoami.loadbalancer.server.port=80
