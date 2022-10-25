@@ -1,16 +1,12 @@
 version: "3"
 
 networks:
-  proxy_private:
-    external: true
+  public:
+    name: ${NETWORK_PUBLIC}
 
 services:
   whoami:
     image: docker.io/traefik/whoami:v1.8
     restart: unless-stopped
     networks:
-      - proxy_private
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.whoami.rule=Host(`0.0.0.0`) && Path(`/whoami`)
-      - traefik.http.services.whoami.loadbalancer.server.port=80
+      - public

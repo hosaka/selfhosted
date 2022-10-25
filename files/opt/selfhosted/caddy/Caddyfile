@@ -1,0 +1,29 @@
+{
+    email {env.CF_API_EMAIL}
+    # acme_dns cloudflare {env.CF_API_TOKEN}
+    # acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+
+    skip_install_trust
+}
+
+# .{env.PUBLIC_DOMAIN} {
+#     tls {
+#         dns cloudflare {env.CF_API_TOKEN}
+#     }
+
+#     @whoami host whoami.{env.PUBLIC_DOMAIN}
+#     handle @whoami {
+#         reverse_proxy whoami:80
+#     }
+# }
+
+*.{env.PRIVATE_DOMAIN} {
+    tls {
+        dns cloudflare {env.CF_API_TOKEN}
+    }
+
+    @whoami host whoami.{env.PRIVATE_DOMAIN}
+    handle @whoami {
+        reverse_proxy whoami:80
+    }
+}

@@ -1,8 +1,8 @@
 version: "3"
 
 networks:
-  proxy_private:
-    external: true
+  public:
+    name: ${NETWORK_PUBLIC}
 
 volumes:
   jellyfin_cache:
@@ -16,12 +16,12 @@ volumes:
 
 services:
   jellyfin:
-    image: jellyfin/jellyfin:10.8.5
+    image: docker.io/jellyfin/jellyfin:10.8.5
     group_add:
       - ${JELLYFIN_VIDEO_GROUP}
     restart: unless-stopped
     networks:
-      - proxy_private
+      - public
     volumes:
       - jellyfin_cache:/config
       - jellyfin_config:/cache
@@ -29,7 +29,3 @@ services:
     devices:
       - ${JELLYFIN_CARD}:/dev/dri/card0
       - ${JELLYFIN_RENDER}:/dev/dri/renderD128
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.jellyfin.rule=Host(`192.168.2.181`) && PathPrefix(`/jellyfin`)
-      - traefik.http.services.jellyfin.loadbalancer.server.port=8096

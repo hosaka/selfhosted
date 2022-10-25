@@ -1,0 +1,10 @@
+version: "3"
+
+networks:
+  private:
+    name: ${NETWORK_PRIVATE}
+
+services:
+  grafana:
+    image: docker.io/grafana/grafana:9.2.2
+    restart: unless-stopped

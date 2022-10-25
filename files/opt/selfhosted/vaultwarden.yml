@@ -1,0 +1,17 @@
+version: "3"
+
+networks:
+  public:
+    name: ${NETWORK_PUBLIC}
+
+volumes:
+  vaultwarden_data:
+
+services:
+  vaultwarden:
+    image: docker.io/vaultwarden/server:1.26.0-alpine
+    restart: unless-stopped
+    networks:
+      - public
+    volumes:
+      - vaultwarden_data:/data
