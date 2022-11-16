@@ -1,0 +1,57 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: monitor
+    diun.enable: "true"
+  name: monitor
+spec:
+  hostname: monitor
+  restartPolicy: Always
+  containers:
+    - name: diun
+      image: docker.io/crazymax/diun:4.22
+      resources: {}
+      args: ["serve"]
+      volumeMounts:
+        - name: localtime
+          mountPath: /etc/localtime
+        - name: diun-config
+          mountPath: /etc/diun/diun.yml
+        - name: diun-socket
+          mountPath: /var/run/docker.sock
+        - name: diun-data
+          mountPath: /data
+
+    - name: ntfy
+      image: docker.io/binwiederhier/ntfy:v1.28.0
+      resources: {}
+      args: ["serve"]
+      volumeMounts:
+        - name: localtime
+          mountPath: /etc/localtime
+        - name: ntfy-cache
+          mountPath: /var/cache/ntfy
+
+  volumes:
+    - name: localtime
+      hostPath:
+        path: /etc/localtime
+        readOnly: true
+        type: File
+    - name: diun-config
+      hostPath:
+        path: /opt/pods/monitor/diun/diun.yml
+        readOnly: true
+        type: File
+    - name: diun-socket
+      hostPath:
+        path: /tmp/podman-run-1000/podman/podman.sock
+        type: File
+    - name: diun-data
+      persistentVolumeClaim:
+        claimName: diun-data
+    - name: ntfy-cache
+      persistentVolumeClaim:
+        claimName: ntfy-cache

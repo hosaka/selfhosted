@@ -1,0 +1,230 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hotio-config
+data:
+  PUID: "1000"
+  PGID: "1000"
+  UMASK: "002"
+  TZ: "Etc/UTC"
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: media
+  name: media
+spec:
+  restartPolicy: Always
+  containers:
+    - name: jellyfin
+      image: docker.io/hotio/jellyfin:release-10.8.7-1
+      resources: {}
+      envFrom:
+        - configMapRef:
+            name: hotio-config
+            optional: false
+      volumeMounts:
+        - name: localtime
+          mountPath: /etc/localtime
+        - name: media-collection
+          mountPath: /data/media/collection
+        - name: jellyfin-config
+          mountPath: /config
+        - name: jellyfin-cache
+          mountPath: /cache
+        - name: jellyfin-card
+          mountPath: /dev/dri/card0
+        - name: jellyfin-render
+          mountPath: /dev/dri/renderD128
+
+    - name: radarr
+      image: docker.io/hotio/radarr:release-4.2.4.6635
+      resources: {}
+      envFrom:
+        - configMapRef:
+            name: hotio-config
+            optional: false
+      volumeMounts:
+        - name: localtime
+          mountPath: /etc/localtime
+        - name: media-root
+          mountPath: /data/media
+        - name: radarr-config
+          mountPath: /config
+
+    - name: sonarr
+      image: docker.io/hotio/sonarr:v4-4.0.0.151
+      resources: {}
+      envFrom:
+        - configMapRef:
+            name: hotio-config
+            optional: false
+      volumeMounts:
+        - name: localtime
+          mountPath: /etc/localtime
+        - name: media-root
+          mountPath: /data/media
+        - name: sonarr-config
+          mountPath: /config
+
+    - name: bazarr
+      image: docker.io/hotio/bazarr:release-1.1.2
+      resources: {}
+      envFrom:
+        - configMapRef:
+            name: hotio-config
+            optional: false
+      volumeMounts:
+        - name: localtime
+          mountPath: /etc/localtime
+        - name: bazarr-config
+          mountPath: /config
+        - name: media-collection
+          mountPath: /data/media/collection
+
+    - name: recyclarr
+      image: docker.io/recyclarr/recyclarr:2.6
+      resources: {}
+      env:
+        - name: TZ
+          value: "Etc/UTC"
+        - name: CRON_SCHEDULE
+          value: "@daily"
+      volumeMounts:
+        - name: localtime
+          mountPath: /etc/localtime
+        - name: recyclarr-config
+          mountPath: /config
+        - name: recyclarr-config-file
+          mountPath: /config/recyclarr.yml
+
+    - name: prowlarr
+      image: docker.io/hotio/prowlarr:testing-0.4.9.2083
+      resources: {}
+      envFrom:
+        - configMapRef:
+            name: hotio-config
+            optional: false
+      volumeMounts:
+        - name: localtime
+          mountPath: /etc/localtime
+        - name: media-root
+          mountPath: /data/media
+        - name: prowlarr-config
+          mountPath: /config
+
+    - name: qbit
+      image: docker.io/hotio/qbittorrent:release-4.4.5
+      resources: {}
+      securityContext:
+        capabilities:
+          add:
+            - NET_RAW
+            - NET_ADMIN
+            - SYS_MODULE
+      env:
+        - name: VPN_ENABLED
+          value: "true"
+        - name: VPN_IP_CHECK_DELAY
+          value: "10"
+        - name: VPN_IP_CHECK_EXIT
+          value: "false"
+      envFrom:
+        - configMapRef:
+            name: hotio-config
+            optional: false
+      volumeMounts:
+        - name: localtime
+          mountPath: /etc/localtime
+        - name: qbittorrent-config
+          mountPath: /config
+        - name: qbittorrent-wireguard
+          mountPath: /config/wireguard/wg0.conf
+        - name: downloads-torrent
+          mountPath: /data/media/downloads/torrent
+
+    - name: nzbget
+      image: docker.io/hotio/nzbget:release-21.1
+      resources: {}
+      envFrom:
+        - configMapRef:
+            name: hotio-config
+            optional: false
+      volumeMounts:
+        - name: localtime
+          mountPath: /etc/localtime
+        - name: nzbget-config
+          mountPath: /config
+        - name: downloads-usenet
+          mountPath: /data/media/downloads/usenet
+
+  volumes:
+    - name: localtime
+      hostPath:
+        path: /etc/localtime
+        readOnly: true
+        type: File
+    - name: media-root
+      hostPath:
+        path: /mnt/pool/storage/media
+        type: Directory
+    - name: media-collection
+      hostPath:
+        path: /mnt/pool/storage/media/collection
+        type: Directory
+    - name: downloads-torrent
+      hostPath:
+        path: /mnt/pool/storage/media/downloads/torrent
+        type: Directory
+    - name: downloads-usenet
+      hostPath:
+        path: /mnt/pool/storage/media/downloads/usenet
+        type: Directory
+
+    - name: jellyfin-config
+      persistentVolumeClaim:
+        claimName: jellyfin-config
+    - name: jellyfin-cache
+      persistentVolumeClaim:
+        claimName: jellyfin-cache
+    - name: jellyfin-card
+      hostPath:
+        path: /dev/dri/card0
+        type: CharDevice
+    - name: jellyfin-render
+      hostPath:
+        path: /dev/dri/renderD128
+        type: CharDevice
+    - name: radarr-config
+      persistentVolumeClaim:
+        claimName: radarr-config
+    - name: sonarr-config
+      persistentVolumeClaim:
+        claimName: sonarr-config
+    - name: bazarr-config
+      persistentVolumeClaim:
+        claimName: bazarr-config
+    - name: prowlarr-config
+      persistentVolumeClaim:
+        claimName: prowlarr-config
+    - name: recyclarr-config
+      persistentVolumeClaim:
+        claimName: recyclarr-config
+    - name: recyclarr-config-file
+      hostPath:
+        path: /opt/pods/media/recyclarr/recyclarr.yml
+        readOnly: true
+        type: File
+    - name: qbittorrent-config
+      persistentVolumeClaim:
+        claimName: qbittorrent-config
+    - name: qbittorrent-wireguard
+      hostPath:
+        path: /opt/pods/media/qbittorrent/wg0.conf
+        readOnly: true
+        type: File
+    - name: nzbget-config
+      persistentVolumeClaim:
+        claimName: nzbget-config

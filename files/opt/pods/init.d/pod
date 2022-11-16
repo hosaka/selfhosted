@@ -1,0 +1,46 @@
+#!/sbin/openrc-run
+
+name=$RC_SVCNAME
+
+networks=''
+for net in ${pod_networks}; do
+    networks="${networks} --network $net";
+done
+
+command="/usr/bin/podman"
+command_args="kube play ${networks} ${pod_yaml} > /dev/null 2>&1 &"
+
+depend() {
+    after network-online
+    use net
+}
+
+cleanup() {
+    /sbin/runuser -u ${command_user} -- ${command} pod exists ${pod_name}
+    result=$?
+    if [ $result -eq 0 ]; then
+        /sbin/runuser -u ${command_user} -- ${command} kube down ${pod_yaml} 
+    fi
+}
+
+start_pre() {
+    cleanup
+}
+
+stop() {
+    ebegin "Stopping $RC_SVCNAME"
+    cleanup
+    eend $?
+}
+
+status() {
+    /sbin/runuser -u ${command_user} -- ${command} pod exists ${pod_name} 2> /dev/null
+    result=$?
+    if [ $result -eq 0 ]; then
+        einfo "status: started"
+        return 0
+    else
+        einfo "status: stopped"
+        return 3
+    fi
+}

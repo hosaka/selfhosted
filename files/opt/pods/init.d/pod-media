@@ -1,0 +1,9 @@
+#!/sbin/openrc-run
+
+command_user="alex"
+
+pod_name="media"
+pod_networks="proxy"
+pod_yaml="/home/${command_user}/pods/${pod_name}.yml"
+
+source "/home/${command_user}/pods/init.d/pod"

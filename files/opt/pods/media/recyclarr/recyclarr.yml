@@ -1,0 +1,77 @@
+radarr:
+  - base_url: http://127.0.0.1:7878 
+    api_key: 23a6027b0cff4a9e83b0346c562c39b2
+
+    quality_definition:
+      type: movie
+      preferred_ratio: 0.5
+    
+    custom_formats:
+      - trash_ids:
+        - fb3ccc5d5cc8f77c9055d4cb4561dded # Anime BD Tier 01 (Top SeaDex Muxers) (1400)
+        - 66926c8fa9312bc74ab71bf69aae4f4a # Anime BD Tier 02 (SeaDex Muxers) (1300)
+        - fa857662bad28d5ff21a6e611869a0ff # Anime BD Tier 03 (SeaDex Muxers) (1200)
+        - f262f1299d99b1a2263375e8fa2ddbb3 # Anime BD Tier 04 (SeaDex Muxers) (1100)
+        - ca864ed93c7b431150cc6748dc34875d # Anime BD Tier 05 (Remuxes) (1000)
+        - 9dce189b960fddf47891b7484ee886ca # Anime BD Tier 06 (FanSubs) (900)
+        - 1ef101b3a82646b40e0cab7fc92cd896 # Anime BD Tier 07 (P2P/Scene) (800)
+        - 6115ccd6640b978234cc47f2c1f2cadc # Anime BD Tier 08 (Mini Encodes) (700)
+        - 8167cffba4febfb9a6988ef24f274e7e # Anime Web Tier 01 (Muxers) (600)
+        - 8526c54e36b4962d340fce52ef030e76 # Anime Web Tier 02 (Top FanSubs) (500)
+        - de41e72708d2c856fa261094c85e965d # Anime Web Tier 03 (Official Subs) (400)
+        - 9edaeee9ea3bcd585da9b7c0ac3fc54f # Anime Web Tier 04 (Official Subs) (300)
+        - 22d953bbe897857b517928f3652b8dd3 # Anime Web Tier 05 (FanSubs) (200)
+        - a786fbc0eae05afe3bb51aee3c83a9d4 # Anime Web Tier 06 (FanSubs) (100)
+        - 06b6542a47037d1e33b15aa3677c2365 # Anime Raws (-10000)
+        - b0fdc5897f68c9a68c70c25169f77447 # Anime LQ Groups (-10000)
+        - 064af5f084a0a24458cc8ecd3220f93f # Uncensored (0)
+        - c259005cbaeb5ab44c06eddb4751e70c # v0 (-51)
+        - 5f400539421b8fcf71d51e6384434573 # v1 (1)
+        - 3df5e6dfef4b09bb6002f732bed5b774 # v2 (2)
+        - db92c27ba606996b146b57fbe6d09186 # v3 (3)
+        - d4e5e842fad129a3c097bdb2d20d31a0 # v4 (4)
+        - 60f6d50cbd3cfc3e9a8c00e3a30c3114 # VRV Streaming Service (10)
+        - a5d148168c4506b55cf53984107c396e # 10bit (0)
+        - 4a3b087eea2ce012fcc1ce319259a3be # Anime Dual Audio (0)
+        - b23eae459cc960816f2d6ba84af45055 # Dubs Only (-10000)
+        quality_profiles:
+          - name: Anime - 720p/1080p
+    delete_old_custom_formats: true
+
+sonarr:
+  - base_url: http://127.0.0.1:8989 
+    api_key: 8783345c388e4b009d24c64758de5660
+
+    quality_definition: hybrid
+
+    custom_formats:
+      - trash_ids:
+        - 949c16fe0a8147f50ba82cc2df9411c9 # Anime BD Tier 01 (Top SeaDex Muxers) (1400)
+        - ed7f1e315e000aef424a58517fa48727 # Anime BD Tier 02 (SeaDex Muxers) (1300)
+        - 096e406c92baa713da4a72d88030b815 # Anime BD Tier 03 (SeaDex Muxers) (1200)
+        - 30feba9da3030c5ed1e0f7d610bcadc4 # Anime BD Tier 04 (SeaDex Muxers) (1100)
+        - 545a76b14ddc349b8b185a6344e28b04 # Anime BD Tier 05 (Remuxes) (1000)
+        - 25d2afecab632b1582eaf03b63055f72 # Anime BD Tier 06 (FanSubs) (900)
+        - 0329044e3d9137b08502a9f84a7e58db # Anime BD Tier 07 (P2P/Scene) (800)
+        - c81bbfb47fed3d5a3ad027d077f889de # Anime BD Tier 08 (Mini Encodes) (700)
+        - e0014372773c8f0e1bef8824f00c7dc4 # Anime Web Tier 01 (Muxers) (600)
+        - 19180499de5ef2b84b6ec59aae444696 # Anime Web Tier 02 (Top FanSubs) (500)
+        - c27f2ae6a4e82373b0f1da094e2489ad # Anime Web Tier 03 (Official Subs) (400)
+        - 4fd5528a3a8024e6b49f9c67053ea5f3 # Anime Web Tier 04 (Official Subs) (300)
+        - 29c2a13d091144f63307e4a8ce963a39 # Anime Web Tier 05 (FanSubs) (200)
+        - dc262f88d74c651b12e9d90b39f6c753 # Anime Web Tier 06 (FanSubs) (100)
+        - b4a1b3d705159cdca36d71e57ca86871 # Anime Raws (-10000)
+        - e3515e519f3b1360cbfc17651944354c # Anime LQ Groups (-10000)
+        - 026d5aadd1a6b4e550b134cb6c72b3ca # Uncensored (0)
+        - d2d7b8a9d39413da5f44054080e028a3 # v0 (-51)
+        - 273bd326df95955e1b6c26527d1df89b # v1 (1)
+        - 228b8ee9aa0a609463efca874524a6b8 # v2 (2)
+        - 0e5833d3af2cc5fa96a0c29cd4477feb # v3 (3)
+        - 4fc15eeb8f2f9a749f918217d4234ad8 # v4 (4)
+        - 44a8ee6403071dd7b8a3a8dd3fe8cb20 # VRV Streaming Service (10)
+        - b2550eb333d27b75833e25b8c2557b38 # 10bit (0)
+        - 418f50b10f1907201b6cfdf881f467b7 # Anime Dual Audio (0)
+        - 9c14d194486c4014d422adc64092d794 # Dubs Only (-10000)
+        quality_profiles:
+          - name: Anime - 720p/1080p
+    delete_old_custom_formats: true

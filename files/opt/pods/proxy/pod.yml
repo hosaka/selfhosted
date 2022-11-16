@@ -1,0 +1,84 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: proxy
+  name: proxy
+spec:
+  restartPolicy: Always
+  containers:
+    - name: caddy
+      image: localhost/caddy:2.6.2-alpine
+      resources: {}
+      ports:
+        - containerPort: 80
+          hostPort: 80
+          protocol: TCP
+        - containerPort: 443
+          hostPort: 443
+          protocol: TCP
+        - containerPort: 443
+          hostPort: 443
+          protocol: UDP
+      envFrom:
+        - configMapRef:
+            name: proxy-config
+            optional: false
+      volumeMounts:
+        - name: caddy-data
+          mountPath: /data
+        - name: caddy-config
+          mountPath: /config
+        - name: caddy-config-file
+          mountPath: /etc/caddy/Caddyfile
+
+    - name: blocky
+      image: docker.io/spx01/blocky:v0.20
+      resources: {}
+      ports:
+        - containerPort: 53
+          hostPort: 53
+          hostIP: 10.10.0.10
+          protocol: TCP
+        - containerPort: 53
+          hostPort: 53
+          hostIP: 10.10.0.10
+          protocol: UDP
+      volumeMounts:
+        - name: blocky-config-file
+          mountPath: /app/config.yml
+
+    - name: cloudflared
+      image: docker.io/cloudflare/cloudflared:2022.10.3
+      args: ["tunnel", "--no-autoupdate", "run"]
+      resources: {}
+      env:
+        - name: TUNNEL_TOKEN
+          valueFrom:
+            configMapKeyRef:
+              name: proxy-config
+              key: PROXY_CF_TUNNEL_TOKEN
+
+  volumes:
+    - name: localtime
+      hostPath:
+        path: /etc/localtime
+        readOnly: true
+        type: File
+    - name: caddy-data
+      persistentVolumeClaim:
+        claimName: caddy-data
+    - name: caddy-config
+      persistentVolumeClaim:
+        claimName: caddy-config
+    - name: caddy-config-file
+      hostPath:
+        path: /opt/pods/proxy/caddy/Caddyfile
+        readOnly: true
+        type: File
+    - name: blocky-config-file
+      hostPath:
+        path: /opt/pods/proxy/blocky/config.yml
+        readOnly: true
+        type: File

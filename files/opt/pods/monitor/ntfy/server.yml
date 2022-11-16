@@ -1,0 +1,8 @@
+behind-proxy: true
+listen-http: "127.0.0.1:2586"
+base-url: "https://ntfy.example.com"
+
+cache-file: "/var/cache/ntfy/cache.db"
+attachment-cache-dir: "/var/cache/ntfy/attachments"
+
+# https://ntfy.sh/docs/config/#nginxapache2caddy

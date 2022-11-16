@@ -1,0 +1,135 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- ../base
+- pod.yml
+
+configMapGenerator:
+  - name: media-config
+    envs: 
+      - .env
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+replacements:
+  - source:
+      kind: ConfigMap
+      name: media-config
+      fieldPath: data.MEDIA_ROOT_PATH
+    targets:
+      - select:
+          kind: Pod
+          name: media
+        fieldPaths:
+          - spec.volumes.[name=media-root].hostPath.path
+
+  - source:
+      kind: ConfigMap
+      name: media-config
+      fieldPath: data.MEDIA_COLLECTION_PATH
+    targets:
+      - select:
+          kind: Pod
+          name: media
+        fieldPaths:
+          - spec.volumes.[name=media-collection].hostPath.path
+
+  - source:
+      kind: ConfigMap
+      name: media-config
+      fieldPath: data.MEDIA_DOWNLOADS_TORRENT_PATH
+    targets:
+      - select:
+          kind: Pod
+          name: media
+        fieldPaths:
+          - spec.volumes.[name=downloads-torrent].hostPath.path
+
+  - source:
+      kind: ConfigMap
+      name: media-config
+      fieldPath: data.MEDIA_DOWNLOADS_USENET_PATH
+    targets:
+      - select:
+          kind: Pod
+          name: media
+        fieldPaths:
+          - spec.volumes.[name=downloads-usenet].hostPath.path
+
+  - source:
+      kind: ConfigMap
+      name: media-config
+      fieldPath: data.MEDIA_JELLYFIN_CARD
+    targets:
+      - select:
+          kind: Pod
+          name: media
+        fieldPaths:
+          - spec.volumes.[name=jellyfin-card].hostPath.path
+
+  - source:
+      kind: ConfigMap
+      name: media-config
+      fieldPath: data.MEDIA_JELLYFIN_RENDER
+    targets:
+      - select:
+          kind: Pod
+          name: media
+        fieldPaths:
+          - spec.volumes.[name=jellyfin-render].hostPath.path
+
+  - source:
+      kind: ConfigMap
+      name: media-config
+      fieldPath: data.MEDIA_RECYCLARR_CONFIG_FILE
+    targets:
+      - select:
+          kind: Pod
+          name: media
+        fieldPaths:
+          - spec.volumes.[name=recyclarr-config-file].hostPath.path
+
+  - source:
+      kind: ConfigMap
+      name: media-config
+      fieldPath: data.MEDIA_TORRENT_VPN_ENABLED
+    targets:
+      - select:
+          kind: Pod
+          name: media
+        fieldPaths:
+          - spec.containers.[name=qbit].env.[name=VPN_ENABLED].value
+
+  - source:
+      kind: ConfigMap
+      name: media-config
+      fieldPath: data.MEDIA_TORRENT_VPN_IP_CHECK_DELAY
+    targets:
+      - select:
+          kind: Pod
+          name: media
+        fieldPaths:
+          - spec.containers.[name=qbit].env.[name=VPN_IP_CHECK_DELAY].value
+
+  - source:
+      kind: ConfigMap
+      name: media-config
+      fieldPath: data.MEDIA_TORRENT_VPN_IP_CHECK_EXIT
+    targets:
+      - select:
+          kind: Pod
+          name: media
+        fieldPaths:
+          - spec.containers.[name=qbit].env.[name=VPN_IP_CHECK_EXIT].value
+
+  - source:
+      kind: ConfigMap
+      name: media-config
+      fieldPath: data.MEDIA_TORRENT_WIREGUARD_CONFIG_PATH
+    targets:
+      - select:
+          kind: Pod
+          name: media
+        fieldPaths:
+          - spec.volumes.[name=qbittorrent-wireguard].hostPath.path
