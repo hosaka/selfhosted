@@ -2,8 +2,6 @@
 /dev/md1        /home                   btrfs   rw,relatime,discard=async,subvol=/@home 0 2
 /dev/md1        /tmp                    btrfs   rw,relatime,discard=async,subvol=/@tmp 0 2
 /dev/md1        /var/log                btrfs   rw,relatime,discard=async,subvol=/@varlog 0 2
-/dev/md1        /var/lib/docker         btrfs   rw,noatime,ssd,discard=async,subvol=/@docker 0 2
-/dev/md1        /var/lib/docker/volumes btrfs   rw,noatime,ssd,discard=async,subvol=/@volumes 0 2
 /dev/md0        /boot/efi               vfat    rw,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=utf8,shortname=mixed,errors=remount-ro 0 2
 
 tmpfs           /tmp                    tmpfs   nosuid,nodev 0 0

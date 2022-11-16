@@ -14,3 +14,7 @@
 - name: install cli tools
   apk:
     name: file,neovim,zellij@edge,bat,ripgrep,fd,lsd,zoxide,skim,ouch@edge,starship
+
+- name: install container tools
+  apk:
+    name: podman@edge,kustomize@edge,runuser
