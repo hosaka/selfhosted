@@ -3,3 +3,6 @@
 
 # env
 .env
+
+# vpn
+wg0.conf
