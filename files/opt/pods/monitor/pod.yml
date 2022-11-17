@@ -10,6 +10,32 @@ spec:
   hostname: monitor
   restartPolicy: Always
   containers:
+    - name: grafana
+      image: docker.io/grafana/grafana:9.2.5
+      resources: {}
+      volumeMounts:
+        - name: localtime
+          mountPath: /etc/localtime
+        - name: grafana-data
+          mountPath: /var/lib/grafana
+        - name: grafana-config
+          mountPath: /etc/grafana
+        - name: grafana-dashboard-file
+          mountPath: /etc/grafana/provisioning/dashboards/dashboard.yml
+        - name: grafana-datasource-file
+          mountPath: /etc/grafana/provisioning/datasources/datasource.yml
+
+    - name: prometheus
+      image: docker.io/prom/prometheus:v2.40.1
+      resources: {}
+      volumeMounts:
+        - name: localtime
+          mountPath: /etc/localtime
+        - name: prometheus-data
+          mountPath: /prometheus
+        - name: prometheus-config-file
+          mountPath: /etc/prometheus/prometheus.yml
+
     - name: diun
       image: docker.io/crazymax/diun:4.22
       resources: {}
@@ -40,6 +66,30 @@ spec:
         path: /etc/localtime
         readOnly: true
         type: File
+    - name: grafana-data
+      persistentVolumeClaim:
+        claimName: grafana-data
+    - name: grafana-config
+      persistentVolumeClaim:
+        claimName: grafana-config
+    - name: grafana-dashboard-file
+      hostPath:
+        path: /opt/pods/monitor/grafana/dashboard.yml
+        readOnly: true
+        type: File
+    - name: grafana-datasource-file
+      hostPath:
+        path: /opt/pods/monitor/grafana/datasource.yml
+        readOnly: true
+        type: File
+    - name: prometheus-data
+      persistentVolumeClaim:
+        claimName: prometheus-data
+    - name: prometheus-config-file
+      hostPath:
+        path: /opt/pods/monitor/prometheus/prometheus.yml
+        readOnly: true
+        type: File
     - name: diun-config
       hostPath:
         path: /opt/pods/monitor/diun/diun.yml
@@ -48,6 +98,7 @@ spec:
     - name: diun-socket
       hostPath:
         path: /tmp/podman-run-1000/podman/podman.sock
+        readOnly: true
         type: File
     - name: diun-data
       persistentVolumeClaim:
