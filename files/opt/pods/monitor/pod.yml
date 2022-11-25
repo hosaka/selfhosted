@@ -51,7 +51,7 @@ spec:
           mountPath: /data
 
     - name: ntfy
-      image: docker.io/binwiederhier/ntfy:v1.28.0
+      image: docker.io/binwiederhier/ntfy:v1.29.0
       resources: {}
       args: ["serve"]
       volumeMounts:
@@ -59,6 +59,8 @@ spec:
           mountPath: /etc/localtime
         - name: ntfy-cache
           mountPath: /var/cache/ntfy
+        - name: ntfy-config-file
+          mountPath: /etc/ntfy/server.yml
 
   volumes:
     - name: localtime
@@ -106,3 +108,8 @@ spec:
     - name: ntfy-cache
       persistentVolumeClaim:
         claimName: ntfy-cache
+    - name: ntfy-config-file
+      hostPath:
+        path: /opt/pods/monitor/ntfy/server.yml
+        readOnly: true
+        type: File

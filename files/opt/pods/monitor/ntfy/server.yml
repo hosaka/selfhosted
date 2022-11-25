@@ -1,6 +1,6 @@
 behind-proxy: true
-listen-http: "127.0.0.1:2586"
-base-url: "https://ntfy.example.com"
+listen-http: ":2586"
+base-url: "http:/localhost"
 
 cache-file: "/var/cache/ntfy/cache.db"
 attachment-cache-dir: "/var/cache/ntfy/attachments"

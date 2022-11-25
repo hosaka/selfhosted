@@ -16,28 +16,6 @@ replacements:
   - source:
       kind: ConfigMap
       name: monitor-config
-      fieldPath: data.MONITOR_DIUN_CONFIG_FILE
-    targets:
-      - select:
-          kind: Pod
-          name: monitor
-        fieldPaths:
-          - spec.volumes.[name=diun-config].hostPath.path
-
-  - source:
-      kind: ConfigMap
-      name: monitor-config
-      fieldPath: data.MONITOR_DIUN_SOCKET_FILE
-    targets:
-      - select:
-          kind: Pod
-          name: monitor
-        fieldPaths:
-          - spec.volumes.[name=diun-socket].hostPath.path
-
-  - source:
-      kind: ConfigMap
-      name: monitor-config
       fieldPath: data.MONITOR_GRAFANA_DASHBOARD_FILE
     targets:
       - select:
@@ -67,3 +45,36 @@ replacements:
           name: monitor
         fieldPaths:
           - spec.volumes.[name=prometheus-config-file].hostPath.path
+
+  - source:
+      kind: ConfigMap
+      name: monitor-config
+      fieldPath: data.MONITOR_DIUN_CONFIG_FILE
+    targets:
+      - select:
+          kind: Pod
+          name: monitor
+        fieldPaths:
+          - spec.volumes.[name=diun-config].hostPath.path
+
+  - source:
+      kind: ConfigMap
+      name: monitor-config
+      fieldPath: data.MONITOR_DIUN_SOCKET_FILE
+    targets:
+      - select:
+          kind: Pod
+          name: monitor
+        fieldPaths:
+          - spec.volumes.[name=diun-socket].hostPath.path
+
+  - source:
+      kind: ConfigMap
+      name: monitor-config
+      fieldPath: data.MONITOR_NTFY_CONFIG_FILE
+    targets:
+      - select:
+          kind: Pod
+          name: monitor
+        fieldPaths:
+          - spec.volumes.[name=ntfy-config-file].hostPath.path
