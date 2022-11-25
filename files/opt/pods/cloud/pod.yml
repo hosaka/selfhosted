@@ -1,0 +1,11 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: cloud
+  name: cloud
+spec:
+  restartPolicy: Always
+  containers:
+    - name: immich
