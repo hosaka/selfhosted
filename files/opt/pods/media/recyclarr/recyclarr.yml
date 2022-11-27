@@ -4,9 +4,30 @@ radarr:
 
     quality_definition:
       type: movie
-      preferred_ratio: 0.5
-    
+      preferred_ratio: 1.0
+    delete_old_custom_formats: true
+
     custom_formats:
+      - trash_ids:
+        - ed27ebfef2f323e964fb1f61391bcb35 # HD Bluray Tier 01 (1800)
+        - c20c8647f2746a1f4c4262b0fbbeeeae # HD Bluray Tier 02 (1750)
+        - c20f169ef63c5f40c2def54abaf4438e # WEB Tier 01 (1700)
+        - 403816d65392c79236dcb6dd591aeda4 # WEB Tier 02 (1650)
+        - af94e0fe497124d1f9ce732069ec8c3b # WEB Tier 03 (1600)
+        - eecf3a857724171f968a66cb5719e152 # IMAX (800)
+        - 957d0f44b592285f26449575e8b1167e # Special Edition (125)
+        - 0f12c086e289cf966fa5948eac571f44 # Hybrid (100)
+        - 570bc9ebecd92723d2d21500f4be314c # Remaster (25)
+        - eca37840c13c6ef2dd0262b141a5482f # 4K Remaster (25)
+        - e0c07d59beb37348e975a930d5e50319 # Criterion Collection (25)
+        - ae43b294509409a6a13919dedd4764c4 # Repack2 (6)
+        - e7718d7a3ce595f289bfee26adc178f5 # Repack/Proper (5)
+        - ae9b7c9ebde1f3bd336a8cbd1ec4c5e5 # No-RlsGroup (-10000)
+        - 90a6f9a284dff5103f6346090e6280c8 # LQ (-10000)
+        - b8cd450cbfa689c0259a01d9e29ba3d6 # 3D (-10000)
+        quality_profiles:
+          - name: HD
+
       - trash_ids:
         - fb3ccc5d5cc8f77c9055d4cb4561dded # Anime BD Tier 01 (Top SeaDex Muxers) (1400)
         - 66926c8fa9312bc74ab71bf69aae4f4a # Anime BD Tier 02 (SeaDex Muxers) (1300)
@@ -22,7 +43,6 @@ radarr:
         - 9edaeee9ea3bcd585da9b7c0ac3fc54f # Anime Web Tier 04 (Official Subs) (300)
         - 22d953bbe897857b517928f3652b8dd3 # Anime Web Tier 05 (FanSubs) (200)
         - a786fbc0eae05afe3bb51aee3c83a9d4 # Anime Web Tier 06 (FanSubs) (100)
-        - 06b6542a47037d1e33b15aa3677c2365 # Anime Raws (-10000)
         - b0fdc5897f68c9a68c70c25169f77447 # Anime LQ Groups (-10000)
         - 064af5f084a0a24458cc8ecd3220f93f # Uncensored (0)
         - c259005cbaeb5ab44c06eddb4751e70c # v0 (-51)
@@ -31,20 +51,63 @@ radarr:
         - db92c27ba606996b146b57fbe6d09186 # v3 (3)
         - d4e5e842fad129a3c097bdb2d20d31a0 # v4 (4)
         - 60f6d50cbd3cfc3e9a8c00e3a30c3114 # VRV Streaming Service (10)
-        - a5d148168c4506b55cf53984107c396e # 10bit (0)
         - 4a3b087eea2ce012fcc1ce319259a3be # Anime Dual Audio (0)
         - b23eae459cc960816f2d6ba84af45055 # Dubs Only (-10000)
         quality_profiles:
-          - name: Anime - 720p/1080p
-    delete_old_custom_formats: true
+          - name: AnimeHD
+
+      - trash_ids:
+        - 06b6542a47037d1e33b15aa3677c2365 # Anime Raws (-10000)
+        quality_profiles:
+          - name: AnimeHD
+            score: 50
+
+      - trash_ids:
+        - dc98083864ea246d05a42df0d05f81cc # x265 (HD) (-10000)
+        quality_profiles:
+          - name: HD
+          - name: AnimeHD
 
 sonarr:
   - base_url: http://127.0.0.1:8989 
     api_key: 8783345c388e4b009d24c64758de5660
 
     quality_definition: hybrid
+    delete_old_custom_formats: true
 
     custom_formats:
+      - trash_ids:
+        - e6258996055b9fbab7e9cb2f75819294 # WEB Tier 01 (1700)
+        - 58790d4e2fdcd9733aa7ae68ba2bb503 # WEB Tier 02 (1650)
+        - d84935abd3f8556dcd51d4f27e22d0a6 # WEB Tier 03 (1600)
+        - d0c516558625b04b363fa6c5c2c7cfd4 # WEB Scene (1800)
+        - 44e7c4de10ae50265753082e5dc76047 # Repack v3 (13)
+        - eb3d5cc0a2be0db205fb823640db6a3c # Repack v2 (12)
+        - ec8fa7296b64e8cd390a1600981f3923 # Repack/Proper (11)
+        - 9c11cd3f07101cdba90a2d81cf0e56b4 # LQ (-10000)
+        - 82d40da2bc6923f41e14394075dd4b03 # No-RlsGroup (-10000)
+        quality_profiles:
+          - name: HD
+
+      - trash_ids:
+        - d660701077794679fd59e8bdf4ce3a29 # AMZN (100)
+        - f67c9ca88f463a48346062e8ad07713f # ATVP (100)
+        - ae58039e1319178e6be73caab5c42166 # SHO (95)
+        - 89358767a60cc28783cdc3d0be9388a4 # DSNP (90)
+        - d34870697c9db575f17700212167be23 # NF (90)
+        - 3ac5d84fce98bab1b531393e9c82f467 # QIBI (90)
+        - a880d6abc21e7c16884f3ae393f84179 # HMAX (90)
+        - f6cce30f1733d5c8194222a7507909bb # HULU (85)
+        - 1656adc6d7bb2c8cca6acfb6592db421 # PCOK (85)
+        - 36b72f59f4ea20aad9316f475f2d9fbb # DCU (75)
+        - 7a235133c87f7da4c8cccceca7e3c7a6 # HBO (75)
+        - c30d2958827d1867c73318a5a2957eb1 # RED (75)
+        - 0ac24a2a68a9700bcb7eeca8e5cd644c # iT (75)
+        - c67a75ae4a1715f2bb4d492755ba4195 # PMTP (75)
+        quality_profiles:
+          - name: HD
+          - name: AnimeHD
+
       - trash_ids:
         - 949c16fe0a8147f50ba82cc2df9411c9 # Anime BD Tier 01 (Top SeaDex Muxers) (1400)
         - ed7f1e315e000aef424a58517fa48727 # Anime BD Tier 02 (SeaDex Muxers) (1300)
@@ -60,7 +123,6 @@ sonarr:
         - 4fd5528a3a8024e6b49f9c67053ea5f3 # Anime Web Tier 04 (Official Subs) (300)
         - 29c2a13d091144f63307e4a8ce963a39 # Anime Web Tier 05 (FanSubs) (200)
         - dc262f88d74c651b12e9d90b39f6c753 # Anime Web Tier 06 (FanSubs) (100)
-        - b4a1b3d705159cdca36d71e57ca86871 # Anime Raws (-10000)
         - e3515e519f3b1360cbfc17651944354c # Anime LQ Groups (-10000)
         - 026d5aadd1a6b4e550b134cb6c72b3ca # Uncensored (0)
         - d2d7b8a9d39413da5f44054080e028a3 # v0 (-51)
@@ -73,5 +135,16 @@ sonarr:
         - 418f50b10f1907201b6cfdf881f467b7 # Anime Dual Audio (0)
         - 9c14d194486c4014d422adc64092d794 # Dubs Only (-10000)
         quality_profiles:
-          - name: Anime - 720p/1080p
-    delete_old_custom_formats: true
+          - name: AnimeHD
+
+      - trash_ids:
+        - b4a1b3d705159cdca36d71e57ca86871 # Anime Raws (-10000)
+        quality_profiles:
+          - name: AnimeHD
+            score: 50
+
+      - trash_ids:
+        - 47435ece6b99a0b477caf360e79ba0bb # x265 (HD) (-10000)
+        quality_profiles:
+          - name: HD
+          - name: AnimeHD

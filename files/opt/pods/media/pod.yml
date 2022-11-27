@@ -7,7 +7,7 @@ data:
   PUID: "1000"
   PGID: "1000"
   UMASK: "002"
-  TZ: "Etc/UTC"
+  TZ: "UTC"
 ---
 apiVersion: v1
 kind: Pod
@@ -55,7 +55,7 @@ spec:
           mountPath: /config
 
     - name: sonarr
-      image: docker.io/hotio/sonarr:v4-4.0.0.151
+      image: docker.io/hotio/sonarr:v4-4.0.0.164
       resources: {}
       envFrom:
         - configMapRef:
@@ -69,27 +69,27 @@ spec:
         - name: sonarr-config
           mountPath: /config
 
-    - name: bazarr
-      image: docker.io/hotio/bazarr:release-1.1.2
-      resources: {}
-      envFrom:
-        - configMapRef:
-            name: hotio-config
-            optional: false
-      volumeMounts:
-        - name: localtime
-          mountPath: /etc/localtime
-        - name: bazarr-config
-          mountPath: /config
-        - name: media-collection
-          mountPath: /data/media/collection
+    # - name: bazarr
+    #   image: docker.io/hotio/bazarr:release-1.1.2
+    #   resources: {}
+    #   envFrom:
+    #     - configMapRef:
+    #         name: hotio-config
+    #         optional: false
+    #   volumeMounts:
+    #     - name: localtime
+    #       mountPath: /etc/localtime
+    #     - name: bazarr-config
+    #       mountPath: /config
+    #     - name: media-collection
+    #       mountPath: /data/media/collection
 
     - name: recyclarr
       image: docker.io/recyclarr/recyclarr:2.6
       resources: {}
       env:
         - name: TZ
-          value: "Etc/UTC"
+          value: "UTC"
         - name: CRON_SCHEDULE
           value: "@daily"
       volumeMounts:
@@ -115,22 +115,9 @@ spec:
         - name: prowlarr-config
           mountPath: /config
 
-    - name: qbit
-      image: docker.io/hotio/qbittorrent:release-4.4.5
+    - name: jellyseerr
+      image: docker.io/fallenbagel/jellyseerr:1.2.1
       resources: {}
-      securityContext:
-        capabilities:
-          add:
-            - NET_RAW
-            - NET_ADMIN
-            - SYS_MODULE
-      env:
-        - name: VPN_ENABLED
-          value: "true"
-        - name: VPN_IP_CHECK_DELAY
-          value: "10"
-        - name: VPN_IP_CHECK_EXIT
-          value: "false"
       envFrom:
         - configMapRef:
             name: hotio-config
@@ -138,12 +125,8 @@ spec:
       volumeMounts:
         - name: localtime
           mountPath: /etc/localtime
-        - name: qbittorrent-config
-          mountPath: /config
-        - name: qbittorrent-wireguard
-          mountPath: /config/wireguard/wg0.conf
-        - name: downloads-torrent
-          mountPath: /data/media/downloads/torrent
+        - name: jellyseerr-config
+          mountPath: /app/config
 
     - name: nzbget
       image: docker.io/hotio/nzbget:release-21.1
@@ -173,10 +156,6 @@ spec:
     - name: media-collection
       hostPath:
         path: /mnt/pool/storage/media/collection
-        type: Directory
-    - name: downloads-torrent
-      hostPath:
-        path: /mnt/pool/storage/media/downloads/torrent
         type: Directory
     - name: downloads-usenet
       hostPath:
@@ -212,17 +191,12 @@ spec:
     - name: recyclarr-config
       persistentVolumeClaim:
         claimName: recyclarr-config
+    - name: jellyseerr-config
+      persistentVolumeClaim:
+        claimName: jellyseerr-config
     - name: recyclarr-config-file
       hostPath:
         path: /opt/pods/media/recyclarr/recyclarr.yml
-        readOnly: true
-        type: File
-    - name: qbittorrent-config
-      persistentVolumeClaim:
-        claimName: qbittorrent-config
-    - name: qbittorrent-wireguard
-      hostPath:
-        path: /opt/pods/media/qbittorrent/wg0.conf
         readOnly: true
         type: File
     - name: nzbget-config
