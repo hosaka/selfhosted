@@ -1,0 +1,6 @@
+watch:
+  workers: 10
+  schedule: "0 */6 * * *"
+providers:
+  file:
+    filename: /config.yml

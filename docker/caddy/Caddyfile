@@ -1,0 +1,85 @@
+{
+    email {env.PROXY_CF_API_EMAIL}
+    acme_dns cloudflare {env.PROXY_CF_API_TOKEN}
+    # acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+    skip_install_trust
+}
+
+# public
+{$PROXY_PUBLIC_DOMAIN} {
+    handle {
+        respond 404
+    }
+}
+
+jellyfin.{$PROXY_PRIVATE_DOMAIN}, jellyfin.{$PROXY_PUBLIC_DOMAIN} {
+    reverse_proxy jellyfin:8096
+}
+jellyseerr.{$PROXY_PRIVATE_DOMAIN}, jellyseerr.{$PROXY_PUBLIC_DOMAIN} {
+    reverse_proxy jellyseerr:5055
+}
+radarr.{$PROXY_PRIVATE_DOMAIN} {
+    reverse_proxy radarr:7878
+}
+sonarr.{$PROXY_PRIVATE_DOMAIN} {
+    reverse_proxy sonarr:8989
+}
+bazarr.{$PROXY_PRIVATE_DOMAIN} {
+    reverse_proxy bazarr:6767
+}
+prowlarr.{$PROXY_PRIVATE_DOMAIN} {
+    reverse_proxy prowlarr:9696
+}
+navidrome.{$PROXY_PRIVATE_DOMAIN}, navidrome.{$PROXY_PUBLIC_DOMAIN} {
+    reverse_proxy navidrome:4533
+}
+lidarr.{$PROXY_PRIVATE_DOMAIN} {
+    reverse_proxy lidarr:8686
+}
+deemix.{$PROXY_PRIVATE_DOMAIN} {
+    reverse_proxy deemix:6595
+}
+nzb.{$PROXY_PRIVATE_DOMAIN} {
+    reverse_proxy nzbget:6789
+}
+qbit.{$PROXY_PRIVATE_DOMAIN} {
+    reverse_proxy qbit:8080
+}
+immich.{$PROXY_PRIVATE_DOMAIN}, immich.{$PROXY_PUBLIC_DOMAIN} {
+    reverse_proxy immich:8080
+}
+vaultwarden.{$PROXY_PRIVATE_DOMAIN}, vaultwarden.{$PROXY_PUBLIC_DOMAIN} {
+    encode gzip
+
+    header {
+        # enable HTTP Strict Transport Security (HSTS)
+        # Strict-Transport-Security "max-age=31536000;"
+        # enable cross-site filter (XSS) and tell browser to block detected attacks
+        X-XSS-Protection "1; mode=block"
+        # disallow the site to be rendered within a frame (clickjacking protection)
+        X-Frame-Options "DENY"
+        # prevent search engines from indexing (optional)
+        X-Robots-Tag "none"
+        # server name removing
+        -Server
+    }
+
+    # allow access to the admin interface only from local networks
+    @insecureadmin {
+        not remote_ip 192.168.0.0/16 172.16.0.0/12 10.0.0.0/8
+        path /admin*
+    }
+    redir @insecureadmin /
+
+    # notifications redirected to the websocket server
+    reverse_proxy /notifications/hub vaultwarden:3012
+
+    # proxy everything else to Rocket
+    reverse_proxy vaultwarden:80 {
+        # send the true remote IP to Rocket, fail2ban can ban correct IP from the log
+        header_up X-Real-IP {remote_host}
+    }
+}
+gotify.{$PROXY_PRIVATE_DOMAIN}, gotify.{$PROXY_PUBLIC_DOMAIN} {
+    reverse_proxy gotify:80
+}

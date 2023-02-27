@@ -1,0 +1,463 @@
+version: "3"
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: 100m
+    max-file: "3"
+    tag: '{{.ImageName}}|{{.Name}}|{{.ImageFullID}}|{{.FullID}}'
+
+x-hotio: &environment-hotio
+  environment:
+    - PUID=${MEDIA_PUID}
+    - PGID=${MEDIA_PGID}
+    - UMASK=${MEDIA_UMASK}
+    - TZ=${TIMEZONE}
+
+networks:
+  proxy:
+  cloudflared:
+  immich:
+  monitor:
+
+volumes:
+  caddy-data:
+  caddy-config:
+
+  jellyfin-config:
+  jellyfin-cache:
+  radarr-config:
+  sonarr-config:
+  lidarr-config:
+  navidrome-data:
+  prowlarr-config:
+  recyclarr-config:
+  jellyseerr-config:
+  deemix-config:
+  nzbget-config:
+  qbit-config:
+
+  media-root:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: ${MEDIA_ROOT_PATH}
+  media-collection:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: ${MEDIA_COLLECTION_PATH}
+  media-collection-music:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: ${MEDIA_COLLECTION_MUSIC_PATH}
+  downloads-torrent:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: ${MEDIA_DOWNLOADS_TORRENT_PATH}
+  downloads-usenet:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: ${MEDIA_DOWNLOADS_USENET_PATH}
+  downloads-deemix:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /mnt/pool/storage/media/downloads/deemix
+
+  immich-database-data:
+  immich-upload:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: ${IMMICH_UPLOAD_LOCATION}
+
+  vaultwarden-data:
+
+  gotify-data:
+  diun-data:
+
+services:
+  caddy:
+    image: caddy:local
+    build:
+      context: ./caddy
+      dockerfile: Containerfile
+      args:
+        - CADDY_VERSION=2.6.4
+    environment:
+      - PROXY_CF_API_EMAIL=${PROXY_CF_API_EMAIL}
+      - PROXY_CF_API_TOKEN=${PROXY_CF_API_TOKEN}
+      - PROXY_PUBLIC_DOMAIN=${PROXY_PUBLIC_DOMAIN}
+      - PROXY_PRIVATE_DOMAIN=${PROXY_PRIVATE_DOMAIN}
+      - CADDY_INGRESS_NETWORKS=proxy
+    logging: *logging
+    networks:
+      - proxy
+      - cloudflared
+    ports:
+      - 80:80
+      - 443:443/tcp
+      - 443:443/udp
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - caddy-data:/data
+      - caddy-config:/config
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+
+  blocky:
+    image: docker.io/spx01/blocky:v0.20
+    logging: *logging
+    ports:
+      - 53:53/tcp
+      - 53:53/udp
+      # prometheus
+      # - 4000:4000
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./blocky/config.yml:/app/config.yml
+
+  cloudflared:
+    image: docker.io/cloudflare/cloudflared:2023.2.1
+    command: tunnel --no-autoupdate run --token ${PROXY_CF_TUNNEL_TOKEN}
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    logging: *logging
+    networks:
+      - cloudflared
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+
+  jellyfin:
+    image: docker.io/hotio/jellyfin:release-10.8.9-1
+    devices:
+      - ${MEDIA_JELLYFIN_CARD}:/dev/dri/card0
+      - ${MEDIA_JELLYFIN_RENDER}:/dev/dri/renderD128
+    <<: *environment-hotio
+    group_add:
+      - ${MEDIA_JELLYFIN_VIDEO_GROUP}
+    logging: *logging
+    networks:
+      - proxy
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - media-collection:/data/media/collection
+      - jellyfin-config:/config
+      - jellyfin-cache:/cache
+
+  jellyseerr:
+    image: docker.io/fallenbagel/jellyseerr:1.4.1
+    <<: *environment-hotio
+    logging: *logging
+    networks:
+      - proxy
+      - monitor
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - jellyseerr-config:/app/config
+
+  radarr:
+    image: docker.io/hotio/radarr:release-4.3.2.6857
+    <<: *environment-hotio
+    logging: *logging
+    networks:
+      - proxy
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - media-root:/data/media
+      - radarr-config:/config
+
+  sonarr:
+    image: docker.io/hotio/sonarr:v4-4.0.0.391
+    <<: *environment-hotio
+    logging: *logging
+    networks:
+      - proxy
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - media-root:/data/media
+      - sonarr-config:/config
+
+  prowlarr:
+    image: docker.io/hotio/prowlarr:release-1.2.2.2699
+    <<: *environment-hotio
+    logging: *logging
+    networks:
+      - proxy
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - media-root:/data/media
+      - prowlarr-config:/config
+
+  recyclarr:
+    image: docker.io/recyclarr/recyclarr:4.3.0
+    environment:
+      - TZ=${TIMEZONE}
+    logging: *logging
+    networks:
+      - proxy
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - recyclarr-config:/config
+      - ./recyclarr/recyclarr.yml:/config/recyclarr.yml
+
+  navidrome:
+    image: docker.io/deluan/navidrome:0.49.3
+    environment:
+      - ND_ENABLETRANSCODINGCONFIG=false
+    logging: *logging
+    networks:
+      - proxy
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - navidrome-data:/data
+      - media-collection-music:/music:ro
+
+  lidarr:
+    image: docker.io/hotio/lidarr:release-1.0.2.2592
+    <<: *environment-hotio
+    logging: *logging
+    networks:
+      - proxy
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - media-root:/data/media
+      - lidarr-config:/config
+
+  deemix:
+    image: registry.gitlab.com/bockiii/deemix-docker:latest
+    environment:
+      - PUID=${MEDIA_PUID}
+      - PGID=${MEDIA_PGID}
+      - UMASK_SET=${MEDIA_UMASK}
+      - DEEMIX_SINGLE_USER=true
+    logging: *logging
+    networks:
+      - proxy
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - deemix-config:/config
+      - downloads-deemix:/downloads
+
+  nzbget:
+    image: docker.io/hotio/nzbget:release
+    <<: *environment-hotio
+    logging: *logging
+    networks:
+      - proxy
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - nzbget-config:/config
+      - downloads-usenet:/data/media/downloads/usenet
+
+  qbit:
+    image: docker.io/hotio/qbittorrent:release
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - PUID=${MEDIA_PUID}
+      - PGID=${MEDIA_PGID}
+      - UMASK=${MEDIA_UMASK}
+      - TZ=${TIMEZONE}
+      - VPN_ENABLED=${MEDIA_TORRENT_VPN_ENABLED}
+      - VPN_IP_CHECK_DELAY=${MEDIA_TORRENT_VPN_IP_CHECK_DELAY}
+      - VPN_IP_CHECK_EXIT=${MEDIA_TORRENT_VPN_IP_CHECK_EXIT}
+      - VPN_LAN_NETWORK=${MEDIA_TORRENT_VPN_LAN_NETWORK}
+    logging: *logging
+    networks:
+      - proxy
+    restart: unless-stopped
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1
+      - net.ipv6.conf.all.disable_ipv6=0
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - qbit-config:/config
+      - ./qbittorrent/wg0.conf:/config/wireguard/wg0.conf
+      - downloads-torrent:/data/media/downloads/torrent
+
+  immich-server:
+    image: docker.io/altran1502/immich-server:release
+    depends_on:
+      - immich-redis
+      - immich-database
+    entrypoint: ["/bin/sh", "./start-server.sh"]
+    environment:
+      - NODE_ENV=production
+      - DB_HOSTNAME=immich-database
+      - DB_USERNAME=${IMMICH_DB_USERNAME}
+      - DB_PASSWORD=${IMMICH_DB_PASSWORD}
+      - DB_DATABASE_NAME=${IMMICH_DB_DATABASE_NAME}
+      - REDIS_HOSTNAME=immich-redis
+      - JWT_SECRET=${IMMICH_JWT_SECRET}
+      - LOG_LEVEL=${IMMICH_LOG_LEVEL}
+    logging: *logging
+    networks:
+      - immich
+    restart: unless-stopped
+    volumes:
+      - immich-upload:/usr/src/app/upload
+
+  immich-microservices:
+    image: docker.io/altran1502/immich-server:release
+    depends_on:
+      - immich-redis
+      - immich-database
+    entrypoint: ["/bin/sh", "./start-microservices.sh"]
+    environment:
+      - NODE_ENV=production
+      - DB_HOSTNAME=immich-database
+      - DB_USERNAME=${IMMICH_DB_USERNAME}
+      - DB_PASSWORD=${IMMICH_DB_PASSWORD}
+      - DB_DATABASE_NAME=${IMMICH_DB_DATABASE_NAME}
+      - REDIS_HOSTNAME=immich-redis
+      - JWT_SECRET=${IMMICH_JWT_SECRET}
+      - LOG_LEVEL=${IMMICH_LOG_LEVEL}
+    logging: *logging
+    networks:
+      - immich
+    restart: unless-stopped
+    volumes:
+      - immich-upload:/usr/src/app/upload
+
+  immich-web:
+    image: docker.io/altran1502/immich-web:release
+    entrypoint: ["/bin/sh", "./entrypoint.sh"]
+    logging: *logging
+    networks:
+      - immich
+    restart: unless-stopped
+
+  immich-redis:
+    image: docker.io/redis:6.2
+    logging: *logging
+    networks:
+      - immich
+    restart: unless-stopped
+
+  immich-database:
+    image: docker.io/postgres:14
+    environment:
+      - POSTGRES_USER=${IMMICH_DB_USERNAME}
+      - POSTGRES_PASSWORD=${IMMICH_DB_PASSWORD}
+      - POSTGRES_DB=${IMMICH_DB_DATABASE_NAME}
+    logging: *logging
+    networks:
+      - immich
+    restart: unless-stopped
+    volumes:
+      - immich-database-data:/var/lib/postgresql/data
+
+  immich:
+    image: docker.io/altran1502/immich-proxy:release
+    depends_on:
+      - immich-server
+    logging: *logging
+    networks:
+      - proxy
+      - immich
+    restart: unless-stopped
+
+  vaultwarden:
+    image: docker.io/vaultwarden/server:1.27.0-alpine
+    environment:
+      - ADMIN_TOKEN=${VAULTWARDEN_ADMIN_TOKEN}
+      - DOMAIN=https://vaultwarden.${PROXY_PUBLIC_DOMAIN}
+      - INVITATIONS_ALLOWED=false
+      - ORG_CREATION_USERS=none
+      - PASSWORD_HINTS_ALLOWED=false
+      - SHOW_PASSWORD_HINT=false
+      - SIGNUPS_ALLOWED=false
+      - SMTP_FROM=${VAULTWARDEN_SMTP_FROM}
+      - SMTP_HOST=${VAULTWARDEN_SMTP_HOST}
+      - SMTP_PASSWORD=${VAULTWARDEN_SMTP_PASSWORD}
+      - SMTP_PORT=${VAULTWARDEN_SMTP_PORT}
+      - SMTP_SECURITY=${VAULTWARDEN_SMTP_SECURITY}
+      - SMTP_USERNAME=${VAULTWARDEN_SMTP_USERNAME}
+      - TZ=${TIMEZONE}
+      - WEBSOCKET_ENABLED=true
+      - YUBICO_CLIENT_ID=${VAULTWARDEN_YUBICO_CLIENT_ID}
+      - YUBICO_SECRET_KEY=${VAULTWARDEN_YUBICO_SECRET_KEY}
+    logging: *logging
+    networks:
+      - proxy
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - vaultwarden-data:/data
+
+  gotify:
+    image: docker.io/gotify/server:2.2.4
+    environment:
+      - TZ=${TIMEZONE}
+    logging: *logging
+    networks:
+      - proxy
+      - monitor
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - gotify-data:/app/data
+
+  diun:
+    image: docker.io/crazymax/diun:4.24
+    command: serve
+    environment:
+      - TZ=${TIMEZONE}
+      - DIUN_NOTIF_GOTIFY_ENDPOINT=gotify
+      - DIUN_NOTIF_GOTIFY_TOKEN=${MONITOR_DIUN_GOTIFY_TOKEN}
+    logging: *logging
+    networks:
+      - monitor
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - diun-data:/data
+      - ./diun/diun.yml:/diun.yml:ro
+      - ./diun/config.yml:/config.yml:ro
+
+  # grafana:
+  #   image: docker.io/grafana/grafana:9.3.2
+  #   logging: *logging
+  #   networks:
+  #     - proxy
+  #   restart: unless-stopped
+  #   volumes:
+  #     - /etc/localtime:/etc/localtime:ro
+  #     - grafana-data:/var/lib/grafana
+  #     - grafana-config:/etc/grafana
+  #     - ./grafana/dashboard.yml:/etc/grafana/provisioning/dashboards/dashboard.yml
+  #     - ./grafana/dashboard.yml:/etc/grafana/provisioning/datasources/datasource.yml
+  # prometheus:
+  #   image: docker.io/prom/prometheus:v2.41.0
+  #   logging: *logging
+  #   networks:
+  #     - proxy
+  #   restart: unless-stopped
+  #   volumes:
+  #     - /etc/localtime:/etc/localtime:ro
+  #     - prometheus-data:/prometheus
+  #     - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
