@@ -86,6 +86,9 @@ volumes:
 
   gotify-data:
   diun-data:
+  grafana-data:
+  grafana-config:
+  prometheus-data:
 
 services:
   caddy:
@@ -119,11 +122,11 @@ services:
   blocky:
     image: docker.io/spx01/blocky:v0.20
     logging: *logging
+    networks:
+      - monitor
     ports:
       - 53:53/tcp
       - 53:53/udp
-      # prometheus
-      # - 4000:4000
     restart: unless-stopped
     volumes:
       - /etc/localtime:/etc/localtime:ro
@@ -427,7 +430,7 @@ services:
     command: serve
     environment:
       - TZ=${TIMEZONE}
-      - DIUN_NOTIF_GOTIFY_ENDPOINT=gotify
+      - DIUN_NOTIF_GOTIFY_ENDPOINT=http://gotify
       - DIUN_NOTIF_GOTIFY_TOKEN=${MONITOR_DIUN_GOTIFY_TOKEN}
     logging: *logging
     networks:
@@ -439,25 +442,38 @@ services:
       - ./diun/diun.yml:/diun.yml:ro
       - ./diun/config.yml:/config.yml:ro
 
-  # grafana:
-  #   image: docker.io/grafana/grafana:9.3.2
-  #   logging: *logging
-  #   networks:
-  #     - proxy
-  #   restart: unless-stopped
-  #   volumes:
-  #     - /etc/localtime:/etc/localtime:ro
-  #     - grafana-data:/var/lib/grafana
-  #     - grafana-config:/etc/grafana
-  #     - ./grafana/dashboard.yml:/etc/grafana/provisioning/dashboards/dashboard.yml
-  #     - ./grafana/dashboard.yml:/etc/grafana/provisioning/datasources/datasource.yml
-  # prometheus:
-  #   image: docker.io/prom/prometheus:v2.41.0
-  #   logging: *logging
-  #   networks:
-  #     - proxy
-  #   restart: unless-stopped
-  #   volumes:
-  #     - /etc/localtime:/etc/localtime:ro
-  #     - prometheus-data:/prometheus
-  #     - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+  grafana:
+    image: docker.io/grafana/grafana:9.4.1
+    logging: *logging
+    environment:
+      - TZ=${TIMEZONE}
+      - GF_SECURITY_ADMIN_USER=${MONITOR_GRAFANA_SECURITY_ADMIN_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${MONITOR_GRAFANA_SECURITY_ADMIN_PASSWORD}
+    networks:
+      - proxy
+      - monitor
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - grafana-data:/var/lib/grafana
+      - grafana-config:/etc/grafana
+      - ./grafana/dashboard.yml:/etc/grafana/provisioning/dashboards/dashboard.yml
+      - ./grafana/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
+
+  prometheus:
+    image: docker.io/prom/prometheus:v2.42.0
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.console.templates=/usr/share/prometheus/consoles"
+      - "--web.console.libraries=/usr/share/prometheus/console_libraries"
+    environment:
+      - TZ=${TIMEZONE}
+    logging: *logging
+    networks:
+      - monitor
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - prometheus-data:/prometheus
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml

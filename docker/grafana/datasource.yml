@@ -13,3 +13,5 @@ datasources:
     editable: false
     isDefault: true
     basicAuth: false
+    version: 1
+

@@ -83,3 +83,6 @@ vaultwarden.{$PROXY_PRIVATE_DOMAIN}, vaultwarden.{$PROXY_PUBLIC_DOMAIN} {
 gotify.{$PROXY_PRIVATE_DOMAIN}, gotify.{$PROXY_PUBLIC_DOMAIN} {
     reverse_proxy gotify:80
 }
+grafana.{$PROXY_PRIVATE_DOMAIN} {
+    reverse_proxy grafana:3000
+}
