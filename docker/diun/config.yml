@@ -1,3 +1,12 @@
+- name: docker.io/caddy
+  watch_repo: true
+  max_tags: 3
+  sort_tags: semver
+  notify_on:
+    - new
+  include_tags:
+    - ^\d+\.\d+\.\d+-alpine$
+
 - name: docker.io/spx01/blocky
   watch_repo: true
   max_tags: 3
