@@ -195,7 +195,7 @@ services:
       - jellyseerr-config:/app/config
 
   radarr:
-    image: docker.io/hotio/radarr:release-4.3.2.6857
+    image: docker.io/hotio/radarr:release-4.4.4.7068
     <<: *environment-hotio
     logging: *logging
     networks:
@@ -207,7 +207,7 @@ services:
       - radarr-config:/config
 
   sonarr:
-    image: docker.io/hotio/sonarr:v4-4.0.0.435
+    image: docker.io/hotio/sonarr:v4-4.0.0.448
     <<: *environment-hotio
     logging: *logging
     networks:
@@ -231,7 +231,7 @@ services:
       - prowlarr-config:/config
 
   recyclarr:
-    image: docker.io/recyclarr/recyclarr:4.3.0
+    image: docker.io/recyclarr/recyclarr:4.4.1
     environment:
       - TZ=${TIMEZONE}
     logging: *logging
@@ -257,7 +257,7 @@ services:
       - media-collection-music:/music:ro
 
   lidarr:
-    image: docker.io/hotio/lidarr:release-1.0.2.2592
+    image: docker.io/hotio/lidarr:release-1.1.4.3027
     <<: *environment-hotio
     logging: *logging
     networks:

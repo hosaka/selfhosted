@@ -1,5 +1,5 @@
 radarr:
-  - base_url: http://radarr:7878 
+  - base_url: http://radarr:7878
     api_key: 23a6027b0cff4a9e83b0346c562c39b2
 
     quality_definition:
@@ -27,6 +27,23 @@ radarr:
         - b8cd450cbfa689c0259a01d9e29ba3d6 # 3D (-10000)
         quality_profiles:
           - name: HD
+
+      - trash_ids:
+        - b3b3a6ac74ecbd56bcdbefa4799fb9df  # AMZN
+        - 40e9380490e748672c2522eaaeb692f7  # ATVP
+        - 84272245b2988854bfb76a16e60baea5  # DSNP
+        - 509e5f41146e278f9eab1ddaceb34515  # HBO
+        - 5763d1b0ce84aff3b21038eea8e9b8ad  # HMAX
+        - 526d445d4c16214309f0fd2b3be18a89  # Hulu
+        - 170b1d363bd8516fbf3a3eb05d4faff6  # NF
+        - c9fd353f8f5f1baf56dc601c4cb29920  # PCOK
+        - e36a0ba1bc902b26ee40818a1d59b8bd  # PMTP
+        - c2863d2a50c9acad1fb50e53ece60817  # STAN
+        - cc5e51a9e85a6296ceefe097a77f12f4  # BCORE
+        - 2a6039655313bf5dab1e43523b62c374  # MA
+        quality_profiles:
+          - name: HD
+          - name: AnimeHD
 
       - trash_ids:
         - fb3ccc5d5cc8f77c9055d4cb4561dded # Anime BD Tier 01 (Top SeaDex Muxers) (1400)
@@ -57,7 +74,7 @@ radarr:
           - name: AnimeHD
 
       - trash_ids:
-        - 06b6542a47037d1e33b15aa3677c2365 # Anime Raws (-10000)
+        - 06b6542a47037d1e33b15aa3677c2365 # Anime Raws
         quality_profiles:
           - name: AnimeHD
             score: 50
@@ -68,8 +85,14 @@ radarr:
           - name: HD
           - name: AnimeHD
 
+      - trash_ids:
+        - a5d148168c4506b55cf53984107c396e # 10bit (HD) (-10000)
+        quality_profiles:
+          - name: HD
+          - name: AnimeHD
+
 sonarr:
-  - base_url: http://sonarr:8989 
+  - base_url: http://sonarr:8989
     api_key: 8783345c388e4b009d24c64758de5660
 
     quality_definition: hybrid
@@ -106,6 +129,15 @@ sonarr:
         - c67a75ae4a1715f2bb4d492755ba4195 # PMTP (75)
         quality_profiles:
           - name: HD
+          - name: AnimeHD
+
+      - trash_ids:
+        - 3e0b26604165f463f3e8e192261e7284 # CR (90)
+        - 1284d18e693de8efe0fe7d6b3e0b9170 # FUNi (90)
+        - 7dd31f3dee6d2ef8eeaa156e23c3857e # B-Global
+        - 4c67ff059210182b59cdd41697b8cb08 # Bilibili
+        - 570b03b3145a25011bf073274a407259 # HIDIVE
+        quality_profiles:
           - name: AnimeHD
 
       - trash_ids:
