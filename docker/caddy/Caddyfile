@@ -36,17 +36,20 @@ navidrome.{$PROXY_PRIVATE_DOMAIN}, navidrome.{$PROXY_PUBLIC_DOMAIN} {
 lidarr.{$PROXY_PRIVATE_DOMAIN} {
     reverse_proxy lidarr:8686
 }
-deemix.{$PROXY_PRIVATE_DOMAIN} {
-    reverse_proxy deemix:6595
-}
 nzb.{$PROXY_PRIVATE_DOMAIN} {
-    reverse_proxy nzbget:6789
+    reverse_proxy sabnzbd:8080
 }
 qbit.{$PROXY_PRIVATE_DOMAIN} {
     reverse_proxy qbit:8080
 }
 immich.{$PROXY_PRIVATE_DOMAIN}, immich.{$PROXY_PUBLIC_DOMAIN} {
     reverse_proxy immich:8080
+}
+paperless.{$PROXY_PRIVATE_DOMAIN} {
+    reverse_proxy paperless:8000 {
+        header_up -Authorization
+        header_up -X-Forwarded-User
+    }
 }
 vaultwarden.{$PROXY_PRIVATE_DOMAIN}, vaultwarden.{$PROXY_PUBLIC_DOMAIN} {
     encode gzip
@@ -60,14 +63,12 @@ vaultwarden.{$PROXY_PRIVATE_DOMAIN}, vaultwarden.{$PROXY_PUBLIC_DOMAIN} {
         X-Frame-Options "DENY"
         # prevent search engines from indexing (optional)
         X-Robots-Tag "none"
-        # server name removing
-        -Server
     }
 
     # allow access to the admin interface only from local networks
     @insecureadmin {
-        not remote_ip 192.168.0.0/16 172.16.0.0/12 10.0.0.0/8
         path /admin*
+        not remote_ip private_ranges
     }
     redir @insecureadmin /
 

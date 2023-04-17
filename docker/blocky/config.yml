@@ -15,14 +15,12 @@ blocking:
   blackLists:
     ads:
       - https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
-  whiteLists:
-    ads:
-      - |
-        # wifelist
-        rd.rakuten.co.jp 
+    exclude:
   clientGroupsBlock:
     default:
       - ads
+    wife-*:
+      - exclude
 
 prometheus:
   enable: true

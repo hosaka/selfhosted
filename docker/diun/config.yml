@@ -88,15 +88,20 @@
   include_tags:
     - ^release-\d+\.\d+\.\d+\.\d+$
 
-- name: docker.io/hotio/nzbget:release
+- name: docker.io/hotio/sabnzbd
+  watch_repo: true
+  max_tags: 3
+  sort_tags: default
   notify_on:
-    - update
+    - new
+  include_tags:
+    - ^release-\d+\.\d+\.\d+\.\d+$
 
 - name: docker.io/hotio/qbittorrent:release
   notify_on:
     - update
 
-- name: docker.io/altran1302/immich-server:release
+- name: docker.io/altran1502/immich-server:release
   notify_on:
     - update
 
@@ -119,6 +124,33 @@
     - ^\d+\.\d+\.\d+$
 
 - name: docker.io/crazymax/diun
+  watch_repo: true
+  max_tags: 3
+  sort_tags: semver
+  notify_on:
+    - new
+  include_tags:
+    - ^\d+\.\d+\.\d+$
+
+- name: docker.io/grafana/grafana
+  watch_repo: true
+  max_tags: 3
+  sort_tags: semver
+  notify_on:
+    - new
+  include_tags:
+    - ^\d+\.\d+\.\d+$
+
+- name: docker.io/prom/prometheus
+  watch_repo: true
+  max_tags: 3
+  sort_tags: semver
+  notify_on:
+    - new
+  include_tags:
+    - ^v\d+\.\d+\.\d+$
+
+- name: docker.io/paperlessngx/paperless-ngx
   watch_repo: true
   max_tags: 3
   sort_tags: semver

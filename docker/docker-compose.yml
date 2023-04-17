@@ -18,6 +18,7 @@ networks:
   proxy:
   cloudflared:
   immich:
+  paperless:
   monitor:
 
 volumes:
@@ -33,8 +34,7 @@ volumes:
   prowlarr-config:
   recyclarr-config:
   jellyseerr-config:
-  deemix-config:
-  nzbget-config:
+  sabnzbd-config:
   qbit-config:
 
   media-root:
@@ -55,6 +55,12 @@ volumes:
       o: bind
       type: none
       device: ${MEDIA_COLLECTION_MUSIC_PATH}
+  # media-collection-youtube:
+  #   driver: local
+  #   driver_opts:
+  #     o: bind
+  #     type: none
+  #     device: ${MEDIA_COLLECTION_YOUTUBE_PATH}
   downloads-torrent:
     driver: local
     driver_opts:
@@ -67,20 +73,33 @@ volumes:
       o: bind
       type: none
       device: ${MEDIA_DOWNLOADS_USENET_PATH}
-  downloads-deemix:
-    driver: local
-    driver_opts:
-      o: bind
-      type: none
-      device: /mnt/pool/storage/media/downloads/deemix
 
+  immich-model-cache:
+  immich-redis-data:
   immich-database-data:
+  immich-typesense-data:
   immich-upload:
     driver: local
     driver_opts:
       o: bind
       type: none
       device: ${IMMICH_UPLOAD_LOCATION}
+
+  paperless-redis-data:
+  paperless-data:
+  paperless-media:
+  paperless-consume:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: ${PAPERLESS_CONSUME_PATH}
+  paperless-export:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: ${PAPERLESS_EXPORT_PATH}
 
   vaultwarden-data:
 
@@ -120,7 +139,7 @@ services:
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile
 
   blocky:
-    image: docker.io/spx01/blocky:v0.20
+    image: docker.io/spx01/blocky:v0.21
     logging: *logging
     networks:
       - monitor
@@ -133,13 +152,14 @@ services:
       - ./blocky/config.yml:/app/config.yml
 
   cloudflared:
-    image: docker.io/cloudflare/cloudflared:2023.2.1
-    command: tunnel --no-autoupdate run --token ${PROXY_CF_TUNNEL_TOKEN}
+    image: docker.io/cloudflare/cloudflared:2023.4.0
+    command: tunnel --no-autoupdate --metrics 0.0.0.0:4506 run --token ${PROXY_CF_TUNNEL_TOKEN}
     extra_hosts:
       - host.docker.internal:host-gateway
     logging: *logging
     networks:
       - cloudflared
+      - monitor
     restart: unless-stopped
     volumes:
       - /etc/localtime:/etc/localtime:ro
@@ -187,7 +207,7 @@ services:
       - radarr-config:/config
 
   sonarr:
-    image: docker.io/hotio/sonarr:v4-4.0.0.391
+    image: docker.io/hotio/sonarr:v4-4.0.0.435
     <<: *environment-hotio
     logging: *logging
     networks:
@@ -199,7 +219,7 @@ services:
       - sonarr-config:/config
 
   prowlarr:
-    image: docker.io/hotio/prowlarr:release-1.2.2.2699
+    image: docker.io/hotio/prowlarr:release-1.3.2.3006
     <<: *environment-hotio
     logging: *logging
     networks:
@@ -248,24 +268,8 @@ services:
       - media-root:/data/media
       - lidarr-config:/config
 
-  deemix:
-    image: registry.gitlab.com/bockiii/deemix-docker:latest
-    environment:
-      - PUID=${MEDIA_PUID}
-      - PGID=${MEDIA_PGID}
-      - UMASK_SET=${MEDIA_UMASK}
-      - DEEMIX_SINGLE_USER=true
-    logging: *logging
-    networks:
-      - proxy
-    restart: unless-stopped
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - deemix-config:/config
-      - downloads-deemix:/downloads
-
-  nzbget:
-    image: docker.io/hotio/nzbget:release
+  sabnzbd:
+    image: docker.io/hotio/sabnzbd:release-3.7.2
     <<: *environment-hotio
     logging: *logging
     networks:
@@ -273,7 +277,7 @@ services:
     restart: unless-stopped
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - nzbget-config:/config
+      - sabnzbd-config:/config
       - downloads-usenet:/data/media/downloads/usenet
 
   qbit:
@@ -307,6 +311,7 @@ services:
     depends_on:
       - immich-redis
       - immich-database
+      - immich-typesense
     entrypoint: ["/bin/sh", "./start-server.sh"]
     environment:
       - NODE_ENV=production
@@ -315,8 +320,11 @@ services:
       - DB_PASSWORD=${IMMICH_DB_PASSWORD}
       - DB_DATABASE_NAME=${IMMICH_DB_DATABASE_NAME}
       - REDIS_HOSTNAME=immich-redis
+      - TYPESENSE_HOST=immich-typesense
+      - TYPESENSE_API_KEY=${IMMICH_TYPESENSE_API_KEY}
       - JWT_SECRET=${IMMICH_JWT_SECRET}
       - LOG_LEVEL=${IMMICH_LOG_LEVEL}
+      - TZ=${TIMEZONE}
     logging: *logging
     networks:
       - immich
@@ -329,6 +337,7 @@ services:
     depends_on:
       - immich-redis
       - immich-database
+      - immich-typesense
     entrypoint: ["/bin/sh", "./start-microservices.sh"]
     environment:
       - NODE_ENV=production
@@ -337,14 +346,29 @@ services:
       - DB_PASSWORD=${IMMICH_DB_PASSWORD}
       - DB_DATABASE_NAME=${IMMICH_DB_DATABASE_NAME}
       - REDIS_HOSTNAME=immich-redis
+      - TYPESENSE_HOST=immich-typesense
+      - TYPESENSE_API_KEY=${IMMICH_TYPESENSE_API_KEY}
       - JWT_SECRET=${IMMICH_JWT_SECRET}
       - LOG_LEVEL=${IMMICH_LOG_LEVEL}
+      - TZ=${TIMEZONE}
     logging: *logging
     networks:
       - immich
     restart: unless-stopped
     volumes:
       - immich-upload:/usr/src/app/upload
+
+  immich-machine-learning:
+    image: docker.io/altran1502/immich-machine-learning:release
+    environment:
+      - NODE_ENV=production
+    logging: *logging
+    networks:
+      - immich
+    restart: unless-stopped
+    volumes:
+      - immich-upload:/usr/src/app/upload
+      - immich-model-cache:/cache
 
   immich-web:
     image: docker.io/altran1502/immich-web:release
@@ -360,6 +384,8 @@ services:
     networks:
       - immich
     restart: unless-stopped
+    volumes:
+      - immich-redis-data:/data
 
   immich-database:
     image: docker.io/postgres:14
@@ -374,6 +400,21 @@ services:
     volumes:
       - immich-database-data:/var/lib/postgresql/data
 
+  immich-typesense:
+    image: docker.io/typesense/typesense:0.24.0
+    # command:
+    #   - '--data-dir=/data'
+    #   - '--api-key=${IMMICH_TYPESENSE_API_KEY}'
+    environment:
+      - TYPESENSE_API_KEY=${IMMICH_TYPESENSE_API_KEY}
+      - TYPESENSE_DATA_DIR=/data
+    logging: *logging
+    networks:
+      - immich
+    restart: unless-stopped
+    volumes:
+      - immich-typesense-data:/data
+
   immich:
     image: docker.io/altran1502/immich-proxy:release
     depends_on:
@@ -384,8 +425,73 @@ services:
       - immich
     restart: unless-stopped
 
+  paperless-redis:
+    image: docker.io/redis:7
+    logging: *logging
+    networks:
+      - paperless
+    restart: unless-stopped
+    volumes:
+      - paperless-redis-data:/data
+
+  paperless-gotenberg:
+    image: docker.io/gotenberg/gotenberg:7.8
+    command:
+      - "gotenberg"
+      - "--chromium-disable-javascript=true"
+      - "--chromium-allow-list=file:///tmp/.*"
+    logging: *logging
+    networks:
+      - paperless
+    restart: unless-stopped
+
+  paperless-tika:
+    image: docker.io/apache/tika:2.7.0.0
+    logging: *logging
+    networks:
+      - paperless
+    restart: unless-stopped
+
+  paperless:
+    image: docker.io/paperlessngx/paperless-ngx:1.13.0
+    depends_on:
+      - paperless-redis
+      - paperless-gotenberg
+      - paperless-tika
+    environment:
+      - PAPERLESS_URL=https://paperless.${PROXY_PRIVATE_DOMAIN}
+      - PAPERLESS_ADMIN_USER=${PAPERLESS_ADMIN_USER}
+      - PAPERLESS_ADMIN_PASSWORD=${PAPERLESS_ADMIN_PASSWORD}
+      - PAPERLESS_SECRET_KEY=${PAPERLESS_SECRET_KEY}
+      - PAPERLESS_REDIS=redis://paperless-redis:6379
+      - PAPERLESS_TIKA_ENABLED=true
+      - PAPERLESS_TIKA_ENDPOINT=http://paperless-tika:9998
+      - PAPERLESS_TIKA_GOTENBERG_ENDPOINT=http://paperless-gotenberg:3000
+      - PAPERLESS_TIME_ZONE=${TIMEZONE}
+      - PAPERLESS_OCR_LANGUAGE=${PAPERLESS_OCR_LANGUAGE}
+      - PAPERLESS_OCR_LANGUAGES=${PAPERLESS_OCR_LANGUAGES}
+      - USERMAP_UID=${MEDIA_PUID}
+      - USERMAP_GID=${MEDIA_PGID}
+      - TZ=${TIMEZONE}
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "-S", "--max-time", "2", "http://localhost:8000"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    logging: *logging
+    networks:
+      - proxy
+      - paperless
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - paperless-data:/usr/src/paperless/data
+      - paperless-media:/usr/src/paperless/media
+      - paperless-consume:/usr/src/paperless/consume
+      - paperless-export:/usr/src/paperless/export
+
   vaultwarden:
-    image: docker.io/vaultwarden/server:1.27.0-alpine
+    image: docker.io/vaultwarden/server:1.28.0-alpine
     environment:
       - ADMIN_TOKEN=${VAULTWARDEN_ADMIN_TOKEN}
       - DOMAIN=https://vaultwarden.${PROXY_PUBLIC_DOMAIN}
@@ -443,7 +549,7 @@ services:
       - ./diun/config.yml:/config.yml:ro
 
   grafana:
-    image: docker.io/grafana/grafana:9.4.1
+    image: docker.io/grafana/grafana:9.4.7
     logging: *logging
     environment:
       - TZ=${TIMEZONE}
@@ -461,7 +567,7 @@ services:
       - ./grafana/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
 
   prometheus:
-    image: docker.io/prom/prometheus:v2.42.0
+    image: docker.io/prom/prometheus:v2.43.0
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--storage.tsdb.path=/prometheus"
