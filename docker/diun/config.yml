@@ -28,7 +28,7 @@
 - name: docker.io/hotio/jellyfin
   watch_repo: true
   max_tags: 3
-  sort_tags: default
+  sort_tags: semver
   notify_on:
     - new
   include_tags:
@@ -46,7 +46,7 @@
 - name: docker.io/hotio/radarr
   watch_repo: true
   max_tags: 3
-  sort_tags: default
+  sort_tags: semver
   notify_on:
     - new
   include_tags:
@@ -55,7 +55,7 @@
 - name: docker.io/hotio/sonarr
   watch_repo: true
   max_tags: 3
-  sort_tags: default
+  sort_tags: semver
   notify_on:
     - new
   include_tags:
@@ -64,7 +64,7 @@
 - name: docker.io/hotio/prowlarr
   watch_repo: true
   max_tags: 3
-  sort_tags: default
+  sort_tags: semver
   notify_on:
     - new
   include_tags:
@@ -91,7 +91,7 @@
 - name: docker.io/hotio/lidarr
   watch_repo: true
   max_tags: 3
-  sort_tags: default
+  sort_tags: semver
   notify_on:
     - new
   include_tags:
@@ -100,13 +100,17 @@
 - name: docker.io/hotio/sabnzbd
   watch_repo: true
   max_tags: 3
-  sort_tags: default
+  sort_tags: semver
   notify_on:
     - new
   include_tags:
-    - ^release-\d+\.\d+\.\d+\.\d+$
+    - ^release-\d+\.\d+\.\d+$
 
 - name: docker.io/hotio/qbittorrent:release
+  notify_on:
+    - update
+
+- name: docker.io/hotio/qbitmanage:release
   notify_on:
     - update
 

@@ -17,6 +17,7 @@ x-hotio: &environment-hotio
 networks:
   proxy:
   cloudflared:
+  qbit:
   immich:
   paperless:
   monitor:
@@ -36,6 +37,7 @@ volumes:
   jellyseerr-config:
   sabnzbd-config:
   qbit-config:
+  qbitmanage-config:
 
   media-root:
     driver: local
@@ -152,7 +154,7 @@ services:
       - ./blocky/config.yml:/app/config.yml
 
   cloudflared:
-    image: docker.io/cloudflare/cloudflared:2023.4.0
+    image: docker.io/cloudflare/cloudflared:2023.5.0
     command: tunnel --no-autoupdate --metrics 0.0.0.0:4506 run --token ${PROXY_CF_TUNNEL_TOKEN}
     extra_hosts:
       - host.docker.internal:host-gateway
@@ -165,7 +167,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
 
   jellyfin:
-    image: docker.io/hotio/jellyfin:release-10.8.9-1
+    image: docker.io/hotio/jellyfin:release-10.8.10-1
     devices:
       - ${MEDIA_JELLYFIN_CARD}:/dev/dri/card0
       - ${MEDIA_JELLYFIN_RENDER}:/dev/dri/renderD128
@@ -183,7 +185,7 @@ services:
       - jellyfin-cache:/cache
 
   jellyseerr:
-    image: docker.io/fallenbagel/jellyseerr:1.4.1
+    image: docker.io/fallenbagel/jellyseerr:1.5.0
     <<: *environment-hotio
     logging: *logging
     networks:
@@ -207,7 +209,7 @@ services:
       - radarr-config:/config
 
   sonarr:
-    image: docker.io/hotio/sonarr:v4-4.0.0.448
+    image: docker.io/hotio/sonarr:v4-4.0.0.471
     <<: *environment-hotio
     logging: *logging
     networks:
@@ -269,7 +271,7 @@ services:
       - lidarr-config:/config
 
   sabnzbd:
-    image: docker.io/hotio/sabnzbd:release-3.7.2
+    image: docker.io/hotio/sabnzbd:release-4.0.1
     <<: *environment-hotio
     logging: *logging
     networks:
@@ -296,6 +298,7 @@ services:
     logging: *logging
     networks:
       - proxy
+      - qbit
     restart: unless-stopped
     sysctls:
       - net.ipv4.conf.all.src_valid_mark=1
@@ -303,7 +306,21 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - qbit-config:/config
-      - ./qbittorrent/wg0.conf:/config/wireguard/wg0.conf
+      - ./qbittorrent/wg0.conf:/config/wireguard/wg0.conf:ro
+      - downloads-torrent:/data/media/downloads/torrent
+
+  qbitmanage:
+    image: docker.io/hotio/qbitmanage:release
+    <<: *environment-hotio
+    logging: *logging
+    networks:
+      - proxy
+      - qbit
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - qbitmanage-config:/config
+      - ./qbittorrent/qbitmanage.yml:/config/config.yml
       - downloads-torrent:/data/media/downloads/torrent
 
   immich-server:
@@ -453,7 +470,7 @@ services:
     restart: unless-stopped
 
   paperless:
-    image: docker.io/paperlessngx/paperless-ngx:1.13.0
+    image: docker.io/paperlessngx/paperless-ngx:1.14.3
     depends_on:
       - paperless-redis
       - paperless-gotenberg
@@ -549,7 +566,7 @@ services:
       - ./diun/config.yml:/config.yml:ro
 
   grafana:
-    image: docker.io/grafana/grafana:9.4.7
+    image: docker.io/grafana/grafana:9.5.1
     logging: *logging
     environment:
       - TZ=${TIMEZONE}

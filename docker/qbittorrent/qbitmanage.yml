@@ -1,0 +1,98 @@
+qbt:
+  host: qbit:8080
+  user:
+  pass:
+
+commands:
+  dry_run: false
+  cross_seed: false
+  recheck: true
+  cat_update: false
+  tag_update: true
+  rem_unregistered: false
+  tag_tracker_error: true
+  rem_orphaned: false
+  tag_nohardlinks: true
+  skip_cleanup: true
+
+settings:
+  force_auto_tmm: true
+  nohardlinks_tag: nohl
+  tracker_error_tag: issue
+  ignoreTags_OnUpdate:
+    - nohl
+    - issue
+    - cross-seed
+
+directory:
+  root_dir: /data/media/downloads/torrent
+  recycle_bin: /data/media/downloads/torrent/.recycle
+  cross_seed:
+  remote_dir: /data/media/downloads/torrent
+  torrents_dir:
+  orphaned_dir:
+
+cat:
+  books: /data/media/downloads/torrent/books
+  games: /data/media/downloads/torrent/games
+  movies: /data/media/downloads/torrent/movies
+  music: /data/media/downloads/torrent/music
+  series: /data/media/downloads/torrent/series
+
+tracker:
+  t-ru.org:
+    tag:
+      - t-ru
+  jptv.club:
+    tag:
+      - jptv
+  other:
+    tag: other
+    max_ratio: 1.0
+
+nohardlinks:
+  books:
+    cleanup: false
+    exclude_tags:
+      - uploads
+    max_ratio: 1.0
+  movies:
+    cleanup: false
+    exclude_tags:
+      - uploads
+    max_ratio: 1.0
+  music:
+    cleanup: false
+    exclude_tags:
+      - uploads
+    max_ratio: 1.0
+  series:
+    cleanup: false
+    exclude_tags:
+      - uploads
+    max_ratio: 1.0
+
+webhooks:
+  error:
+  run_start:
+  run_end:
+  function:
+    cross_seed:
+    recheck:
+    cat_update:
+    tag_update:
+    rem_unregistered:
+    tag_tracker_error:
+    rem_orphaned:
+    tag_nohardlinks:
+    cleanup_dirs:
+
+recyclebin:
+  enabled: true
+  empty_after_x_days: 60
+  save_torrents: false
+  split_by_category: false
+
+orphaned:
+  empty_after_x_days: 60
+  exclude_patterns:
