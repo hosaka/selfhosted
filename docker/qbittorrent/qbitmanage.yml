@@ -38,6 +38,7 @@ cat:
   movies: /data/media/downloads/torrent/movies
   music: /data/media/downloads/torrent/music
   series: /data/media/downloads/torrent/series
+  software: /data/media/downloads/torrent/software
 
 tracker:
   t-ru.org:
