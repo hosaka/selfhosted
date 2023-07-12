@@ -52,26 +52,25 @@ tracker:
     max_ratio: 1.0
 
 nohardlinks:
-  books:
-    cleanup: false
-    exclude_tags:
-      - uploads
-    max_ratio: 1.0
-  movies:
-    cleanup: false
-    exclude_tags:
-      - uploads
-    max_ratio: 1.0
-  music:
-    cleanup: false
-    exclude_tags:
-      - uploads
-    max_ratio: 1.0
-  series:
-    cleanup: false
-    exclude_tags:
-      - uploads
-    max_ratio: 1.0
+  - books
+  - movies
+  - music
+  - series
+
+share_limits:
+  default:
+    priority: 1
+    max_ratio: 1
+    categories:
+      - books
+      - movies
+      - music
+      - series
+
+  uploads:
+    priority: 1
+    include_any_tags:
+      -uploads
 
 webhooks:
   error:

@@ -1,5 +1,6 @@
 radarr:
-  - base_url: http://radarr:7878
+  instance:
+    base_url: http://radarr:7878
     api_key: 23a6027b0cff4a9e83b0346c562c39b2
 
     quality_definition:
@@ -92,7 +93,8 @@ radarr:
           - name: AnimeHD
 
 sonarr:
-  - base_url: http://sonarr:8989
+  instance:
+    base_url: http://sonarr:8989
     api_key: 8783345c388e4b009d24c64758de5660
 
     quality_definition: hybrid
