@@ -36,6 +36,9 @@ navidrome.{$PROXY_PRIVATE_DOMAIN}, navidrome.{$PROXY_PUBLIC_DOMAIN} {
 lidarr.{$PROXY_PRIVATE_DOMAIN} {
     reverse_proxy lidarr:8686
 }
+lidarr.{$PROXY_PRIVATE_DOMAIN} {
+    reverse_proxy radarr:8787
+}
 nzb.{$PROXY_PRIVATE_DOMAIN} {
     reverse_proxy sabnzbd:8080
 }

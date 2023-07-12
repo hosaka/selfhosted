@@ -27,10 +27,10 @@ volumes:
   caddy-config:
 
   jellyfin-config:
-  jellyfin-cache:
   radarr-config:
   sonarr-config:
   lidarr-config:
+  readarr-config:
   navidrome-data:
   prowlarr-config:
   recyclarr-config:
@@ -39,72 +39,18 @@ volumes:
   qbit-config:
   qbitmanage-config:
 
-  media-root:
-    driver: local
-    driver_opts:
-      o: bind
-      type: none
-      device: ${MEDIA_ROOT_PATH}
-  media-collection:
-    driver: local
-    driver_opts:
-      o: bind
-      type: none
-      device: ${MEDIA_COLLECTION_PATH}
-  media-collection-music:
-    driver: local
-    driver_opts:
-      o: bind
-      type: none
-      device: ${MEDIA_COLLECTION_MUSIC_PATH}
-  # media-collection-youtube:
-  #   driver: local
-  #   driver_opts:
-  #     o: bind
-  #     type: none
-  #     device: ${MEDIA_COLLECTION_YOUTUBE_PATH}
-  downloads-torrent:
-    driver: local
-    driver_opts:
-      o: bind
-      type: none
-      device: ${MEDIA_DOWNLOADS_TORRENT_PATH}
-  downloads-usenet:
-    driver: local
-    driver_opts:
-      o: bind
-      type: none
-      device: ${MEDIA_DOWNLOADS_USENET_PATH}
-
   immich-model-cache:
   immich-redis-data:
   immich-database-data:
   immich-typesense-data:
-  immich-upload:
-    driver: local
-    driver_opts:
-      o: bind
-      type: none
-      device: ${IMMICH_UPLOAD_LOCATION}
 
   paperless-redis-data:
   paperless-data:
   paperless-media:
-  paperless-consume:
-    driver: local
-    driver_opts:
-      o: bind
-      type: none
-      device: ${PAPERLESS_CONSUME_PATH}
-  paperless-export:
-    driver: local
-    driver_opts:
-      o: bind
-      type: none
-      device: ${PAPERLESS_EXPORT_PATH}
 
   vaultwarden-data:
 
+  # monitoring
   gotify-data:
   diun-data:
   grafana-data:
@@ -154,7 +100,7 @@ services:
       - ./blocky/config.yml:/app/config.yml
 
   cloudflared:
-    image: docker.io/cloudflare/cloudflared:2023.5.1
+    image: docker.io/cloudflare/cloudflared:2023.6.1
     command: tunnel --no-autoupdate --metrics 0.0.0.0:4506 run --token ${PROXY_CF_TUNNEL_TOKEN}
     extra_hosts:
       - host.docker.internal:host-gateway
@@ -180,9 +126,8 @@ services:
     restart: unless-stopped
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - media-collection:/data/media/collection
+      - ${MEDIA_COLLECTION_PATH}:/data/media/collection
       - jellyfin-config:/config
-      - jellyfin-cache:/cache
 
   jellyseerr:
     image: docker.io/fallenbagel/jellyseerr:1.5.0
@@ -205,11 +150,11 @@ services:
     restart: unless-stopped
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - media-root:/data/media
+      - ${MEDIA_ROOT_PATH}:/data/media
       - radarr-config:/config
 
   sonarr:
-    image: docker.io/hotio/sonarr:v4-4.0.0.534
+    image: docker.io/hotio/sonarr:v4-4.0.0.536
     <<: *environment-hotio
     logging: *logging
     networks:
@@ -217,11 +162,11 @@ services:
     restart: unless-stopped
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - media-root:/data/media
+      - ${MEDIA_ROOT_PATH}:/data/media
       - sonarr-config:/config
 
   prowlarr:
-    image: docker.io/hotio/prowlarr:release-1.4.1.3258
+    image: docker.io/hotio/prowlarr:release-1.5.2.3484
     <<: *environment-hotio
     logging: *logging
     networks:
@@ -229,11 +174,11 @@ services:
     restart: unless-stopped
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - media-root:/data/media
+      - ${MEDIA_ROOT_PATH}:/data/media
       - prowlarr-config:/config
 
   recyclarr:
-    image: docker.io/recyclarr/recyclarr:4.4.1
+    image: docker.io/recyclarr/recyclarr:5.0.3
     environment:
       - TZ=${TIMEZONE}
     logging: *logging
@@ -256,7 +201,7 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - navidrome-data:/data
-      - media-collection-music:/music:ro
+      - ${MEDIA_COLLECTION_MUSIC_PATH}:/music:ro
 
   lidarr:
     image: docker.io/hotio/lidarr:release-1.1.4.3027
@@ -267,8 +212,20 @@ services:
     restart: unless-stopped
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - media-root:/data/media
+      - ${MEDIA_ROOT_PATH}:/data/media
       - lidarr-config:/config
+
+  readarr:
+    image: docker.io/hotio/readarr:testing-0.2.2.1943
+    <<: *environment-hotio
+    logging: *logging
+    networks:
+      - proxy
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ${MEDIA_ROOT_PATH}:/data/media
+      - readarr-config:/config
 
   sabnzbd:
     image: docker.io/hotio/sabnzbd:release-4.0.1
@@ -280,7 +237,7 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - sabnzbd-config:/config
-      - downloads-usenet:/data/media/downloads/usenet
+      - ${MEDIA_DOWNLOADS_USENET_PATH}:/data/media/downloads/usenet
 
   qbit:
     image: docker.io/hotio/qbittorrent:release
@@ -302,12 +259,12 @@ services:
     restart: unless-stopped
     sysctls:
       - net.ipv4.conf.all.src_valid_mark=1
-      - net.ipv6.conf.all.disable_ipv6=0
+      - net.ipv6.conf.all.disable_ipv6=1
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - qbit-config:/config
       - ./qbittorrent/wg0.conf:/config/wireguard/wg0.conf:ro
-      - downloads-torrent:/data/media/downloads/torrent
+      - ${MEDIA_DOWNLOADS_TORRENT_PATH}:/data/media/downloads/torrent
 
   qbitmanage:
     image: docker.io/hotio/qbitmanage:release
@@ -321,7 +278,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - qbitmanage-config:/config
       - ./qbittorrent/qbitmanage.yml:/config/config.yml
-      - downloads-torrent:/data/media/downloads/torrent
+      - ${MEDIA_DOWNLOADS_TORRENT_PATH}:/data/media/downloads/torrent
 
   immich-server:
     image: docker.io/altran1502/immich-server:release
@@ -347,7 +304,7 @@ services:
       - immich
     restart: unless-stopped
     volumes:
-      - immich-upload:/usr/src/app/upload
+      - ${IMMICH_UPLOAD_LOCATION}:/usr/src/app/upload
 
   immich-microservices:
     image: docker.io/altran1502/immich-server:release
@@ -373,7 +330,7 @@ services:
       - immich
     restart: unless-stopped
     volumes:
-      - immich-upload:/usr/src/app/upload
+      - ${IMMICH_UPLOAD_LOCATION}:/usr/src/app/upload
 
   immich-machine-learning:
     image: docker.io/altran1502/immich-machine-learning:release
@@ -384,8 +341,8 @@ services:
       - immich
     restart: unless-stopped
     volumes:
-      - immich-upload:/usr/src/app/upload
       - immich-model-cache:/cache
+      - ${IMMICH_UPLOAD_LOCATION}:/usr/src/app/upload
 
   immich-web:
     image: docker.io/altran1502/immich-web:release
@@ -470,7 +427,7 @@ services:
     restart: unless-stopped
 
   paperless:
-    image: docker.io/paperlessngx/paperless-ngx:1.14.5
+    image: docker.io/paperlessngx/paperless-ngx:1.16.5
     depends_on:
       - paperless-redis
       - paperless-gotenberg
@@ -506,8 +463,8 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - paperless-data:/usr/src/paperless/data
       - paperless-media:/usr/src/paperless/media
-      - paperless-consume:/usr/src/paperless/consume
-      - paperless-export:/usr/src/paperless/export
+      - ${PAPERLESS_CONSUME_PATH}:/usr/src/paperless/consume
+      - ${PAPERLESS_EXPORT_PATH}:/usr/src/paperless/export
 
   vaultwarden:
     image: docker.io/vaultwarden/server:1.28.0-alpine
@@ -551,7 +508,7 @@ services:
       - gotify-data:/app/data
 
   diun:
-    image: docker.io/crazymax/diun:4.24
+    image: docker.io/crazymax/diun:4.25
     command: serve
     environment:
       - TZ=${TIMEZONE}
@@ -567,38 +524,38 @@ services:
       - ./diun/diun.yml:/diun.yml:ro
       - ./diun/config.yml:/config.yml:ro
 
-  grafana:
-    image: docker.io/grafana/grafana:9.5.2
-    logging: *logging
-    environment:
-      - TZ=${TIMEZONE}
-      - GF_SECURITY_ADMIN_USER=${MONITOR_GRAFANA_SECURITY_ADMIN_USER}
-      - GF_SECURITY_ADMIN_PASSWORD=${MONITOR_GRAFANA_SECURITY_ADMIN_PASSWORD}
-    networks:
-      - proxy
-      - monitor
-    restart: unless-stopped
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - grafana-data:/var/lib/grafana
-      - grafana-config:/etc/grafana
-      - ./grafana/dashboard.yml:/etc/grafana/provisioning/dashboards/dashboard.yml
-      - ./grafana/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
-
-  prometheus:
-    image: docker.io/prom/prometheus:v2.44.0
-    command:
-      - "--config.file=/etc/prometheus/prometheus.yml"
-      - "--storage.tsdb.path=/prometheus"
-      - "--web.console.templates=/usr/share/prometheus/consoles"
-      - "--web.console.libraries=/usr/share/prometheus/console_libraries"
-    environment:
-      - TZ=${TIMEZONE}
-    logging: *logging
-    networks:
-      - monitor
-    restart: unless-stopped
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - prometheus-data:/prometheus
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+  # grafana:
+  #   image: docker.io/grafana/grafana:9.5.5
+  #   logging: *logging
+  #   environment:
+  #     - TZ=${TIMEZONE}
+  #     - GF_SECURITY_ADMIN_USER=${MONITOR_GRAFANA_SECURITY_ADMIN_USER}
+  #     - GF_SECURITY_ADMIN_PASSWORD=${MONITOR_GRAFANA_SECURITY_ADMIN_PASSWORD}
+  #   networks:
+  #     - proxy
+  #     - monitor
+  #   restart: unless-stopped
+  #   volumes:
+  #     - /etc/localtime:/etc/localtime:ro
+  #     - grafana-data:/var/lib/grafana
+  #     - grafana-config:/etc/grafana
+  #     - ./grafana/dashboard.yml:/etc/grafana/provisioning/dashboards/dashboard.yml
+  #     - ./grafana/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
+  #
+  # prometheus:
+  #   image: docker.io/prom/prometheus:v2.45.0
+  #   command:
+  #     - "--config.file=/etc/prometheus/prometheus.yml"
+  #     - "--storage.tsdb.path=/prometheus"
+  #     - "--web.console.templates=/usr/share/prometheus/consoles"
+  #     - "--web.console.libraries=/usr/share/prometheus/console_libraries"
+  #   environment:
+  #     - TZ=${TIMEZONE}
+  #   logging: *logging
+  #   networks:
+  #     - monitor
+  #   restart: unless-stopped
+  #   volumes:
+  #     - /etc/localtime:/etc/localtime:ro
+  #     - prometheus-data:/prometheus
+  #     - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
