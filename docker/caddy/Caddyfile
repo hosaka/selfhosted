@@ -15,7 +15,7 @@
 jellyfin.{$PROXY_PRIVATE_DOMAIN} {
     reverse_proxy jellyfin:8096
 }
-jellyseerr.{$PROXY_PRIVATE_DOMAIN}, jellyseerr.{$PROXY_PUBLIC_DOMAIN} {
+jellyseerr.{$PROXY_PRIVATE_DOMAIN} {
     reverse_proxy jellyseerr:5055
 }
 radarr.{$PROXY_PRIVATE_DOMAIN} {
@@ -36,8 +36,14 @@ navidrome.{$PROXY_PRIVATE_DOMAIN}, navidrome.{$PROXY_PUBLIC_DOMAIN} {
 lidarr.{$PROXY_PRIVATE_DOMAIN} {
     reverse_proxy lidarr:8686
 }
-lidarr.{$PROXY_PRIVATE_DOMAIN} {
-    reverse_proxy radarr:8787
+readarr.{$PROXY_PRIVATE_DOMAIN} {
+    reverse_proxy readarr:8787
+}
+calibre.{$PROXY_PRIVATE_DOMAIN} {
+    reverse_proxy calibre-web:8083
+}
+calibre-server.{$PROXY_PRIVATE_DOMAIN} {
+    reverse_proxy calibre:8080
 }
 nzb.{$PROXY_PRIVATE_DOMAIN} {
     reverse_proxy sabnzbd:8080
@@ -50,10 +56,11 @@ immich.{$PROXY_PRIVATE_DOMAIN}, immich.{$PROXY_PUBLIC_DOMAIN} {
 }
 paperless.{$PROXY_PRIVATE_DOMAIN}, paperless.{$PROXY_PUBLIC_DOMAIN} {
     reverse_proxy paperless:8000
-    @insecureadmin {
+    @admin {
         path /admin*
         not remote_ip private_ranges
     }
+    redir @admin /
 }
 vaultwarden.{$PROXY_PRIVATE_DOMAIN}, vaultwarden.{$PROXY_PUBLIC_DOMAIN} {
     encode gzip
@@ -70,11 +77,11 @@ vaultwarden.{$PROXY_PRIVATE_DOMAIN}, vaultwarden.{$PROXY_PUBLIC_DOMAIN} {
     }
 
     # allow access to the admin interface only from local networks
-    @insecureadmin {
+    @admin {
         path /admin*
         not remote_ip private_ranges
     }
-    redir @insecureadmin /
+    redir @admin /
 
     # notifications redirected to the websocket server
     reverse_proxy /notifications/hub vaultwarden:3012

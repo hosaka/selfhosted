@@ -32,6 +32,8 @@ volumes:
   lidarr-config:
   readarr-config:
   navidrome-data:
+  calibre-config:
+  calibre-web-config:
   prowlarr-config:
   recyclarr-config:
   jellyseerr-config:
@@ -100,7 +102,7 @@ services:
       - ./blocky/config.yml:/app/config.yml
 
   cloudflared:
-    image: docker.io/cloudflare/cloudflared:2023.6.1
+    image: docker.io/cloudflare/cloudflared:2023.7.2
     command: tunnel --no-autoupdate --metrics 0.0.0.0:4506 run --token ${PROXY_CF_TUNNEL_TOKEN}
     extra_hosts:
       - host.docker.internal:host-gateway
@@ -142,7 +144,7 @@ services:
       - jellyseerr-config:/app/config
 
   radarr:
-    image: docker.io/hotio/radarr:release-4.5.2.7388
+    image: docker.io/hotio/radarr:release-4.6.4.7568
     <<: *environment-hotio
     logging: *logging
     networks:
@@ -154,7 +156,7 @@ services:
       - radarr-config:/config
 
   sonarr:
-    image: docker.io/hotio/sonarr:v4-4.0.0.536
+    image: docker.io/hotio/sonarr:v4-4.0.0.577
     <<: *environment-hotio
     logging: *logging
     networks:
@@ -166,7 +168,7 @@ services:
       - sonarr-config:/config
 
   prowlarr:
-    image: docker.io/hotio/prowlarr:release-1.5.2.3484
+    image: docker.io/hotio/prowlarr:release-1.6.3.3608
     <<: *environment-hotio
     logging: *logging
     networks:
@@ -204,7 +206,7 @@ services:
       - ${MEDIA_COLLECTION_MUSIC_PATH}:/music:ro
 
   lidarr:
-    image: docker.io/hotio/lidarr:release-1.1.4.3027
+    image: docker.io/hotio/lidarr:release-1.2.6.3313
     <<: *environment-hotio
     logging: *logging
     networks:
@@ -212,8 +214,34 @@ services:
     restart: unless-stopped
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - ${MEDIA_ROOT_PATH}:/data/media
       - lidarr-config:/config
+      - ${MEDIA_ROOT_PATH}:/data/media
+
+  calibre:
+    image: docker.io/linuxserver/calibre:4.23.0-v4
+    <<: *environment-hotio
+    logging: *logging
+    networks:
+      - proxy
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - calibre-config:/config
+      - ${MEDIA_COLLECTION_BOOKS_PATH}:/books
+
+  calibre-web:
+    image: docker.io/linuxserver/calibre-web:0.6.20
+    depends_on:
+      - calibre
+    <<: *environment-hotio
+    logging: *logging
+    networks:
+      - proxy
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - calibre-web-config:/config
+      - ${MEDIA_COLLECTION_BOOKS_PATH}:/books
 
   readarr:
     image: docker.io/hotio/readarr:testing-0.2.2.1943
@@ -224,8 +252,8 @@ services:
     restart: unless-stopped
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - ${MEDIA_ROOT_PATH}:/data/media
       - readarr-config:/config
+      - ${MEDIA_ROOT_PATH}:/data/media
 
   sabnzbd:
     image: docker.io/hotio/sabnzbd:release-4.0.1
@@ -271,7 +299,6 @@ services:
     <<: *environment-hotio
     logging: *logging
     networks:
-      - proxy
       - qbit
     restart: unless-stopped
     volumes:
@@ -495,7 +522,7 @@ services:
       - vaultwarden-data:/data
 
   gotify:
-    image: docker.io/gotify/server:2.2.4
+    image: docker.io/gotify/server:2.3.0
     environment:
       - TZ=${TIMEZONE}
     logging: *logging

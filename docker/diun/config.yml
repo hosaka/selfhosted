@@ -97,6 +97,24 @@
   include_tags:
     - ^release-\d+\.\d+\.\d+\.\d+$
 
+- name: docker.io/linuxserver/calibre-web
+  watch_repo: true
+  max_tags: 3
+  sort_tags: semver
+  notify_on:
+    - new
+  include_tags:
+    - ^\d+\.\d+\.\d+$
+
+- name: docker.io/hotio/readarr
+  watch_repo: true
+  max_tags: 3
+  sort_tags: semver
+  notify_on:
+    - new
+  include_tags:
+    - ^testing-\d+\.\d+\.\d+\.\d+$
+
 - name: docker.io/hotio/sabnzbd
   watch_repo: true
   max_tags: 3
