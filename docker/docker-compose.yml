@@ -102,7 +102,7 @@ services:
       - ./blocky/config.yml:/app/config.yml
 
   cloudflared:
-    image: docker.io/cloudflare/cloudflared:2023.7.2
+    image: docker.io/cloudflare/cloudflared:2023.7.3
     command: tunnel --no-autoupdate --metrics 0.0.0.0:4506 run --token ${PROXY_CF_TUNNEL_TOKEN}
     extra_hosts:
       - host.docker.internal:host-gateway
@@ -403,9 +403,6 @@ services:
 
   immich-typesense:
     image: docker.io/typesense/typesense:0.24.0
-    # command:
-    #   - '--data-dir=/data'
-    #   - '--api-key=${IMMICH_TYPESENSE_API_KEY}'
     environment:
       - TYPESENSE_API_KEY=${IMMICH_TYPESENSE_API_KEY}
       - TYPESENSE_DATA_DIR=/data
@@ -463,7 +460,7 @@ services:
       - PAPERLESS_URL=https://paperless.${PROXY_PRIVATE_DOMAIN}
       - PAPERLESS_ADMIN_USER=${PAPERLESS_ADMIN_USER}
       - PAPERLESS_ADMIN_PASSWORD=${PAPERLESS_ADMIN_PASSWORD}
-      - PAPERLESS_ALLOWED_HOSTS=paperless.${PROXY_PUBLIC_DOMAIN}
+      - PAPERLESS_ALLOWED_HOSTS=localhost,paperless.${PROXY_PUBLIC_DOMAIN}
       - PAPERLESS_CSRF_TRUSTED_ORIGINS=https://paperless.${PROXY_PUBLIC_DOMAIN}
       - PAPERLESS_SECRET_KEY=${PAPERLESS_SECRET_KEY}
       - PAPERLESS_REDIS=redis://paperless-redis:6379
@@ -494,7 +491,7 @@ services:
       - ${PAPERLESS_EXPORT_PATH}:/usr/src/paperless/export
 
   vaultwarden:
-    image: docker.io/vaultwarden/server:1.28.0-alpine
+    image: docker.io/vaultwarden/server:1.29.1-alpine
     environment:
       - ADMIN_TOKEN=${VAULTWARDEN_ADMIN_TOKEN}
       - DOMAIN=https://vaultwarden.${PROXY_PUBLIC_DOMAIN}
@@ -510,7 +507,6 @@ services:
       - SMTP_SECURITY=${VAULTWARDEN_SMTP_SECURITY}
       - SMTP_USERNAME=${VAULTWARDEN_SMTP_USERNAME}
       - TZ=${TIMEZONE}
-      - WEBSOCKET_ENABLED=true
       - YUBICO_CLIENT_ID=${VAULTWARDEN_YUBICO_CLIENT_ID}
       - YUBICO_SECRET_KEY=${VAULTWARDEN_YUBICO_SECRET_KEY}
     logging: *logging
