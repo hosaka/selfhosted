@@ -59,7 +59,7 @@
   notify_on:
     - new
   include_tags:
-    - ^v4-\d+\.\d+\.\d+\.\d+$
+    - ^nightly-\d+\.\d+\.\d+\.\d+$
 
 - name: docker.io/hotio/prowlarr
   watch_repo: true
