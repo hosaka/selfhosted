@@ -74,6 +74,8 @@ vaultwarden.{$PROXY_PRIVATE_DOMAIN}, vaultwarden.{$PROXY_PUBLIC_DOMAIN} {
         X-Frame-Options "DENY"
         # prevent search engines from indexing (optional)
         X-Robots-Tag "none"
+        # remove server name
+        -Server
     }
 
     # allow access to the admin interface only from local networks
