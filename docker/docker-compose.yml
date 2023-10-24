@@ -5,7 +5,7 @@ x-logging: &logging
   options:
     max-size: 100m
     max-file: "3"
-    tag: '{{.ImageName}}|{{.Name}}|{{.ImageFullID}}|{{.FullID}}'
+    tag: "{{.ImageName}}|{{.Name}}|{{.ImageFullID}}|{{.FullID}}"
 
 x-hotio: &environment-hotio
   environment:
@@ -21,6 +21,7 @@ networks:
   immich:
   paperless:
   monitor:
+  mqtt:
 
 volumes:
   caddy-data:
@@ -52,6 +53,9 @@ volumes:
 
   vaultwarden-data:
 
+  home-assistant-config:
+  mosquitto-data:
+
   # monitoring
   gotify-data:
   diun-data:
@@ -66,7 +70,7 @@ services:
       context: ./caddy
       dockerfile: Containerfile
       args:
-        - CADDY_VERSION=2.7.4
+        - CADDY_VERSION=2.7.5
     environment:
       - PROXY_CF_API_EMAIL=${PROXY_CF_API_EMAIL}
       - PROXY_CF_API_TOKEN=${PROXY_CF_API_TOKEN}
@@ -167,7 +171,7 @@ services:
       - prowlarr-config:/config
 
   recyclarr:
-    image: docker.io/recyclarr/recyclarr:6.0.1
+    image: docker.io/recyclarr/recyclarr:6.0.2
     environment:
       - TZ=${TIMEZONE}
     logging: *logging
@@ -455,13 +459,12 @@ services:
       - PAPERLESS_TIKA_ENDPOINT=http://paperless-tika:9998
       - PAPERLESS_TIKA_GOTENBERG_ENDPOINT=http://paperless-gotenberg:3000
       - PAPERLESS_TIME_ZONE=${TIMEZONE}
-      - PAPERLESS_OCR_LANGUAGE=${PAPERLESS_OCR_LANGUAGE}
-      - PAPERLESS_OCR_LANGUAGES=${PAPERLESS_OCR_LANGUAGES}
       - USERMAP_UID=${MEDIA_PUID}
       - USERMAP_GID=${MEDIA_PGID}
       - TZ=${TIMEZONE}
     healthcheck:
-      test: ["CMD", "curl", "-fs", "-S", "--max-time", "2", "http://localhost:8000"]
+      test:
+        ["CMD", "curl", "-fs", "-S", "--max-time", "2", "http://localhost:8000"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -533,6 +536,70 @@ services:
       - diun-data:/data
       - ./diun/diun.yml:/diun.yml:ro
       - ./diun/config.yml:/config.yml:ro
+
+  homeassistant:
+    image: docker.io/homeassistant/home-assistant:stable
+    environment:
+      - TZ=${TIMEZONE}
+    expose:
+      - 8123 # webui
+    logging: *logging
+    networks:
+      - proxy
+      - mqtt
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /run/dbus:/run/dbus:ro
+      - home-assistant-config:/config
+
+  frigate:
+    image: ghcr.io/blakeblackshear/frigate:stable
+    devices:
+      - ${FRIGATE_HARDWARE_RENDER}:/dev/dri/renderD128
+    environment:
+      - TZ=${TIMEZONE}
+      - FRIGATE_MQTT_USER=${FRIGATE_MQTT_USER}
+      - FRIGATE_MQTT_PASSWORD=${FRIGATE_MQTT_PASSWORD}
+      - FRIGATE_CAMERA_USER=${FRIGATE_CAMERA_USER}
+      - FRIGATE_CAMERA1_HOST=${FRIGATE_CAMERA1_HOST}
+      - FRIGATE_CAMERA1_PASSWORD=${FRIGATE_CAMERA1_PASSWORD}
+      - FRIGATE_CAMERA2_HOST=${FRIGATE_CAMERA2_HOST}
+      - FRIGATE_CAMERA2_PASSWORD=${FRIGATE_CAMERA2_PASSWORD}
+      - LIBVA_DRIVER_NAME=radeonsi
+    expose:
+      - 5000 # webui
+      - 8554 # rtsp
+      - 8855 # webrtc
+    logging: *logging
+    networks:
+      - proxy
+      - mqtt
+    restart: unless-stopped
+    shm_size: 128m
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ${FRIGATE_STORAGE_PATH}:/media/frigate
+      - ./frigate/config.yml:/config/config.yml
+      - type: tmpfs
+        target: /tmp/cache
+        tmpfs:
+          size: 1000000000
+
+  mosquitto:
+    image: docker.io/eclipse-mosquitto:2.0.18
+    environment:
+      - TZ=${TIMEZONE}
+    expose:
+      - 1883 # mqtt
+    logging: *logging
+    networks:
+      - mqtt
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - mosquitto-data:/mosquitto/data
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
 
   # grafana:
   #   image: docker.io/grafana/grafana:10.1.4
