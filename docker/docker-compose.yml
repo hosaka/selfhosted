@@ -31,10 +31,7 @@ volumes:
   radarr-config:
   sonarr-config:
   lidarr-config:
-  readarr-config:
   navidrome-data:
-  calibre-config:
-  calibre-web-config:
   prowlarr-config:
   recyclarr-config:
   jellyseerr-config:
@@ -206,44 +203,6 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - lidarr-config:/config
-      - ${MEDIA_ROOT_PATH}:/data/media
-
-  calibre:
-    image: docker.io/linuxserver/calibre:4.23.0-v4
-    <<: *environment-hotio
-    logging: *logging
-    networks:
-      - proxy
-    restart: unless-stopped
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - calibre-config:/config
-      - ${MEDIA_COLLECTION_BOOKS_PATH}:/books
-
-  calibre-web:
-    image: docker.io/linuxserver/calibre-web:0.6.20
-    depends_on:
-      - calibre
-    <<: *environment-hotio
-    logging: *logging
-    networks:
-      - proxy
-    restart: unless-stopped
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - calibre-web-config:/config
-      - ${MEDIA_COLLECTION_BOOKS_PATH}:/books
-
-  readarr:
-    image: docker.io/hotio/readarr:testing-0.3.6.2232
-    <<: *environment-hotio
-    logging: *logging
-    networks:
-      - proxy
-    restart: unless-stopped
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - readarr-config:/config
       - ${MEDIA_ROOT_PATH}:/data/media
 
   sabnzbd:
