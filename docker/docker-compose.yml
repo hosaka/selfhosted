@@ -90,10 +90,12 @@ services:
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile
 
   cloudflared:
-    image: docker.io/cloudflare/cloudflared:2023.8.2
-    command: tunnel --no-autoupdate --metrics 0.0.0.0:4506 run --token ${PROXY_CF_TUNNEL_TOKEN}
+    image: docker.io/cloudflare/cloudflared:2023.10.0
+    command: tunnel --no-autoupdate run --token ${PROXY_CF_TUNNEL_TOKEN}
     extra_hosts:
       - host.docker.internal:host-gateway
+    # expose:
+    #   - 4506 # metrics
     logging: *logging
     networks:
       - cloudflared
@@ -103,11 +105,13 @@ services:
       - /etc/localtime:/etc/localtime:ro
 
   jellyfin:
-    image: docker.io/hotio/jellyfin:release-10.8.11-1
+    image: docker.io/hotio/jellyfin:release-10.8.12-1
     devices:
       - ${MEDIA_JELLYFIN_CARD}:/dev/dri/card0
       - ${MEDIA_JELLYFIN_RENDER}:/dev/dri/renderD128
     <<: *environment-hotio
+    expose:
+      - 8096 # webui
     group_add:
       - ${MEDIA_JELLYFIN_VIDEO_GROUP}
     logging: *logging
@@ -120,8 +124,10 @@ services:
       - jellyfin-config:/config
 
   jellyseerr:
-    image: docker.io/fallenbagel/jellyseerr:1.7.0
+    image: docker.io/hotio/jellyseerr:release-1.7.0
     <<: *environment-hotio
+    expose:
+      - 5055 # webui
     logging: *logging
     networks:
       - proxy
@@ -132,8 +138,10 @@ services:
       - jellyseerr-config:/app/config
 
   radarr:
-    image: docker.io/hotio/radarr:release-4.7.5.7809
+    image: docker.io/hotio/radarr:release-5.1.3.8246
     <<: *environment-hotio
+    expose:
+      - 7878 # webui
     logging: *logging
     networks:
       - proxy
@@ -144,8 +152,10 @@ services:
       - radarr-config:/config
 
   sonarr:
-    image: docker.io/hotio/sonarr:nightly-4.0.0.688
+    image: docker.io/hotio/sonarr:nightly-4.0.0.731
     <<: *environment-hotio
+    expose:
+      - 8989 # webui
     logging: *logging
     networks:
       - proxy
@@ -156,8 +166,10 @@ services:
       - sonarr-config:/config
 
   prowlarr:
-    image: docker.io/hotio/prowlarr:release-1.8.6.3946
+    image: docker.io/hotio/prowlarr:release-1.9.4.4039
     <<: *environment-hotio
+    expose:
+      - 9696 # webui
     logging: *logging
     networks:
       - proxy
@@ -181,9 +193,11 @@ services:
       - ./recyclarr/recyclarr.yml:/config/recyclarr.yml
 
   navidrome:
-    image: docker.io/deluan/navidrome:0.49.3
+    image: docker.io/deluan/navidrome:0.50.0
     environment:
       - ND_ENABLETRANSCODINGCONFIG=false
+    expose:
+      - 4533 # webui
     logging: *logging
     networks:
       - proxy
@@ -194,8 +208,10 @@ services:
       - ${MEDIA_COLLECTION_MUSIC_PATH}:/music:ro
 
   lidarr:
-    image: docker.io/hotio/lidarr:release-1.3.5.3530
+    image: docker.io/hotio/lidarr:release-1.4.5.3639
     <<: *environment-hotio
+    expose:
+      - 8686 # webui
     logging: *logging
     networks:
       - proxy
@@ -208,6 +224,8 @@ services:
   sabnzbd:
     image: docker.io/hotio/sabnzbd:release-4.1.0
     <<: *environment-hotio
+    expose:
+      - 8080 # webui
     logging: *logging
     networks:
       - proxy
@@ -230,6 +248,8 @@ services:
       - VPN_IP_CHECK_DELAY=${MEDIA_TORRENT_VPN_IP_CHECK_DELAY}
       - VPN_IP_CHECK_EXIT=${MEDIA_TORRENT_VPN_IP_CHECK_EXIT}
       - VPN_LAN_NETWORK=${MEDIA_TORRENT_VPN_LAN_NETWORK}
+    expose:
+      - 8080 # webui
     logging: *logging
     networks:
       - proxy
@@ -257,7 +277,7 @@ services:
       - ./qbittorrent/qbitmanage.yml:/config/config.yml
       - ${MEDIA_DOWNLOADS_TORRENT_PATH}:/data/media/downloads/torrent
 
-  immich-server:
+  immich:
     image: docker.io/altran1502/immich-server:release
     depends_on:
       - immich-redis
@@ -276,8 +296,11 @@ services:
       - JWT_SECRET=${IMMICH_JWT_SECRET}
       - LOG_LEVEL=${IMMICH_LOG_LEVEL}
       - TZ=${TIMEZONE}
+    expose:
+      - 3001 # webui
     logging: *logging
     networks:
+      - proxy
       - immich
     restart: unless-stopped
     volumes:
@@ -321,16 +344,8 @@ services:
       - immich-model-cache:/cache
       - ${IMMICH_UPLOAD_LOCATION}:/usr/src/app/upload
 
-  immich-web:
-    image: docker.io/altran1502/immich-web:release
-    entrypoint: ["/bin/sh", "./entrypoint.sh"]
-    logging: *logging
-    networks:
-      - immich
-    restart: unless-stopped
-
   immich-redis:
-    image: docker.io/redis:6.2
+    image: docker.io/redis:6.2-alpine
     logging: *logging
     networks:
       - immich
@@ -339,7 +354,7 @@ services:
       - immich-redis-data:/data
 
   immich-database:
-    image: docker.io/postgres:14
+    image: docker.io/postgres:14-alpine
     environment:
       - POSTGRES_USER=${IMMICH_DB_USERNAME}
       - POSTGRES_PASSWORD=${IMMICH_DB_PASSWORD}
@@ -352,7 +367,7 @@ services:
       - immich-database-data:/var/lib/postgresql/data
 
   immich-typesense:
-    image: docker.io/typesense/typesense:0.24.0
+    image: docker.io/typesense/typesense:0.24.1
     environment:
       - TYPESENSE_API_KEY=${IMMICH_TYPESENSE_API_KEY}
       - TYPESENSE_DATA_DIR=/data
@@ -363,18 +378,8 @@ services:
     volumes:
       - immich-typesense-data:/data
 
-  immich:
-    image: docker.io/altran1502/immich-proxy:release
-    depends_on:
-      - immich-server
-    logging: *logging
-    networks:
-      - proxy
-      - immich
-    restart: unless-stopped
-
   paperless-redis:
-    image: docker.io/redis:7
+    image: docker.io/redis:7-alpine
     logging: *logging
     networks:
       - paperless
@@ -421,6 +426,8 @@ services:
       - USERMAP_UID=${MEDIA_PUID}
       - USERMAP_GID=${MEDIA_PGID}
       - TZ=${TIMEZONE}
+    expose:
+      - 8000 # webui
     healthcheck:
       test:
         ["CMD", "curl", "-fs", "-S", "--max-time", "2", "http://localhost:8000"]
@@ -458,6 +465,9 @@ services:
       - TZ=${TIMEZONE}
       - YUBICO_CLIENT_ID=${VAULTWARDEN_YUBICO_CLIENT_ID}
       - YUBICO_SECRET_KEY=${VAULTWARDEN_YUBICO_SECRET_KEY}
+    expose:
+      - 80 # webui
+      - 3012 # websocket
     logging: *logging
     networks:
       - proxy
@@ -559,6 +569,28 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - mosquitto-data:/mosquitto/data
       - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+
+  restic:
+    image: docker.io/creativeprojects/resticprofile:latest
+    command:
+      - "-c"
+      - "resticprofile schedule --all && crond -f"
+    entrypoint: "/bin/sh"
+    environment:
+      - TZ=${TIMEZONE}
+      - RESTIC_REPOSITORY_URL=${RESTIC_REPOSITORY_URL}
+      - RESTIC_AWS_ACCESS_KEY_ID=${RESTIC_AWS_ACCESS_KEY_ID}
+      - RESTIC_AWS_SECRET_ACCESS_KEY=${RESTIC_AWS_SECRET_ACCESS_KEY}
+      - IMMICH_UPLOAD_LOCATION=${IMMICH_UPLOAD_LOCATION}
+    hostname: box
+    logging: *logging
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./restic/profiles.yaml:/etc/resticprofile/profiles.yaml:ro
+      - ./restic/password.txt:/etc/resticprofile/password.txt:ro
+      - /var/lib/docker/volumes:/var/lib/docker/volumes
+      - ${IMMICH_UPLOAD_LOCATION}:${IMMICH_UPLOAD_LOCATION}
 
   # grafana:
   #   image: docker.io/grafana/grafana:10.1.4

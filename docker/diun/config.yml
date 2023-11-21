@@ -34,14 +34,14 @@
   include_tags:
     - ^release-\d+\.\d+\.\d+-\d+$
 
-- name: docker.io/fallenbagel/jellyseerr
+- name: docker.io/hotio/jellyseerr
   watch_repo: true
   max_tags: 3
   sort_tags: semver
   notify_on:
     - new
   include_tags:
-    - ^\d+\.\d+\.\d+$
+    - ^release-\d+\.\d+\.\d+$
 
 - name: docker.io/hotio/radarr
   watch_repo: true
@@ -206,3 +206,7 @@
     - new
   include_tags:
     - ^\d+\.\d+\.\d+$
+
+- name: docker.io/creativeprojects/resticprofile:latest
+  notify_on:
+    - update

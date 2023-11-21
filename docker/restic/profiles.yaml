@@ -1,0 +1,34 @@
+# yaml-language-server: $schema=https://creativeprojects.github.io/resticprofile/jsonschema/config-1.json
+version: "1"
+
+global:
+  scheduler: crond
+
+groups:
+  full:
+    - private
+
+default:
+  repository: "{{ .Env.RESTIC_REPOSITORY_URL }}"
+  password-file: "password.txt"
+
+  env:
+    AWS_ACCESS_KEY_ID: "{{ .Env.RESTIC_AWS_ACCESS_KEY_ID }}"
+    AWS_SECRET_ACCESS_KEY: "{{ .Env.RESTIC_AWS_SECRET_ACCESS_KEY }}"
+
+  backup:
+    schedule: "03:00"
+    check-before: true
+    # schedule-permission: system
+
+private:
+  inherit: "default"
+
+  backup:
+    source:
+      - "{{ .Env.IMMICH_UPLOAD_LOCATION }}"
+    tag:
+      - "{{ .Profile.Name }}"
+
+  forget:
+    keep-within: "7d"
