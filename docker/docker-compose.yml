@@ -22,6 +22,7 @@ networks:
   paperless:
   monitor:
   mqtt:
+  forgejo:
 
 volumes:
   caddy-data:
@@ -42,7 +43,6 @@ volumes:
   immich-model-cache:
   immich-redis-data:
   immich-database-data:
-  immich-typesense-data:
 
   paperless-redis-data:
   paperless-data:
@@ -52,6 +52,8 @@ volumes:
 
   home-assistant-config:
   mosquitto-data:
+  forgejo-data:
+  forgejo-database-data:
 
   # monitoring
   gotify-data:
@@ -100,12 +102,13 @@ services:
     networks:
       - cloudflared
       - monitor
+      - forgejo
     restart: unless-stopped
     volumes:
       - /etc/localtime:/etc/localtime:ro
 
   jellyfin:
-    image: docker.io/hotio/jellyfin:release-10.8.12-1
+    image: docker.io/hotio/jellyfin:release-10.8.13-1
     devices:
       - ${MEDIA_JELLYFIN_CARD}:/dev/dri/card0
       - ${MEDIA_JELLYFIN_RENDER}:/dev/dri/renderD128
@@ -166,7 +169,7 @@ services:
       - sonarr-config:/config
 
   prowlarr:
-    image: docker.io/hotio/prowlarr:release-1.9.4.4039
+    image: docker.io/hotio/prowlarr:release-1.10.5.4116
     <<: *environment-hotio
     expose:
       - 9696 # webui
@@ -193,7 +196,7 @@ services:
       - ./recyclarr/recyclarr.yml:/config/recyclarr.yml
 
   navidrome:
-    image: docker.io/deluan/navidrome:0.50.0
+    image: docker.io/deluan/navidrome:0.50.1
     environment:
       - ND_ENABLETRANSCODINGCONFIG=false
     expose:
@@ -282,7 +285,6 @@ services:
     depends_on:
       - immich-redis
       - immich-database
-      - immich-typesense
     entrypoint: ["/bin/sh", "./start-server.sh"]
     environment:
       - NODE_ENV=production
@@ -291,8 +293,6 @@ services:
       - DB_PASSWORD=${IMMICH_DB_PASSWORD}
       - DB_DATABASE_NAME=${IMMICH_DB_DATABASE_NAME}
       - REDIS_HOSTNAME=immich-redis
-      - TYPESENSE_HOST=immich-typesense
-      - TYPESENSE_API_KEY=${IMMICH_TYPESENSE_API_KEY}
       - JWT_SECRET=${IMMICH_JWT_SECRET}
       - LOG_LEVEL=${IMMICH_LOG_LEVEL}
       - TZ=${TIMEZONE}
@@ -304,6 +304,7 @@ services:
       - immich
     restart: unless-stopped
     volumes:
+      - /etc/localtime:/etc/localtime:ro
       - ${IMMICH_UPLOAD_LOCATION}:/usr/src/app/upload
 
   immich-microservices:
@@ -311,7 +312,6 @@ services:
     depends_on:
       - immich-redis
       - immich-database
-      - immich-typesense
     entrypoint: ["/bin/sh", "./start-microservices.sh"]
     environment:
       - NODE_ENV=production
@@ -320,8 +320,6 @@ services:
       - DB_PASSWORD=${IMMICH_DB_PASSWORD}
       - DB_DATABASE_NAME=${IMMICH_DB_DATABASE_NAME}
       - REDIS_HOSTNAME=immich-redis
-      - TYPESENSE_HOST=immich-typesense
-      - TYPESENSE_API_KEY=${IMMICH_TYPESENSE_API_KEY}
       - JWT_SECRET=${IMMICH_JWT_SECRET}
       - LOG_LEVEL=${IMMICH_LOG_LEVEL}
       - TZ=${TIMEZONE}
@@ -330,6 +328,7 @@ services:
       - immich
     restart: unless-stopped
     volumes:
+      - /etc/localtime:/etc/localtime:ro
       - ${IMMICH_UPLOAD_LOCATION}:/usr/src/app/upload
 
   immich-machine-learning:
@@ -354,7 +353,7 @@ services:
       - immich-redis-data:/data
 
   immich-database:
-    image: docker.io/postgres:14-alpine
+    image: docker.io/tensorchord/pgvecto-rs:pg14-v0.1.11
     environment:
       - POSTGRES_USER=${IMMICH_DB_USERNAME}
       - POSTGRES_PASSWORD=${IMMICH_DB_PASSWORD}
@@ -366,18 +365,6 @@ services:
     volumes:
       - immich-database-data:/var/lib/postgresql/data
 
-  immich-typesense:
-    image: docker.io/typesense/typesense:0.24.1
-    environment:
-      - TYPESENSE_API_KEY=${IMMICH_TYPESENSE_API_KEY}
-      - TYPESENSE_DATA_DIR=/data
-    logging: *logging
-    networks:
-      - immich
-    restart: unless-stopped
-    volumes:
-      - immich-typesense-data:/data
-
   paperless-redis:
     image: docker.io/redis:7-alpine
     logging: *logging
@@ -388,7 +375,7 @@ services:
       - paperless-redis-data:/data
 
   paperless-gotenberg:
-    image: docker.io/gotenberg/gotenberg:7.8
+    image: docker.io/gotenberg/gotenberg:7.10
     command:
       - "gotenberg"
       - "--chromium-disable-javascript=true"
@@ -399,14 +386,14 @@ services:
     restart: unless-stopped
 
   paperless-tika:
-    image: docker.io/apache/tika:2.7.0.0
+    image: docker.io/apache/tika:2.9.1.0
     logging: *logging
     networks:
       - paperless
     restart: unless-stopped
 
   paperless:
-    image: docker.io/paperlessngx/paperless-ngx:1.17.4
+    image: docker.io/paperlessngx/paperless-ngx:2.1.3
     depends_on:
       - paperless-redis
       - paperless-gotenberg
@@ -548,7 +535,7 @@ services:
     shm_size: 128m
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - ${FRIGATE_STORAGE_PATH}:/media/frigate
+      - ${FRIGATE_STORAGE_PATH}:/media/frigate/recordings
       - ./frigate/config.yml:/config/config.yml
       - type: tmpfs
         target: /tmp/cache
@@ -589,8 +576,50 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - ./restic/profiles.yaml:/etc/resticprofile/profiles.yaml:ro
       - ./restic/password.txt:/etc/resticprofile/password.txt:ro
-      - /var/lib/docker/volumes:/var/lib/docker/volumes
       - ${IMMICH_UPLOAD_LOCATION}:${IMMICH_UPLOAD_LOCATION}
+
+  forgejo:
+    image: codeberg.org/forgejo/forgejo:1.20-rootless
+    depends_on:
+      - forge-database
+    environment:
+      - USER_UID=1024
+      - USER_GID=100
+      - FORGEJO__database__DB_TYPE=postgres
+      - FORGEJO__database__HOST=forge-database
+      - FORGEJO__database__USER=${FORGEJO_DB_USERNAME}
+      - FORGEJO__database__PASSWD=${FORGEJO_DB_PASSWORD}
+      - FORGEJO__database__NAME=${FORGEJO_DB_DATABASE_NAME}
+      - FORGEJO__server__DOMAIN=code.${PROXY_PUBLIC_DOMAIN}
+      - FORGEJO__server__ROOT_URL=https://code.${PROXY_PUBLIC_DOMAIN}
+      - FORGEJO__server__SSH_DOMAIN=code.${PROXY_PUBLIC_DOMAIN}
+      - FORGEJO__service__DISABLE_REGISTRATION=true
+    expose:
+      - 3000 # webui
+      - 22 # ssh
+    logging: *logging
+    restart: unless-stopped
+    networks:
+      - proxy
+      - forgejo
+    volumes:
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+      - ./forgejo:/etc/gitea
+      - forgejo-data:/data
+
+  forge-database:
+    image: docker.io/postgres:14-alpine
+    environment:
+      - POSTGRES_USER=${FORGEJO_DB_USERNAME}
+      - POSTGRES_PASSWORD=${FORGEJO_DB_PASSWORD}
+      - POSTGRES_DB=${FORGEJO_DB_DATABASE_NAME}
+    logging: *logging
+    networks:
+      - forgejo
+    restart: unless-stopped
+    volumes:
+      - forgejo-database-data:/var/lib/postgresql/data
 
   # grafana:
   #   image: docker.io/grafana/grafana:10.1.4

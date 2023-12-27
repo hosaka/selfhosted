@@ -100,6 +100,9 @@ hass.{$PROXY_PRIVATE_DOMAIN} {
 frigate.{$PROXY_PRIVATE_DOMAIN} {
     reverse_proxy frigate:5000
 }
+code.{$PROXY_PRIVATE_DOMAIN}, code.{$PROXY_PUBLIC_DOMAIN} {
+    reverse_proxy forgejo:3000
+}
 grafana.{$PROXY_PRIVATE_DOMAIN} {
     reverse_proxy grafana:3000
 }
