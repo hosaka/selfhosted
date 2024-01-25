@@ -89,7 +89,7 @@ services:
       - ./caddy/Caddyfile:/config/Caddyfile
 
   cloudflared:
-    image: docker.io/cloudflare/cloudflared:2023.10.0
+    image: docker.io/cloudflare/cloudflared:2024.1.4
     command: tunnel --no-autoupdate run --token ${PROXY_CF_TUNNEL_TOKEN}
     extra_hosts:
       - host.docker.internal:host-gateway
@@ -98,8 +98,7 @@ services:
     logging: *logging
     networks:
       - cloudflared
-      - monitor
-      - forgejo
+      # - monitor
     restart: unless-stopped
     volumes:
       - /etc/localtime:/etc/localtime:ro
@@ -152,7 +151,7 @@ services:
       - radarr-config:/config
 
   sonarr:
-    image: docker.io/hotio/sonarr:release-4.0.0.748
+    image: docker.io/hotio/sonarr:release-4.0.1.929
     <<: *environment-hotio
     expose:
       - 8989 # webui
@@ -166,7 +165,7 @@ services:
       - sonarr-config:/config
 
   prowlarr:
-    image: docker.io/hotio/prowlarr:release-1.11.4.4173
+    image: docker.io/hotio/prowlarr:release-1.12.2.4211
     <<: *environment-hotio
     expose:
       - 9696 # webui
@@ -193,7 +192,7 @@ services:
       - ./recyclarr/recyclarr.yml:/config/recyclarr.yml
 
   navidrome:
-    image: docker.io/deluan/navidrome:0.50.1
+    image: docker.io/deluan/navidrome:0.51.0
     environment:
       - ND_ENABLETRANSCODINGCONFIG=false
     expose:
@@ -390,7 +389,7 @@ services:
     restart: unless-stopped
 
   paperless:
-    image: docker.io/paperlessngx/paperless-ngx:2.3.2
+    image: docker.io/paperlessngx/paperless-ngx:2.4.1
     depends_on:
       - paperless-redis
       - paperless-gotenberg
@@ -576,36 +575,37 @@ services:
       - ${IMMICH_UPLOAD_LOCATION}:${IMMICH_UPLOAD_LOCATION}
 
   forgejo:
-    image: codeberg.org/forgejo/forgejo:1.20-rootless
+    image: codeberg.org/forgejo/forgejo:1.21-rootless
     depends_on:
-      - forge-database
+      - forgejo-database
     environment:
-      - USER_UID=1024
-      - USER_GID=100
+      - USER_UID=1000
+      - USER_GID=1000
       - FORGEJO__database__DB_TYPE=postgres
-      - FORGEJO__database__HOST=forge-database
+      - FORGEJO__database__HOST=forgejo-database
       - FORGEJO__database__USER=${FORGEJO_DB_USERNAME}
       - FORGEJO__database__PASSWD=${FORGEJO_DB_PASSWORD}
       - FORGEJO__database__NAME=${FORGEJO_DB_DATABASE_NAME}
       - FORGEJO__server__DOMAIN=code.${PROXY_PUBLIC_DOMAIN}
       - FORGEJO__server__ROOT_URL=https://code.${PROXY_PUBLIC_DOMAIN}
-      - FORGEJO__server__SSH_DOMAIN=code.${PROXY_PUBLIC_DOMAIN}
+      - FORGEJO__server__SSH_DOMAIN=git.${PROXY_PUBLIC_DOMAIN}
       - FORGEJO__service__DISABLE_REGISTRATION=true
     expose:
       - 3000 # webui
-      - 22 # ssh
+      - 2222 # ssh
     logging: *logging
     restart: unless-stopped
     networks:
       - proxy
       - forgejo
+      - cloudflared
     volumes:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
       - ./forgejo:/etc/gitea
       - forgejo-data:/data
 
-  forge-database:
+  forgejo-database:
     image: docker.io/postgres:14-alpine
     environment:
       - POSTGRES_USER=${FORGEJO_DB_USERNAME}

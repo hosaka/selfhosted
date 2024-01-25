@@ -1,21 +1,3 @@
-- name: docker.io/caddy
-  watch_repo: true
-  max_tags: 3
-  sort_tags: semver
-  notify_on:
-    - new
-  include_tags:
-    - ^\d+\.\d+\.\d+-alpine$
-
-- name: docker.io/spx01/blocky
-  watch_repo: true
-  max_tags: 3
-  sort_tags: semver
-  notify_on:
-    - new
-  include_tags:
-    - ^v\d+\.\d+$
-
 - name: docker.io/cloudflare/cloudflared
   watch_repo: true
   max_tags: 3
@@ -25,50 +7,29 @@
   include_tags:
     - ^\d+\.\d+\.\d+$
 
-- name: docker.io/hotio/jellyfin
-  watch_repo: true
-  max_tags: 3
-  sort_tags: semver
+- name: docker.io/hotio/caddy:release
   notify_on:
-    - new
-  include_tags:
-    - ^release-\d+\.\d+\.\d+-\d+$
+    - update
 
-- name: docker.io/hotio/jellyseerr
-  watch_repo: true
-  max_tags: 3
-  sort_tags: semver
+- name: docker.io/hotio/jellyfin:release
   notify_on:
-    - new
-  include_tags:
-    - ^release-\d+\.\d+\.\d+$
+    - update
 
-- name: docker.io/hotio/radarr
-  watch_repo: true
-  max_tags: 3
-  sort_tags: semver
+- name: docker.io/hotio/jellyseerr:release
   notify_on:
-    - new
-  include_tags:
-    - ^release-\d+\.\d+\.\d+\.\d+$
+    - update
 
-- name: docker.io/hotio/sonarr
-  watch_repo: true
-  max_tags: 3
-  sort_tags: semver
+- name: docker.io/hotio/radarr:release
   notify_on:
-    - new
-  include_tags:
-    - ^nightly-\d+\.\d+\.\d+\.\d+$
+    - update
 
-- name: docker.io/hotio/prowlarr
-  watch_repo: true
-  max_tags: 3
-  sort_tags: semver
+- name: docker.io/hotio/sonarr:release
   notify_on:
-    - new
-  include_tags:
-    - ^release-\d+\.\d+\.\d+\.\d+$
+    - update
+
+- name: docker.io/hotio/prowlarr:release
+  notify_on:
+    - update
 
 - name: docker.io/recyclarr/recyclarr
   watch_repo: true
@@ -88,41 +49,13 @@
   include_tags:
     - ^\d+\.\d+\.\d+$
 
-- name: docker.io/hotio/lidarr
-  watch_repo: true
-  max_tags: 3
-  sort_tags: semver
+- name: docker.io/hotio/lidarr:release
   notify_on:
-    - new
-  include_tags:
-    - ^release-\d+\.\d+\.\d+\.\d+$
+    - update
 
-- name: docker.io/linuxserver/calibre-web
-  watch_repo: true
-  max_tags: 3
-  sort_tags: semver
+- name: docker.io/hotio/sabnzbd:release
   notify_on:
-    - new
-  include_tags:
-    - ^\d+\.\d+\.\d+$
-
-- name: docker.io/hotio/readarr
-  watch_repo: true
-  max_tags: 3
-  sort_tags: semver
-  notify_on:
-    - new
-  include_tags:
-    - ^testing-\d+\.\d+\.\d+\.\d+$
-
-- name: docker.io/hotio/sabnzbd
-  watch_repo: true
-  max_tags: 3
-  sort_tags: semver
-  notify_on:
-    - new
-  include_tags:
-    - ^release-\d+\.\d+\.\d+$
+    - update
 
 - name: docker.io/hotio/qbittorrent:release
   notify_on:
@@ -151,8 +84,6 @@
   sort_tags: semver
   notify_on:
     - new
-  include_tags:
-    - ^\d+\.\d+\.\d+$
 
 - name: docker.io/crazymax/diun
   watch_repo: true
@@ -169,8 +100,6 @@
 #   sort_tags: semver
 #   notify_on:
 #     - new
-#   include_tags:
-#     - ^\d+\.\d+\.\d+$
 #
 # - name: docker.io/prom/prometheus
 #   watch_repo: true
@@ -178,8 +107,6 @@
 #   sort_tags: semver
 #   notify_on:
 #     - new
-#   include_tags:
-#     - ^v\d+\.\d+\.\d+$
 
 - name: docker.io/paperlessngx/paperless-ngx
   watch_repo: true
@@ -210,3 +137,12 @@
 - name: docker.io/creativeprojects/resticprofile:latest
   notify_on:
     - update
+
+- name: codeberg.org/forgejo/forgejo
+  watch_repo: true
+  max_tags: 3
+  sort_tags: semver
+  notify_on:
+    - new
+  include_tags:
+    - ^\d+\.\d+-rootless$
