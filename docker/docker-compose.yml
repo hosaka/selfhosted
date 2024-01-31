@@ -23,6 +23,7 @@ networks:
   monitor:
   mqtt:
   forgejo:
+  atuin:
 
 volumes:
   caddy-config:
@@ -47,6 +48,7 @@ volumes:
   paperless-data:
   paperless-media:
 
+  atuin-database-data:
   vaultwarden-data:
 
   home-assistant-config:
@@ -428,6 +430,39 @@ services:
       - paperless-media:/usr/src/paperless/media
       - ${PAPERLESS_CONSUME_PATH}:/usr/src/paperless/consume
       - ${PAPERLESS_EXPORT_PATH}:/usr/src/paperless/export
+
+  atuin-database:
+    image: docker.io/postgres:14-alpine
+    environment:
+      - POSTGRES_USER=${ATUIN_DB_USERNAME}
+      - POSTGRES_PASSWORD=${ATUIN_DB_PASSWORD}
+      - POSTGRES_DB=${ATUIN_DB_DATABASE_NAME}
+    logging: *logging
+    networks:
+      - atuin
+    restart: unless-stopped
+    volumes:
+      - atuin-database-data:/var/lib/postgresql/data
+
+  atuin:
+    image: ghcr.io/atuinsh/atuin:17.2.1
+    command: server start
+    depends_on:
+      - atuin-database
+    environment:
+      - ATUIN_HOST=0.0.0.0
+      - ATUIN_OPEN_REGISTRATION=true
+      - ATUIN_DB_URI=postgres://${ATUIN_DB_USERNAME}:${ATUIN_DB_PASSWORD}@atuin-database/${ATUIN_DB_DATABASE_NAME}
+      - TZ=${TIMEZONE}
+    expose:
+      - 8888 # api
+    logging: *logging
+    networks:
+      - proxy
+      - atuin
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
 
   vaultwarden:
     image: docker.io/vaultwarden/server:1.29.2-alpine
