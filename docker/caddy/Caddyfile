@@ -89,10 +89,7 @@ vaultwarden.{$PROXY_PRIVATE_DOMAIN}, vaultwarden.{$PROXY_PUBLIC_DOMAIN} {
     }
     redir @admin /
 
-    # notifications redirected to the websocket server
-    reverse_proxy /notifications/hub vaultwarden:80
-
-    # proxy everything else to Rocket
+    # proxy everything to Rocket
     reverse_proxy vaultwarden:80 {
         # send the true remote IP to Rocket, fail2ban can ban correct IP from the log
         header_up X-Real-IP {remote_host}

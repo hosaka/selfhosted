@@ -465,7 +465,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
 
   vaultwarden:
-    image: docker.io/vaultwarden/server:1.29.2-alpine
+    image: docker.io/vaultwarden/server:1.30.2-alpine
     environment:
       - ADMIN_TOKEN=${VAULTWARDEN_ADMIN_TOKEN}
       - DOMAIN=https://vaultwarden.${PROXY_PUBLIC_DOMAIN}
