@@ -91,7 +91,7 @@ services:
       - ./caddy/Caddyfile:/config/Caddyfile
 
   cloudflared:
-    image: docker.io/cloudflare/cloudflared:2024.1.4
+    image: docker.io/cloudflare/cloudflared:2024.1.5
     command: tunnel --no-autoupdate run --token ${PROXY_CF_TUNNEL_TOKEN}
     extra_hosts:
       - host.docker.internal:host-gateway
@@ -223,7 +223,7 @@ services:
       - ${MEDIA_ROOT_PATH}:/data/media
 
   sabnzbd:
-    image: docker.io/hotio/sabnzbd:release-4.2.1
+    image: docker.io/hotio/sabnzbd:release-4.2.2
     <<: *environment-hotio
     expose:
       - 8080 # webui
@@ -237,7 +237,7 @@ services:
       - ${MEDIA_DOWNLOADS_USENET_PATH}:/data/media/downloads/usenet
 
   qbit:
-    image: docker.io/hotio/qbittorrent:release
+    image: docker.io/hotio/qbittorrent:release-4.6.3
     cap_add:
       - NET_ADMIN
     environment:
@@ -266,7 +266,7 @@ services:
       - ${MEDIA_DOWNLOADS_TORRENT_PATH}:/data/media/downloads/torrent
 
   qbitmanage:
-    image: docker.io/hotio/qbitmanage:release
+    image: docker.io/hotio/qbitmanage:release-4.0.8
     <<: *environment-hotio
     logging: *logging
     networks:
@@ -391,7 +391,7 @@ services:
     restart: unless-stopped
 
   paperless:
-    image: docker.io/paperlessngx/paperless-ngx:2.4.1
+    image: docker.io/paperlessngx/paperless-ngx:2.4.3
     depends_on:
       - paperless-redis
       - paperless-gotenberg
@@ -525,7 +525,7 @@ services:
       - ./diun/config.yml:/config.yml:ro
 
   homeassistant:
-    image: docker.io/homeassistant/home-assistant:stable
+    image: docker.io/homeassistant/home-assistant:2024.1.6
     environment:
       - TZ=${TIMEZONE}
     expose:
@@ -541,7 +541,7 @@ services:
       - home-assistant-config:/config
 
   frigate:
-    image: ghcr.io/blakeblackshear/frigate:stable
+    image: ghcr.io/blakeblackshear/frigate:0.13.0
     devices:
       - ${FRIGATE_HARDWARE_RENDER}:/dev/dri/renderD128
     environment:
@@ -589,7 +589,7 @@ services:
       - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
 
   restic:
-    image: docker.io/creativeprojects/resticprofile:latest
+    image: docker.io/creativeprojects/resticprofile:0.24.0
     command:
       - "-c"
       - "resticprofile schedule --all && crond -f"

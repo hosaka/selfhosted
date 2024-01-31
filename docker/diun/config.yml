@@ -117,13 +117,23 @@
   include_tags:
     - ^\d+\.\d+\.\d+$
 
-- name: docker.io/homeassistant/home-assistant:stable
+- name: docker.io/homeassistant/home-assistant
+  watch_repo: true
+  max_tags: 3
+  sort_tags: semver
   notify_on:
-    - update
+    - new
+  include_tags:
+    - ^\d+\.\d+\.\d+$
 
-- name: ghcr.io/blakeblackshear/frigate:stable
+- name: ghcr.io/blakeblackshear/frigate
+  watch_repo: true
+  max_tags: 3
+  sort_tags: semver
   notify_on:
-    - update
+    - new
+  include_tags:
+    - ^\d+\.\d+\.\d+$
 
 - name: docker.io/eclipse-mosquitto
   watch_repo: true
@@ -134,9 +144,14 @@
   include_tags:
     - ^\d+\.\d+\.\d+$
 
-- name: docker.io/creativeprojects/resticprofile:latest
+- name: docker.io/creativeprojects/resticprofile
+  watch_repo: true
+  max_tags: 3
+  sort_tags: semver
   notify_on:
-    - update
+    - new
+  include_tags:
+    - ^\d+\.\d+\.\d+$
 
 - name: codeberg.org/forgejo/forgejo
   watch_repo: true
