@@ -55,6 +55,7 @@ volumes:
   mosquitto-data:
   forgejo-data:
   forgejo-database-data:
+  forgejo-runner-data:
 
   # monitoring
   gotify-data:
@@ -541,7 +542,7 @@ services:
       - home-assistant-config:/config
 
   frigate:
-    image: ghcr.io/blakeblackshear/frigate:0.13.0
+    image: ghcr.io/blakeblackshear/frigate:0.13.1
     devices:
       - ${FRIGATE_HARDWARE_RENDER}:/dev/dri/renderD128
     environment:
@@ -611,6 +612,13 @@ services:
 
   forgejo:
     image: codeberg.org/forgejo/forgejo:1.21-rootless
+    command: >-
+      bash -ce '
+      /usr/local/bin/gitea -c /etc/gitea/app.ini &
+      sleep 10 ;
+      forgejo forgejo-cli actions register --secret $FORGEJO_RUNNER_SECRET --name box ;
+      sleep infinity ;
+      '
     depends_on:
       - forgejo-database
     environment:
@@ -625,6 +633,7 @@ services:
       - FORGEJO__server__ROOT_URL=https://code.${PROXY_PUBLIC_DOMAIN}
       - FORGEJO__server__SSH_DOMAIN=git.${PROXY_PUBLIC_DOMAIN}
       - FORGEJO__service__DISABLE_REGISTRATION=true
+      - FORGEJO_RUNNER_SECRET=${FORGEJO_RUNNER_SECRET}
     expose:
       - 3000 # webui
       - 2222 # ssh
@@ -637,7 +646,7 @@ services:
     volumes:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
-      - ./forgejo:/etc/gitea
+      - ./forgejo/app.ini:/etc/gitea/app.ini
       - forgejo-data:/data
 
   forgejo-database:
@@ -652,6 +661,38 @@ services:
     restart: unless-stopped
     volumes:
       - forgejo-database-data:/var/lib/postgresql/data
+
+  forgejo-dind:
+    image: docker.io/docker:dind
+    command: ["dockerd", "-H", "tcp://0.0.0.0:2375", "--tls=false"]
+    privileged: true
+    logging: *logging
+    networks:
+      - forgejo
+
+  forgejo-runner:
+    image: code.forgejo.org/forgejo/runner:3.3.0
+    command: >-
+      bash -ec '
+      while : ; do
+        forgejo-runner create-runner-file --connect --instance http://forgejo:3000 --name box --secret $FORGEJO_RUNNER_SECRET && break ;
+        sleep 10 ;
+      done ;
+      chown -R 1000:1000 /data ;
+      forgejo-runner --config runner.yml daemon ;
+      '
+    depends_on:
+      - forgejo
+      - forgejo-dind
+    environment:
+      - FORGEJO_RUNNER_SECRET=${FORGEJO_RUNNER_SECRET}
+    logging: *logging
+    networks:
+      - forgejo
+    restart: unless-stopped
+    volumes:
+      - forgejo-runner-data:/data
+      - ./forgejo/runner.yml:/data/runner.yml
 
   # grafana:
   #   image: docker.io/grafana/grafana:10.1.4
