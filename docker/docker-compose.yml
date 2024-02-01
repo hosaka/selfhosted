@@ -39,6 +39,7 @@ volumes:
   sabnzbd-config:
   qbit-config:
   qbitmanage-config:
+  frigate-config:
 
   immich-model-cache:
   immich-redis-data:
@@ -568,6 +569,7 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - ${FRIGATE_STORAGE_PATH}:/media/frigate/recordings
+      - frigate-config:/config
       - ./frigate/config.yml:/config/config.yml
       - type: tmpfs
         target: /tmp/cache
