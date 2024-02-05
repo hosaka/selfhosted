@@ -696,38 +696,69 @@ services:
       - forgejo-runner-data:/data
       - ./forgejo/runner.yml:/data/runner.yml
 
-  # grafana:
-  #   image: docker.io/grafana/grafana:10.1.4
-  #   logging: *logging
-  #   environment:
-  #     - TZ=${TIMEZONE}
-  #     - GF_SECURITY_ADMIN_USER=${MONITOR_GRAFANA_SECURITY_ADMIN_USER}
-  #     - GF_SECURITY_ADMIN_PASSWORD=${MONITOR_GRAFANA_SECURITY_ADMIN_PASSWORD}
-  #   networks:
-  #     - proxy
-  #     - monitor
-  #   restart: unless-stopped
-  #   volumes:
-  #     - /etc/localtime:/etc/localtime:ro
-  #     - grafana-data:/var/lib/grafana
-  #     - grafana-config:/etc/grafana
-  #     - ./grafana/dashboard.yml:/etc/grafana/provisioning/dashboards/dashboard.yml
-  #     - ./grafana/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
-  #
-  # prometheus:
-  #   image: docker.io/prom/prometheus:v2.45.0
-  #   command:
-  #     - "--config.file=/etc/prometheus/prometheus.yml"
-  #     - "--storage.tsdb.path=/prometheus"
-  #     - "--web.console.templates=/usr/share/prometheus/consoles"
-  #     - "--web.console.libraries=/usr/share/prometheus/console_libraries"
-  #   environment:
-  #     - TZ=${TIMEZONE}
-  #   logging: *logging
-  #   networks:
-  #     - monitor
-  #   restart: unless-stopped
-  #   volumes:
-  #     - /etc/localtime:/etc/localtime:ro
-  #     - prometheus-data:/prometheus
-  #     - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+  grafana:
+    image: docker.io/grafana/grafana:10.3.1
+    logging: *logging
+    environment:
+      - TZ=${TIMEZONE}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SECURITY_ADMIN_USER=${MONITOR_GRAFANA_SECURITY_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${MONITOR_GRAFANA_SECURITY_ADMIN_PASSWORD}
+    expose:
+      - 3000 # webui
+    networks:
+      - proxy
+      - monitor
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - grafana-data:/var/lib/grafana
+      - grafana-config:/etc/grafana
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources
+
+  prometheus:
+    image: docker.io/prom/prometheus:v2.45.3
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.console.templates=/usr/share/prometheus/consoles"
+      - "--web.console.libraries=/usr/share/prometheus/console_libraries"
+      - "--web.enable-lifecycle" # reload config on /-/reload POST
+    environment:
+      - TZ=${TIMEZONE}
+    expose:
+      - 9090 # metrics
+    logging: *logging
+    networks:
+      - proxy
+      - monitor
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - prometheus-data:/prometheus
+      - ./prometheus/rules:/etc/prometheus/rules
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+
+  node-exporter:
+    image: docker.io/prom/node-exporter:v1.7.0
+    command:
+      - "--path.rootfs=/rootfs"
+      - "--path.sysfs=/host/sys"
+      - "--path.procfs=/host/proc"
+      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
+      - "--collector.netclass.ignored-devices=^(veth.*)$$"
+    expose:
+      - 9100 # metrics
+    logging: *logging
+    networks:
+      - monitor
+    restart: unless-stopped
+    volumes:
+      - /:/rootfs:ro
+      - /sys:/host/sys:ro
+      - /proc:/host/proc:ro
+      - /etc/localtime:/etc/localtime:ro
+
+  # cadvisor:
+  #   image: gcr.io/cadvisor/cadvisor
