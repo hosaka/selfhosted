@@ -312,6 +312,8 @@ services:
     depends_on:
       - immich-redis
       - immich-database
+    devices:
+      - ${IMMICH_TRANSCODE_CARD}:/dev/dri/card0
     entrypoint: ["/bin/sh", "./start-microservices.sh"]
     environment:
       - NODE_ENV=production
