@@ -169,7 +169,7 @@ services:
       - sonarr-config:/config
 
   prowlarr:
-    image: docker.io/hotio/prowlarr:release-1.12.2.4211
+    image: docker.io/hotio/prowlarr:release-1.13.3.4273
     <<: *environment-hotio
     expose:
       - 9696 # webui
@@ -211,7 +211,7 @@ services:
       - ${MEDIA_COLLECTION_MUSIC_PATH}:/music:ro
 
   lidarr:
-    image: docker.io/hotio/lidarr:release-2.0.7.3849
+    image: docker.io/hotio/lidarr:release-2.1.7.4030
     <<: *environment-hotio
     expose:
       - 8686 # webui
@@ -395,7 +395,7 @@ services:
     restart: unless-stopped
 
   paperless:
-    image: docker.io/paperlessngx/paperless-ngx:2.4.3
+    image: docker.io/paperlessngx/paperless-ngx:2.5.2
     depends_on:
       - paperless-redis
       - paperless-gotenberg
@@ -455,7 +455,7 @@ services:
       - atuin-database
     environment:
       - ATUIN_HOST=0.0.0.0
-      - ATUIN_OPEN_REGISTRATION=true
+      - ATUIN_OPEN_REGISTRATION=false
       - ATUIN_DB_URI=postgres://${ATUIN_DB_USERNAME}:${ATUIN_DB_PASSWORD}@atuin-database/${ATUIN_DB_DATABASE_NAME}
       - TZ=${TIMEZONE}
     expose:
@@ -529,7 +529,7 @@ services:
       - ./diun/config.yml:/config.yml:ro
 
   homeassistant:
-    image: docker.io/homeassistant/home-assistant:2024.1.6
+    image: docker.io/homeassistant/home-assistant:2024.2
     environment:
       - TZ=${TIMEZONE}
     expose:
