@@ -93,7 +93,7 @@ services:
       - ./caddy/Caddyfile:/config/Caddyfile
 
   cloudflared:
-    image: docker.io/cloudflare/cloudflared:2024.1.5
+    image: docker.io/cloudflare/cloudflared:2024.2.1
     command: tunnel --no-autoupdate run --token ${PROXY_CF_TUNNEL_TOKEN}
     extra_hosts:
       - host.docker.internal:host-gateway
@@ -141,7 +141,7 @@ services:
       - jellyseerr-config:/app/config
 
   radarr:
-    image: docker.io/hotio/radarr:release-5.2.6.8376
+    image: docker.io/hotio/radarr:release-5.3.6.8612
     <<: *environment-hotio
     expose:
       - 7878 # webui
@@ -355,7 +355,7 @@ services:
       - immich-redis-data:/data
 
   immich-database:
-    image: docker.io/tensorchord/pgvecto-rs:pg14-v0.1.11
+    image: docker.io/tensorchord/pgvecto-rs:pg14-v0.2.0
     environment:
       - POSTGRES_USER=${IMMICH_DB_USERNAME}
       - POSTGRES_PASSWORD=${IMMICH_DB_PASSWORD}
@@ -395,7 +395,7 @@ services:
     restart: unless-stopped
 
   paperless:
-    image: docker.io/paperlessngx/paperless-ngx:2.5.2
+    image: docker.io/paperlessngx/paperless-ngx:2.5.3
     depends_on:
       - paperless-redis
       - paperless-gotenberg
@@ -594,7 +594,7 @@ services:
       - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
 
   restic:
-    image: docker.io/creativeprojects/resticprofile:0.24.0
+    image: docker.io/creativeprojects/resticprofile:0.26.0
     command:
       - "-c"
       - "resticprofile schedule --all && crond -f"
