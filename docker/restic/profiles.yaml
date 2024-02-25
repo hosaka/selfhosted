@@ -16,19 +16,21 @@ groups:
 immich:
   inherit: default
 
-  # run-before: echo "Starting"
-  # run-after: echo "Finishing"
-  # run-after-fail: echo "Finishing"
-
   backup:
     schedule: "03:00"
     check-before: true
-    # schedule-permission: system
+
+    # run-before: echo "Starting"
+    # run-after: echo "Finishing"
+    # run-after-fail: echo "Finishing"
 
     source:
       - /mnt/pool/immich
+
     tag:
       - "private"
 
   forget:
+    schedule: "Sun 03:30"
     keep-within: "7d"
+    prune: true

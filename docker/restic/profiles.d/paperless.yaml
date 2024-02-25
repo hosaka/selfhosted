@@ -4,13 +4,12 @@ version: "1"
 paperless:
   inherit: default
 
-  run-before: docker compose -p box stop paperless
-  run-after: docker compose -p box start paperless
-  run-after-fail: docker compose -p box start paperless
-
   backup:
     schedule: "01:00"
     check-before: true
+
+    run-before: docker compose -p box stop paperless
+    run-finally: docker compose -p box start paperless
 
     source:
       # metadata and sqlite
@@ -20,3 +19,8 @@ paperless:
 
     tag:
       - "private"
+
+  forget:
+    schedule: "Sun 01:30"
+    keep-last: 5
+    prune: true
