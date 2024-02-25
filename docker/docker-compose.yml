@@ -593,27 +593,6 @@ services:
       - mosquitto-data:/mosquitto/data
       - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
 
-  restic:
-    image: docker.io/creativeprojects/resticprofile:0.26.0
-    command:
-      - "-c"
-      - "resticprofile schedule --all && crond -f"
-    entrypoint: "/bin/sh"
-    environment:
-      - TZ=${TIMEZONE}
-      - RESTIC_REPOSITORY_URL=${RESTIC_REPOSITORY_URL}
-      - RESTIC_AWS_ACCESS_KEY_ID=${RESTIC_AWS_ACCESS_KEY_ID}
-      - RESTIC_AWS_SECRET_ACCESS_KEY=${RESTIC_AWS_SECRET_ACCESS_KEY}
-      - IMMICH_UPLOAD_LOCATION=${IMMICH_UPLOAD_LOCATION}
-    hostname: box
-    logging: *logging
-    restart: unless-stopped
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - ./restic/profiles.yaml:/etc/resticprofile/profiles.yaml:ro
-      - ./restic/password.txt:/etc/resticprofile/password.txt:ro
-      - ${IMMICH_UPLOAD_LOCATION}:${IMMICH_UPLOAD_LOCATION}
-
   forgejo:
     image: codeberg.org/forgejo/forgejo:1.21-rootless
     command: >-

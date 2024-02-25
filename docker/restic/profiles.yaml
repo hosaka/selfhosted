@@ -1,34 +1,34 @@
 # yaml-language-server: $schema=https://creativeprojects.github.io/resticprofile/jsonschema/config-1.json
 version: "1"
 
+includes:
+  - conf.d/*.yaml
+  - profiles.d/*.yaml
+
 global:
   scheduler: crond
 
 groups:
   full:
-    - private
+    - immich
+    - paperless
 
-default:
-  repository: "{{ .Env.RESTIC_REPOSITORY_URL }}"
-  password-file: "password.txt"
+immich:
+  inherit: default
 
-  env:
-    AWS_ACCESS_KEY_ID: "{{ .Env.RESTIC_AWS_ACCESS_KEY_ID }}"
-    AWS_SECRET_ACCESS_KEY: "{{ .Env.RESTIC_AWS_SECRET_ACCESS_KEY }}"
+  # run-before: echo "Starting"
+  # run-after: echo "Finishing"
+  # run-after-fail: echo "Finishing"
 
   backup:
     schedule: "03:00"
     check-before: true
     # schedule-permission: system
 
-private:
-  inherit: "default"
-
-  backup:
     source:
-      - "{{ .Env.IMMICH_UPLOAD_LOCATION }}"
+      - /mnt/pool/immich
     tag:
-      - "{{ .Profile.Name }}"
+      - "private"
 
   forget:
     keep-within: "7d"

@@ -1,0 +1,22 @@
+# yaml-language-server: $schema=https://creativeprojects.github.io/resticprofile/jsonschema/config-1.json
+version: "1"
+
+paperless:
+  inherit: default
+
+  run-before: docker compose -p box stop paperless
+  run-after: docker compose -p box start paperless
+  run-after-fail: docker compose -p box start paperless
+
+  backup:
+    schedule: "01:00"
+    check-before: true
+
+    source:
+      # metadata and sqlite
+      - /var/lib/docker/volumes/box_paperless-data
+      # documents
+      - /var/lib/docker/volumes/box_paperless-media
+
+    tag:
+      - "private"
