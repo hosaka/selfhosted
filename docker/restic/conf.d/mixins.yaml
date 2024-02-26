@@ -1,0 +1,18 @@
+# yaml-language-server: $schema=https://creativeprojects.github.io/resticprofile/jsonschema/config-2.json
+version: "2"
+
+mixins:
+  keep-last-n:
+    default-vars:
+      last: 10
+
+    forget:
+      prune: true
+      keep-last: $last
+
+  stop-start-container:
+    default-vars:
+      container: none
+
+    run-before: docker compose -p box stop $container
+    run-finally: docker compose -p box start $container

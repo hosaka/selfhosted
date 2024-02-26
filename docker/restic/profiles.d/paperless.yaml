@@ -1,26 +1,36 @@
-# yaml-language-server: $schema=https://creativeprojects.github.io/resticprofile/jsonschema/config-1.json
-version: "1"
+# yaml-language-server: $schema=https://creativeprojects.github.io/resticprofile/jsonschema/config-2.json
+version: "2"
 
-paperless:
-  inherit: default
+profiles:
+  paperless:
+    inherit: default
 
-  backup:
-    schedule: "01:00"
-    check-before: true
+    backup:
+      schedule: "01:00"
+      check-before: true
 
-    run-before: docker compose -p box stop paperless
-    run-finally: docker compose -p box start paperless
+      use:
+        - name: stop-start-container
+          container: paperless
 
-    source:
-      # metadata and sqlite
-      - /var/lib/docker/volumes/box_paperless-data
-      # documents
-      - /var/lib/docker/volumes/box_paperless-media
+      source:
+        # metadata and sqlite
+        - /var/lib/docker/volumes/box_paperless-data
+        # documents
+        - /var/lib/docker/volumes/box_paperless-media
 
-    tag:
-      - "private"
+      tag:
+        - private
 
-  forget:
-    schedule: "Sun 01:30"
-    keep-last: 5
-    prune: true
+    forget:
+      schedule: "Sun 01:30"
+      keep-last: 5
+      prune: true
+
+  # paperless-database:
+  #   # todo: switch to postgress and use pg_dumpall instead
+
+groups:
+  docs:
+    profiles:
+      - paperless

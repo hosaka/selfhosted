@@ -1,5 +1,5 @@
-# yaml-language-server: $schema=https://creativeprojects.github.io/resticprofile/jsonschema/config-1.json
-version: "1"
+# yaml-language-server: $schema=https://creativeprojects.github.io/resticprofile/jsonschema/config-2.json
+version: "2"
 
 includes:
   - conf.d/*.yaml
@@ -7,30 +7,3 @@ includes:
 
 global:
   scheduler: crond
-
-groups:
-  full:
-    - immich
-    - paperless
-
-immich:
-  inherit: default
-
-  backup:
-    schedule: "03:00"
-    check-before: true
-
-    # run-before: echo "Starting"
-    # run-after: echo "Finishing"
-    # run-after-fail: echo "Finishing"
-
-    source:
-      - /mnt/pool/immich
-
-    tag:
-      - "private"
-
-  forget:
-    schedule: "Sun 03:30"
-    keep-within: "7d"
-    prune: true
