@@ -24,7 +24,7 @@ profiles:
     inherit: default
 
     backup:
-      schedule: "03:10"
+      schedule: "03:00"
 
       use:
         - name: stop-start-container

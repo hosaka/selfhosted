@@ -45,9 +45,10 @@ volumes:
   immich-redis-data:
   immich-database-data:
 
-  paperless-redis-data:
   paperless-data:
+  paperless-database-data:
   paperless-media:
+  paperless-redis-data:
 
   atuin-database-data:
   vaultwarden-data:
@@ -376,6 +377,19 @@ services:
     volumes:
       - paperless-redis-data:/data
 
+  paperless-database:
+    image: docker.io/postgres:14-alpine
+    environment:
+      - POSTGRES_USER=${PAPERLESS_DB_USERNAME}
+      - POSTGRES_PASSWORD=${PAPERLESS_DB_PASSWORD}
+      - POSTGRES_DB=${PAPERLESS_DB_DATABASE_NAME}
+    logging: *logging
+    networks:
+      - paperless
+    restart: unless-stopped
+    volumes:
+      - paperless-database-data:/var/lib/postgresql/data
+
   paperless-gotenberg:
     image: docker.io/gotenberg/gotenberg:7.10
     command:
@@ -398,6 +412,7 @@ services:
     image: docker.io/paperlessngx/paperless-ngx:2.5.3
     depends_on:
       - paperless-redis
+      - paperless-database
       - paperless-gotenberg
       - paperless-tika
     environment:
@@ -408,6 +423,10 @@ services:
       - PAPERLESS_CSRF_TRUSTED_ORIGINS=https://paperless.${PROXY_PUBLIC_DOMAIN}
       - PAPERLESS_SECRET_KEY=${PAPERLESS_SECRET_KEY}
       - PAPERLESS_REDIS=redis://paperless-redis:6379
+      - PAPERLESS_DBHOST=paperless-database
+      - PAPERLESS_DBUSER=${PAPERLESS_DB_USERNAME}
+      - PAPERLESS_DBPASS=${PAPERLESS_DB_PASSWORD}
+      - PAPERLESS_DBNAME=${PAPERLESS_DB_DATABASE_NAME}
       - PAPERLESS_TIKA_ENABLED=true
       - PAPERLESS_TIKA_ENDPOINT=http://paperless-tika:9998
       - PAPERLESS_TIKA_GOTENBERG_ENDPOINT=http://paperless-gotenberg:3000

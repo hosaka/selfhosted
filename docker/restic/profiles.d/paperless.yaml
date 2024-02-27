@@ -9,12 +9,8 @@ profiles:
       schedule: "01:00"
       check-before: true
 
-      use:
-        - name: stop-start-container
-          container: paperless
-
       source:
-        # metadata and sqlite
+        # metadata
         - /var/lib/docker/volumes/box_paperless-data
         # documents
         - /var/lib/docker/volumes/box_paperless-media
@@ -27,10 +23,26 @@ profiles:
       keep-last: 5
       prune: true
 
-  # paperless-database:
-  #   # todo: switch to postgress and use pg_dumpall instead
+  paperless-database:
+    inherit: default
+
+    backup:
+      schedule: "01:00"
+
+      use:
+        - name: stop-start-container
+          container: paperless
+
+      stdin: true
+      stdin-command: docker compose -p box exec paperless-database pg_dumpall -c -U postgres | gzip -c
+      stdin-filename: "{{ .Profile.Name }}.sql.gz"
+
+      tag:
+        - private
+        - sqldump
 
 groups:
   docs:
     profiles:
       - paperless
+      - paperless-database
