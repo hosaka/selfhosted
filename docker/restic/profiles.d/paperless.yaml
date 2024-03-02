@@ -20,7 +20,7 @@ profiles:
 
     forget:
       schedule: "Sun 01:30"
-      keep-last: 5
+      keep-last: 3
       prune: true
 
   paperless-database:

@@ -17,7 +17,7 @@ profiles:
 
     forget:
       schedule: "Sun 03:30"
-      keep-within: "7d"
+      keep-last: 5
       prune: true
 
   immich-database:
