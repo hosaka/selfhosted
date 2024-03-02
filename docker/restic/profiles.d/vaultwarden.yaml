@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://creativeprojects.github.io/resticprofile/jsonschema/config-2.json
+version: "2"
+
+profiles:
+  vaultwarden:
+    inherit: default
+
+    backup:
+      schedule: "04:00"
+      check-before: true
+
+      use:
+        - name: stop-start-container
+          container: vaultwarden
+
+      exclude:
+        - "icon_cache/*"
+      source:
+        - /var/lib/docker/volumes/box_vaultwarden-data
+
+      tag:
+        - private
+
+    forget:
+      schedule: "Sun 04:00"
+      keep-last: 3
+      prune: true
+
+groups:
+  vaults:
+    profiles:
+      - vaultwarden
