@@ -613,10 +613,12 @@ services:
       - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
 
   forgejo:
+    # todo: automatically create a new user, part of the executed command:
+    # forgejo admin user create --admin --username user --password password --email email@domain.tld
     image: codeberg.org/forgejo/forgejo:1.21-rootless
     command: >-
-      bash -ce '
-      /usr/local/bin/gitea -c /etc/gitea/app.ini &
+      bash -ec '
+      gitea --config /etc/gitea/app.ini &
       sleep 10 ;
       forgejo forgejo-cli actions register --secret $FORGEJO_RUNNER_SECRET --name box ;
       sleep infinity ;
@@ -624,20 +626,31 @@ services:
     depends_on:
       - forgejo-database
     environment:
+      - APP_NAME=Code
       - USER_UID=1000
       - USER_GID=1000
       - FORGEJO__database__DB_TYPE=postgres
       - FORGEJO__database__HOST=forgejo-database
-      - FORGEJO__database__USER=${FORGEJO_DB_USERNAME}
-      - FORGEJO__database__PASSWD=${FORGEJO_DB_PASSWORD}
       - FORGEJO__database__NAME=${FORGEJO_DB_DATABASE_NAME}
+      - FORGEJO__database__PASSWD=${FORGEJO_DB_PASSWORD}
+      - FORGEJO__database__USER=${FORGEJO_DB_USERNAME}
+      - FORGEJO__git__PULL_REQUEST_PUSH_MESSAGE=false
+      - FORGEJO__git__VERBOSE_PUSH=false
+      - FORGEJO__openid__ENABLE_OPENID_SIGNUP=false
+      - FORGEJO__security__INSTALL_LOCK=true
+      - FORGEJO__security__INTERNAL_TOKEN=${FORGEJO_INTERNAL_TOKEN}
+      # todo: this should only accept our reverse proxy
+      # - FORGEJO__security__REVERSE_PROXY_TRUSTED_PROXIES=caddy
+      - FORGEJO__security__SECRET_KEY=${FORGEJO_SECRET_KEY}
       - FORGEJO__server__DOMAIN=code.${PROXY_PUBLIC_DOMAIN}
+      - FORGEJO__server__LFS_JWT_SECRET=${FORGEJO_LFS_JWT_SECRET}
       - FORGEJO__server__ROOT_URL=https://code.${PROXY_PUBLIC_DOMAIN}
       - FORGEJO__server__SSH_DOMAIN=git.${PROXY_PUBLIC_DOMAIN}
-      - FORGEJO__server__LFS_JWT_SECRET=${FORGEJO_LFS_JWT_SECRET}
+      - FORGEJO__server__SSH_LISTEN_PORT=2222
+      - FORGEJO__server__SSH_PORT=22
+      - FORGEJO__server__START_SSH_SERVER=true
+      - FORGEJO__service__DEFAULT_KEEP_EMAIL_PRIVATE=true
       - FORGEJO__service__DISABLE_REGISTRATION=true
-      - FORGEJO__security__INTERNAL_TOKEN=${FORGEJO_INTERNAL_TOKEN}
-      - FORGEJO__oauth2__JWT_SECRET=${FORGEJO_OAUTH2_JWT_SECRET}
       - FORGEJO_RUNNER_SECRET=${FORGEJO_RUNNER_SECRET}
     expose:
       - 3000 # webui
@@ -651,8 +664,7 @@ services:
     volumes:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
-      - ./forgejo/app.ini:/etc/gitea/app.ini
-      - forgejo-data:/data
+      - forgejo-data:/var/lib/gitea
 
   forgejo-database:
     image: docker.io/postgres:14-alpine
@@ -681,7 +693,7 @@ services:
       bash -ec '
       while : ; do
         forgejo-runner create-runner-file --connect --instance http://forgejo:3000 --name box --secret $FORGEJO_RUNNER_SECRET && break ;
-        sleep 10 ;
+        sleep 1 ;
       done ;
       chown -R 1000:1000 /data ;
       forgejo-runner --config runner.yml daemon ;
