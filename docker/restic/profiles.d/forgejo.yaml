@@ -1,0 +1,47 @@
+# yaml-language-server: $schema=https://creativeprojects.github.io/resticprofile/jsonschema/config-2.json
+version: "2"
+
+profiles:
+  forgejo:
+    inherit: default
+
+    backup:
+      schedule: "02:00"
+      check-before: true
+
+      source:
+        # todo: forgejo-runner could be generating artifacts
+        # and should probably be suspended
+        - /var/lib/docker/volumes/box_forgejo-data
+
+      tag:
+        - git
+
+    forget:
+      schedule: "Sun 02:30"
+      keep-last: 3
+      prune: true
+
+  forgejo-database:
+    inherit: default
+
+    backup:
+      schedule: "02:00"
+
+      use:
+        - name: stop-start-container
+          container: forgejo
+
+      stdin: true
+      stdin-command: docker compose -p box exec forgejo-database pg_dumpall -c -U postgres | gzip -c
+      stdin-filename: "{{ .Profile.Name }}.sql.gz"
+
+      tag:
+        - git
+        - sqldump
+
+groups:
+  git:
+    profiles:
+      - forgejo
+      - forgejo-database
