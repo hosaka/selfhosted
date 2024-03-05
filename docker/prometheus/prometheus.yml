@@ -14,6 +14,10 @@ scrape_configs:
     static_configs:
       - targets: ["node-exporter:9100"]
 
+  - job_name: "smartctl"
+    static_configs:
+      - targets: ["smartctl-exporter:9633"]
+
   # - job_name: "cloudflared"
   #   static_configs:
   #     - targets: ["cloudflared:4506"]

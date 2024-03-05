@@ -776,5 +776,16 @@ services:
       - /proc:/host/proc:ro
       - /etc/localtime:/etc/localtime:ro
 
+  smartctl-exporter:
+    image: docker.io/prometheuscommunity/smartctl-exporter:v0.12.0
+    expose:
+      - 9633 # metrics
+    logging: *logging
+    networks:
+      - monitor
+    privileged: true
+    restart: unless-stopped
+    user: root
+
   # cadvisor:
-  #   image: gcr.io/cadvisor/cadvisor
+  #   image: gcr.io/cadvisor/cadvisor:0.49.1
