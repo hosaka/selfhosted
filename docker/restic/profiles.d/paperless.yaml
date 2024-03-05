@@ -16,7 +16,7 @@ profiles:
         - /var/lib/docker/volumes/box_paperless-media
 
       tag:
-        - private
+        - docker
 
     forget:
       schedule: "Sun 01:30"
@@ -38,11 +38,11 @@ profiles:
       stdin-filename: "{{ .Profile.Name }}.sql.gz"
 
       tag:
-        - private
+        - docker
         - sqldump
 
 groups:
-  docs:
+  private:
     profiles:
       - paperless
       - paperless-database

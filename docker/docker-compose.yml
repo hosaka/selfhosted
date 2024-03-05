@@ -468,7 +468,7 @@ services:
       - atuin-database-data:/var/lib/postgresql/data
 
   atuin:
-    image: ghcr.io/atuinsh/atuin:17.2.1
+    image: ghcr.io/atuinsh/atuin:18.0.1
     command: server start
     depends_on:
       - atuin-database
@@ -763,6 +763,7 @@ services:
       - "--path.procfs=/host/proc"
       - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
       - "--collector.netclass.ignored-devices=^(veth.*)$$"
+      - "--collector.textfile.directory=/rootfs/home/restic/textfile_collector"
     expose:
       - 9100 # metrics
     logging: *logging

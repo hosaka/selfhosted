@@ -19,7 +19,7 @@ profiles:
         - /var/lib/docker/volumes/box_vaultwarden-data
 
       tag:
-        - private
+        - docker
 
     forget:
       schedule: "Sun 04:00"
@@ -27,6 +27,6 @@ profiles:
       prune: true
 
 groups:
-  vaults:
+  private:
     profiles:
       - vaultwarden

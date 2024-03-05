@@ -15,7 +15,7 @@ profiles:
         - /var/lib/docker/volumes/box_forgejo-data
 
       tag:
-        - git
+        - docker
 
     forget:
       schedule: "Sun 02:30"
@@ -37,11 +37,11 @@ profiles:
       stdin-filename: "{{ .Profile.Name }}.sql.gz"
 
       tag:
-        - git
+        - docker
         - sqldump
 
 groups:
-  git:
+  private:
     profiles:
       - forgejo
       - forgejo-database
