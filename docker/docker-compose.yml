@@ -715,10 +715,20 @@ services:
     image: docker.io/grafana/grafana:10.3.1
     logging: *logging
     environment:
-      - TZ=${TIMEZONE}
-      - GF_USERS_ALLOW_SIGN_UP=false
-      - GF_SECURITY_ADMIN_USER=${MONITOR_GRAFANA_SECURITY_ADMIN_USER:-admin}
+      - GF_ANALYTICS_CHECK_FOR_UPDATES=false
+      - GF_ANALYTICS_FEEDBACK_LINKS_ENABLED=false
+      - GF_ANALYTICS_REPORTING_ENABLED=false
+      - GF_DEFAULT_INSTANCE_NAME=selfhosted
+      - GF_SECRETSCAN_ENABLED=false
       - GF_SECURITY_ADMIN_PASSWORD=${MONITOR_GRAFANA_SECURITY_ADMIN_PASSWORD}
+      - GF_SECURITY_ADMIN_USER=${MONITOR_GRAFANA_SECURITY_ADMIN_USER}
+      - GF_SECURITY_COOKIE_SECURE=true
+      - GF_SECURITY_COOKIE_SAMESITE=strict
+      - GF_SECURITY_DISABLE_GRAVATAR=true
+      - GF_SERVER_DOMAIN=grafana.${PROXY_PUBLIC_DOMAIN}
+      - GF_SERVER_ROOT_URL=https://grafana.${PROXY_PUBLIC_DOMAIN}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - TZ=${TIMEZONE}
     expose:
       - 3000 # webui
     networks:
@@ -737,6 +747,8 @@ services:
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=30d"
+      - "--storage.tsdb.retention.size=10GB"
       - "--web.console.templates=/usr/share/prometheus/consoles"
       - "--web.console.libraries=/usr/share/prometheus/console_libraries"
       - "--web.enable-lifecycle" # reload config on /-/reload POST
@@ -744,16 +756,18 @@ services:
       - TZ=${TIMEZONE}
     expose:
       - 9090 # metrics
+    extra_hosts:
+      - host.docker.internal:host-gateway
     logging: *logging
     networks:
       - proxy
       - monitor
     restart: unless-stopped
     volumes:
-      - /etc/localtime:/etc/localtime:ro
       - prometheus-data:/prometheus
       - ./prometheus/rules:/etc/prometheus/rules
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - /etc/localtime:/etc/localtime:ro
 
   node-exporter:
     image: docker.io/prom/node-exporter:v1.7.0
@@ -761,14 +775,15 @@ services:
       - "--path.rootfs=/rootfs"
       - "--path.sysfs=/host/sys"
       - "--path.procfs=/host/proc"
-      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
-      - "--collector.netclass.ignored-devices=^(veth.*)$$"
+      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc|rootfs/var/lib/docker)($$|/)"
+      - "--collector.netclass.ignored-devices=^(veth.*)$"
+      - "--collector.netdev.device-exclude=^(veth.*)$"
       - "--collector.textfile.directory=/rootfs/home/restic/textfile_collector"
     expose:
       - 9100 # metrics
     logging: *logging
-    networks:
-      - monitor
+    network_mode: host
+    pid: host
     restart: unless-stopped
     volumes:
       - /:/rootfs:ro
