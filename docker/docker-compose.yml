@@ -156,7 +156,7 @@ services:
       - radarr-config:/config
 
   sonarr:
-    image: docker.io/hotio/sonarr:release-4.0.1.929
+    image: docker.io/hotio/sonarr:release-4.0.2.1183
     <<: *environment-hotio
     expose:
       - 8989 # webui
@@ -269,7 +269,7 @@ services:
       - ${MEDIA_DOWNLOADS_TORRENT_PATH}:/data/media/downloads/torrent
 
   qbitmanage:
-    image: docker.io/hotio/qbitmanage:release-4.0.8
+    image: docker.io/hotio/qbitmanage:release-4.0.9
     <<: *environment-hotio
     logging: *logging
     networks:
@@ -409,7 +409,7 @@ services:
     restart: unless-stopped
 
   paperless:
-    image: docker.io/paperlessngx/paperless-ngx:2.5.3
+    image: docker.io/paperlessngx/paperless-ngx:2.6.2
     depends_on:
       - paperless-redis
       - paperless-database
@@ -548,7 +548,7 @@ services:
       - ./diun/config.yml:/config.yml:ro
 
   homeassistant:
-    image: docker.io/homeassistant/home-assistant:2024.2
+    image: docker.io/homeassistant/home-assistant:2024.3
     environment:
       - TZ=${TIMEZONE}
     expose:
