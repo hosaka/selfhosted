@@ -18,6 +18,10 @@ scrape_configs:
     static_configs:
       - targets: ["smartctl-exporter:9633"]
 
+  - job_name: "cadvisor"
+    static_configs:
+      - targets: ["cadvisor:9250"]
+
   # - job_name: "cloudflared"
   #   static_configs:
   #     - targets: ["cloudflared:4506"]

@@ -802,5 +802,23 @@ services:
     restart: unless-stopped
     user: root
 
-  # cadvisor:
-  #   image: gcr.io/cadvisor/cadvisor:0.49.1
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    command:
+      - "-port=9250"
+    devices:
+      - /dev/kmsg
+    expose:
+      - 9250 # metrics
+    logging: *logging
+    networks:
+      - monitor
+    privileged: true
+    restart: unless-stopped
+    volumes:
+      - /:/rootfs:ro
+      - /dev/disk:/dev/disk:ro
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+      - /var/run:/var/run:ro
+      - /etc/localtime:/etc/localtime:ro
