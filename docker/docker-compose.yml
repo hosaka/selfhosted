@@ -776,8 +776,8 @@ services:
       - "--path.sysfs=/host/sys"
       - "--path.procfs=/host/proc"
       - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc|rootfs/var/lib/docker)($$|/)"
-      - "--collector.netclass.ignored-devices=^(veth.*)$"
-      - "--collector.netdev.device-exclude=^(veth.*)$"
+      - "--collector.netclass.ignored-devices=^(veth.+|br-.+|docker[0-9])$"
+      - "--collector.netdev.device-exclude=^(veth.+|br-.+|docker[0-9])$"
       - "--collector.textfile.directory=/rootfs/home/restic/textfile_collector"
     expose:
       - 9100 # metrics
