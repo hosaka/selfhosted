@@ -525,6 +525,8 @@ services:
     image: docker.io/gotify/server:2.4.0
     environment:
       - TZ=${TIMEZONE}
+    expose:
+      - 80 # webui
     logging: *logging
     networks:
       - proxy
