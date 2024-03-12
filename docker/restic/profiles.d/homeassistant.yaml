@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=https://creativeprojects.github.io/resticprofile/jsonschema/config-2.json
+version: "2"
+
+profiles:
+  homeassistant:
+    inherit: default
+
+    backup:
+      schedule: "weekly"
+      check-before: true
+
+      exclude:
+        - "backups/"
+        - "*_v2.db*"
+      source:
+        - /var/lib/docker/volumes/box_home-assistant-config
+
+      tag:
+        - docker
+
+  homeassistant-database:
+    inherit: default
+
+    backup:
+      schedule: "weekly"
+
+      use:
+        - name: stop-start-container
+          container: homeassistant
+
+      stdin: true
+      stdin-command: gzip -c /var/lib/docker/volumes/box_home-assistant-config/_data/home-assistant_v2.db
+      stdin-filename: "{{ .Profile.Name }}.db.gz"
+
+      tag:
+        - docker
+        - sqldump
+
+groups:
+  tools:
+    profiles:
+      - homeassistant
+      - homeassistant-database
