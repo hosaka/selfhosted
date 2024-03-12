@@ -40,6 +40,7 @@ volumes:
   qbit-config:
   qbitmanage-config:
   frigate-config:
+  home-assistant-config:
 
   immich-model-cache:
   immich-redis-data:
@@ -53,7 +54,6 @@ volumes:
   atuin-database-data:
   vaultwarden-data:
 
-  home-assistant-config:
   mosquitto-data:
   forgejo-data:
   forgejo-database-data:
@@ -570,7 +570,7 @@ services:
       - home-assistant-config:/config
 
   frigate:
-    image: ghcr.io/blakeblackshear/frigate:0.13.1
+    image: ghcr.io/blakeblackshear/frigate:0.13.2
     devices:
       - ${FRIGATE_HARDWARE_RENDER}:/dev/dri/renderD128
     environment:

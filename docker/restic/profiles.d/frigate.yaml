@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://creativeprojects.github.io/resticprofile/jsonschema/config-2.json
+version: "2"
+
+profiles:
+  frigate-database:
+    inherit: default
+
+    backup:
+      schedule: "weekly"
+
+      use:
+        - name: stop-start-container
+          container: frigate
+
+      stdin: true
+      stdin-command: gzip -c /var/lib/docker/volumes/box_frigate-config/_data/frigate.db
+      stdin-filename: "{{ .Profile.Name }}.db.gz"
+
+      tag:
+        - docker
+        - sqldump
+
+groups:
+  tools:
+    profiles:
+      - frigate-database
