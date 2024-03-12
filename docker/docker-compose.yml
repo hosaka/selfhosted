@@ -197,9 +197,13 @@ services:
       - ./recyclarr/recyclarr.yml:/config/recyclarr.yml
 
   navidrome:
-    image: docker.io/deluan/navidrome:0.51.0
+    image: docker.io/deluan/navidrome:0.51.1
     environment:
+      - ND_SCANSCHEDULE=@daily
       - ND_ENABLETRANSCODINGCONFIG=false
+      # used to fetch artist images
+      - ND_SPOTIFY_ID=${NAVIDROME_SPOTIFY_ID}
+      - ND_SPOTIFY_SECRET=${NAVIDROME_SPOTIFY_SECRET}
     expose:
       - 4533 # webui
     logging: *logging
