@@ -17,16 +17,12 @@ profiles:
       tag:
         - docker
 
-    forget:
-      schedule: "Sun 02:30"
-      keep-last: 3
-      prune: true
-
   forgejo-database:
     inherit: default
 
     backup:
       schedule: "02:00"
+      check-before: true
 
       use:
         - name: stop-start-container

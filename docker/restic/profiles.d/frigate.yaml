@@ -2,25 +2,26 @@
 version: "2"
 
 profiles:
-  frigate-database:
+  frigate:
     inherit: default
 
     backup:
       schedule: "weekly"
+      check-before: true
 
       use:
         - name: stop-start-container
           container: frigate
 
-      stdin: true
-      stdin-command: gzip -c /var/lib/docker/volumes/box_frigate-config/_data/frigate.db
-      stdin-filename: "{{ .Profile.Name }}.db.gz"
+      exclude:
+        - model_cache/
+      source:
+        - /var/lib/docker/volumes/box_frigate-config
 
       tag:
         - docker
-        - sqldump
 
 groups:
   tools:
     profiles:
-      - frigate-database
+      - frigate

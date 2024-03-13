@@ -6,4 +6,5 @@ includes:
   - profiles.d/*.yaml
 
 global:
+  default-command: profiles
   scheduler: crond

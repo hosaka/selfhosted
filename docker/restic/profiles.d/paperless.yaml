@@ -18,16 +18,12 @@ profiles:
       tag:
         - docker
 
-    forget:
-      schedule: "Sun 01:30"
-      keep-last: 3
-      prune: true
-
   paperless-database:
     inherit: default
 
     backup:
       schedule: "01:00"
+      check-before: true
 
       use:
         - name: stop-start-container

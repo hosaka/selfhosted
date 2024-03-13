@@ -7,13 +7,13 @@ profiles:
 
     backup:
       schedule: "weekly"
+      check-before: true
 
       use:
         - name: stop-start-container
           container: gotify
 
       source:
-        # database is too small to warrant gzip
         - /var/lib/docker/volumes/box_gotify-data
 
       tag:

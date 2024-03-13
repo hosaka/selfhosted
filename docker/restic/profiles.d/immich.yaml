@@ -15,16 +15,12 @@ profiles:
       tag:
         - docker
 
-    forget:
-      schedule: "Sun 03:30"
-      keep-last: 5
-      prune: true
-
   immich-database:
     inherit: default
 
     backup:
       schedule: "03:00"
+      check-before: true
 
       use:
         - name: stop-start-container

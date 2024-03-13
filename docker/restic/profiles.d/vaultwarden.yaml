@@ -21,11 +21,6 @@ profiles:
       tag:
         - docker
 
-    forget:
-      schedule: "Sun 04:00"
-      keep-last: 3
-      prune: true
-
 groups:
   private:
     profiles:

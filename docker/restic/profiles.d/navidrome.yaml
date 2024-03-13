@@ -2,25 +2,26 @@
 version: "2"
 
 profiles:
-  navidrome-database:
+  navidrome:
     inherit: default
 
     backup:
       schedule: "weekly"
+      check-before: true
 
       use:
         - name: stop-start-container
           container: navidrome
 
-      stdin: true
-      stdin-command: gzip -c /var/lib/docker/volumes/box_navidrome-data/_data/navidrome.db
-      stdin-filename: "{{ .Profile.Name }}.db.gz"
+      exclude:
+        - cache/
+      source:
+        - /var/lib/docker/volumes/box_navidrome-data
 
       tag:
         - docker
-        - sqldump
 
 groups:
   private:
     profiles:
-      - navidrome-database
+      - navidrome
