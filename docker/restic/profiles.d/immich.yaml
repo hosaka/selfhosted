@@ -7,7 +7,6 @@ profiles:
 
     backup:
       schedule: "03:00"
-      check-before: true
 
       source:
         - /mnt/pool/immich
@@ -20,7 +19,6 @@ profiles:
 
     backup:
       schedule: "03:00"
-      check-before: true
 
       use:
         - name: stop-start-container

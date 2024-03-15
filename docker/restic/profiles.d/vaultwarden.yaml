@@ -7,7 +7,6 @@ profiles:
 
     backup:
       schedule: "04:00"
-      check-before: true
 
       use:
         - name: stop-start-container

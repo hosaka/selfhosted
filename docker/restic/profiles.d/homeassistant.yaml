@@ -7,7 +7,6 @@ profiles:
 
     backup:
       schedule: "weekly"
-      check-before: true
 
       use:
         - name: stop-start-container

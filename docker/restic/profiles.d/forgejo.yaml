@@ -7,7 +7,6 @@ profiles:
 
     backup:
       schedule: "02:00"
-      check-before: true
 
       source:
         # todo: forgejo-runner could be generating artifacts
@@ -22,7 +21,6 @@ profiles:
 
     backup:
       schedule: "02:00"
-      check-before: true
 
       use:
         - name: stop-start-container

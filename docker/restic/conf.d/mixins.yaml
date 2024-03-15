@@ -2,15 +2,6 @@
 version: "2"
 
 mixins:
-  prune-keep-last-n:
-    default-vars:
-      last: 3
-
-    forget:
-      prune: true
-      keep-last: $last
-      schedule: "weekly"
-
   stop-start-container:
     default-vars:
       container: none

@@ -7,7 +7,6 @@ profiles:
 
     backup:
       schedule: "01:00"
-      check-before: true
 
       source:
         # metadata
@@ -23,7 +22,6 @@ profiles:
 
     backup:
       schedule: "01:00"
-      check-before: true
 
       use:
         - name: stop-start-container

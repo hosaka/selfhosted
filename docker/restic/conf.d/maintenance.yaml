@@ -1,0 +1,16 @@
+# yaml-language-server: $schema=https://creativeprojects.github.io/resticprofile/jsonschema/config-2.json
+version: "2"
+
+profiles:
+  maintenance:
+    inherit: default
+
+    check:
+      schedule: "weekly"
+      # send-after: ""
+      # send-after-fail: ""
+
+    forget:
+      schedule: "monthly"
+      keep-last: 3
+      prune: true
