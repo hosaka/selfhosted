@@ -6,7 +6,7 @@ profiles:
     inherit: default
 
     backup:
-      schedule: "weekly"
+      schedule: weekly
 
       use:
         - name: stop-start-container
@@ -14,6 +14,11 @@ profiles:
 
       exclude:
         - backups/
+        - home-assistant.log
+        - home-assistant.log.1
+        - home-assistant.log.fault
+        - home-assistant_v2.db-shm
+        - home-assistant_v2.db-wal
       source:
         - /var/lib/docker/volumes/box_home-assistant-config
 

@@ -6,10 +6,13 @@ profiles:
     inherit: default
 
     backup:
-      schedule: "weekly"
+      schedule: weekly
 
       exclude:
-        - "Caddyfile"
+        - Caddyfile
+        - caddy/locks
+        - caddy/last_clean.json
+        - caddy/autosave.json
       source:
         - /var/lib/docker/volumes/box_caddy-config
 

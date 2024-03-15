@@ -6,7 +6,7 @@ profiles:
     inherit: default
 
     backup:
-      schedule: "03:00"
+      schedule: 03:00
 
       source:
         - /mnt/pool/immich
@@ -18,7 +18,7 @@ profiles:
     inherit: default
 
     backup:
-      schedule: "03:00"
+      schedule: 03:00
 
       use:
         - name: stop-start-container

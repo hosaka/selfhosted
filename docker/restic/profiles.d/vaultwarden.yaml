@@ -6,14 +6,16 @@ profiles:
     inherit: default
 
     backup:
-      schedule: "04:00"
+      schedule: 04:00
 
       use:
         - name: stop-start-container
           container: vaultwarden
 
       exclude:
-        - "icon_cache/*"
+        - db.sqlite3-shm
+        - db.sqlite3-wal
+        - tmp/
       source:
         - /var/lib/docker/volumes/box_vaultwarden-data
 

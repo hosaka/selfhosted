@@ -6,7 +6,7 @@ profiles:
     inherit: default
 
     backup:
-      schedule: "weekly"
+      schedule: weekly
 
       use:
         - name: stop-start-container
@@ -14,6 +14,8 @@ profiles:
 
       exclude:
         - model_cache/
+        - frigate.db-shm
+        - frigate.db-wal
       source:
         - /var/lib/docker/volumes/box_frigate-config
 
