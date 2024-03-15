@@ -7,7 +7,7 @@ mixins:
       arr: none
 
     backup:
-      schedule: "weekly"
+      schedule: weekly
 
       use:
         - name: stop-start-container
@@ -59,7 +59,7 @@ profiles:
     inherit: default
 
     backup:
-      schedule: "weekly"
+      schedule: weekly
 
       use:
         - name: stop-start-container
@@ -77,6 +77,44 @@ profiles:
       tag:
         - docker
 
+  qbit:
+    inherit: default
+
+    backup:
+      schedule: weekly
+
+      exclude:
+        - "*.lock"
+        - "*.log"
+        - cache/
+        - config/lockfile
+        - dbip-country-lite.mmdb
+        - ipc-socket
+        - privoxy/
+        - wireguard/
+      source:
+        - /var/lib/docker/volumes/box_qbit-config
+
+      tag:
+        - docker
+
+  nzb:
+    inherit: default
+
+    backup:
+      schedule: weekly
+
+      exclude:
+        - "*.bak"
+        - .cache/
+        - history/
+        - logs/
+      source:
+        - /var/lib/docker/volumes/box_sabnzbd-config
+
+      tag:
+        - docker
+
 groups:
   servarr:
     profiles:
@@ -84,3 +122,6 @@ groups:
       - sonarr
       - lidarr
       - prowlarr
+      - jellyseerr
+      - qbit
+      - nzb
