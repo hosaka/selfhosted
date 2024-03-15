@@ -28,9 +28,6 @@ radarr.{$PROXY_PRIVATE_DOMAIN} {
 sonarr.{$PROXY_PRIVATE_DOMAIN} {
     reverse_proxy sonarr:8989
 }
-bazarr.{$PROXY_PRIVATE_DOMAIN} {
-    reverse_proxy bazarr:6767
-}
 prowlarr.{$PROXY_PRIVATE_DOMAIN} {
     reverse_proxy prowlarr:9696
 }
@@ -39,12 +36,6 @@ navidrome.{$PROXY_PRIVATE_DOMAIN}, navidrome.{$PROXY_PUBLIC_DOMAIN} {
 }
 lidarr.{$PROXY_PRIVATE_DOMAIN} {
     reverse_proxy lidarr:8686
-}
-calibre.{$PROXY_PRIVATE_DOMAIN} {
-    reverse_proxy calibre-web:8083
-}
-calibre-server.{$PROXY_PRIVATE_DOMAIN} {
-    reverse_proxy calibre:8080
 }
 nzb.{$PROXY_PRIVATE_DOMAIN} {
     reverse_proxy sabnzbd:8080
