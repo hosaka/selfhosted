@@ -1,0 +1,86 @@
+# yaml-language-server: $schema=https://creativeprojects.github.io/resticprofile/jsonschema/config-2.json
+version: "2"
+
+mixins:
+  arr-backup:
+    default-vars:
+      arr: none
+
+    backup:
+      schedule: "weekly"
+
+      use:
+        - name: stop-start-container
+          container: ${arr}
+
+      # keeps arr.db and config.xml
+      exclude:
+        - asp/
+        - ${arr}.db-shm
+        - ${arr}.db-wal
+        - ${arr}.pid
+        - Backups/
+        - Definitions/ # prowlarr
+        - MediaCover/
+        - logs.*
+        - logs/
+      source:
+        - /var/lib/docker/volumes/box_${arr}-config
+
+      tag:
+        - docker
+
+profiles:
+  radarr:
+    inherit: default
+    use:
+      - name: arr-backup
+        arr: "{{ .Profile.Name }}"
+
+  sonarr:
+    inherit: default
+    use:
+      - name: arr-backup
+        arr: "{{ .Profile.Name }}"
+
+  lidarr:
+    inherit: default
+    use:
+      - name: arr-backup
+        arr: "{{ .Profile.Name }}"
+
+  prowlarr:
+    inherit: default
+    use:
+      - name: arr-backup
+        arr: "{{ .Profile.Name }}"
+
+  jellyseerr:
+    inherit: default
+
+    backup:
+      schedule: "weekly"
+
+      use:
+        - name: stop-start-container
+          container: jellyseerr
+
+      exclude:
+        - .cache/
+        - DOCKER
+        - db/db.sqlite3-shm
+        - db/db.sqlite3-wal
+        - logs/
+      source:
+        - /var/lib/docker/volumes/box_jellyseerr-config
+
+      tag:
+        - docker
+
+groups:
+  servarr:
+    profiles:
+      - radarr
+      - sonarr
+      - lidarr
+      - prowlarr
