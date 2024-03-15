@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=https://creativeprojects.github.io/resticprofile/jsonschema/config-2.json
+version: "2"
+
+profiles:
+  jellyfin:
+    inherit: default
+
+    backup:
+      schedule: weekly
+
+      use:
+        - name: stop-start-container
+          container: jellyfin
+
+      exclude:
+        - data/data/jellyfin.db-shm
+        - data/data/jellyfin.db-wal
+        - dlna/
+        - log/
+      source:
+        - /var/lib/docker/volumes/box_jellyfin-config
+
+      tag:
+        - docker
+
+groups:
+  private:
+    profiles:
+      - jellyfin
