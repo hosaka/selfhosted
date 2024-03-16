@@ -46,6 +46,9 @@ qbit.{$PROXY_PRIVATE_DOMAIN} {
 immich.{$PROXY_PRIVATE_DOMAIN}, immich.{$PROXY_PUBLIC_DOMAIN} {
     reverse_proxy immich:3001
 }
+http://switch.{$PROXY_PRIVATE_DOMAIN} {
+    reverse_proxy rclone:8000
+}
 paperless.{$PROXY_PRIVATE_DOMAIN}, paperless.{$PROXY_PUBLIC_DOMAIN} {
     reverse_proxy paperless:8000
     @admin {
