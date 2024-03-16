@@ -21,7 +21,7 @@ detect:
   enabled: false
 
 record:
-  enabled: true
+  enabled: false
   retain:
     days: 7
     mode: all
