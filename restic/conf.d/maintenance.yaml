@@ -6,11 +6,11 @@ profiles:
     inherit: default
 
     check:
-      schedule: "weekly"
+      schedule: weekly
       # send-after: ""
       # send-after-fail: ""
 
     forget:
-      schedule: "monthly"
+      schedule: monthly
       keep-last: 3
       prune: true

@@ -6,7 +6,7 @@ profiles:
     inherit: default
 
     backup:
-      schedule: 01:00
+      schedule: weekly
 
       exclude:
         - .index_version
@@ -27,7 +27,7 @@ profiles:
     inherit: default
 
     backup:
-      schedule: 01:00
+      schedule: weekly
 
       use:
         - name: stop-start-container

@@ -6,7 +6,7 @@ profiles:
     inherit: default
 
     backup:
-      schedule: 02:00
+      schedule: daily
 
       source:
         # todo: forgejo-runner could be generating artifacts
@@ -20,7 +20,7 @@ profiles:
     inherit: default
 
     backup:
-      schedule: 02:00
+      schedule: daily
 
       use:
         - name: stop-start-container
