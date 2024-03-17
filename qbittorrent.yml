@@ -14,10 +14,6 @@ services:
     cap_add:
       - NET_ADMIN
     environment:
-      - PUID=${MEDIA_PUID}
-      - PGID=${MEDIA_PGID}
-      - UMASK=${MEDIA_UMASK}
-      - TZ=${TIMEZONE}
       - VPN_ENABLED=${MEDIA_TORRENT_VPN_ENABLED}
       - VPN_IP_CHECK_DELAY=${MEDIA_TORRENT_VPN_IP_CHECK_DELAY}
       - VPN_IP_CHECK_EXIT=${MEDIA_TORRENT_VPN_IP_CHECK_EXIT}
@@ -26,7 +22,7 @@ services:
       - 8080 # webui
     extends:
       file: common.yml
-      service: log-to-json
+      service: hotio
     networks:
       - proxy
       - qbit
@@ -42,14 +38,9 @@ services:
 
   qbitmanage:
     image: docker.io/hotio/qbitmanage:release-4.0.9
-    environment:
-      - PUID=${MEDIA_PUID}
-      - PGID=${MEDIA_PGID}
-      - UMASK=${MEDIA_UMASK}
-      - TZ=${TIMEZONE}
     extends:
       file: common.yml
-      service: log-to-json
+      service: hotio
     networks:
       - qbit
     restart: unless-stopped

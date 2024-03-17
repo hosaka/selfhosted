@@ -9,16 +9,11 @@ volumes:
 services:
   sabnzbd:
     image: docker.io/hotio/sabnzbd:release-4.2.2
-    environment:
-      - PUID=${MEDIA_PUID}
-      - PGID=${MEDIA_PGID}
-      - UMASK=${MEDIA_UMASK}
-      - TZ=${TIMEZONE}
     expose:
       - 8080 # webui
     extends:
       file: common.yml
-      service: log-to-json
+      service: hotio
     networks:
       - proxy
     restart: unless-stopped

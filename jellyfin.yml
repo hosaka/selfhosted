@@ -12,18 +12,13 @@ services:
     devices:
       - ${MEDIA_JELLYFIN_CARD}:/dev/dri/card0
       - ${MEDIA_JELLYFIN_RENDER}:/dev/dri/renderD128
-    environment:
-      - PUID=${MEDIA_PUID}
-      - PGID=${MEDIA_PGID}
-      - UMASK=${MEDIA_UMASK}
-      - TZ=${TIMEZONE}
     expose:
       - 8096 # webui
     group_add:
       - ${MEDIA_JELLYFIN_VIDEO_GROUP}
     extends:
       file: common.yml
-      service: log-to-json
+      service: hotio
     networks:
       - proxy
     restart: unless-stopped

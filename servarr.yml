@@ -12,22 +12,14 @@ volumes:
   recyclarr-config:
   sonarr-config:
 
-x-hotio: &environment-hotio
-  environment:
-    - PUID=${MEDIA_PUID}
-    - PGID=${MEDIA_PGID}
-    - UMASK=${MEDIA_UMASK}
-    - TZ=${TIMEZONE}
-
 services:
   jellyseerr:
     image: docker.io/hotio/jellyseerr:release-1.7.0
-    <<: *environment-hotio
     expose:
       - 5055 # webui
     extends:
       file: common.yml
-      service: log-to-json
+      service: hotio
     networks:
       - proxy
       - monitor
@@ -38,12 +30,11 @@ services:
 
   lidarr:
     image: docker.io/hotio/lidarr:release-2.1.7.4030
-    <<: *environment-hotio
     expose:
       - 8686 # webui
     extends:
       file: common.yml
-      service: log-to-json
+      service: hotio
     networks:
       - proxy
     restart: unless-stopped
@@ -54,12 +45,11 @@ services:
 
   prowlarr:
     image: docker.io/hotio/prowlarr:release-1.13.3.4273
-    <<: *environment-hotio
     expose:
       - 9696 # webui
     extends:
       file: common.yml
-      service: log-to-json
+      service: hotio
     networks:
       - proxy
     restart: unless-stopped
@@ -70,12 +60,11 @@ services:
 
   radarr:
     image: docker.io/hotio/radarr:release-5.3.6.8612
-    <<: *environment-hotio
     expose:
       - 7878 # webui
     extends:
       file: common.yml
-      service: log-to-json
+      service: hotio
     networks:
       - proxy
     restart: unless-stopped
@@ -101,12 +90,11 @@ services:
 
   sonarr:
     image: docker.io/hotio/sonarr:release-4.0.2.1183
-    <<: *environment-hotio
     expose:
       - 8989 # webui
     extends:
       file: common.yml
-      service: log-to-json
+      service: hotio
     networks:
       - proxy
     restart: unless-stopped
