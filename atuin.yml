@@ -14,6 +14,8 @@ services:
       - POSTGRES_USER=${ATUIN_DB_USERNAME}
       - POSTGRES_PASSWORD=${ATUIN_DB_PASSWORD}
       - POSTGRES_DB=${ATUIN_DB_DATABASE_NAME}
+    expose:
+      - 5432 # db
     extends:
       file: common.yml
       service: log-to-json

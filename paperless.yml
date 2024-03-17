@@ -55,6 +55,8 @@ services:
 
   paperless-redis:
     image: docker.io/redis:7-alpine
+    expose:
+      - 6379 # api
     extends:
       file: common.yml
       service: log-to-json
@@ -72,6 +74,8 @@ services:
       - POSTGRES_USER=${PAPERLESS_DB_USERNAME}
       - POSTGRES_PASSWORD=${PAPERLESS_DB_PASSWORD}
       - POSTGRES_DB=${PAPERLESS_DB_DATABASE_NAME}
+    expose:
+      - 5432 # db
     extends:
       file: common.yml
       service: log-to-json

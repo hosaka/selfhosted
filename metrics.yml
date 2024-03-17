@@ -55,8 +55,8 @@ services:
       - "--web.enable-lifecycle" # reload config on /-/reload POST
     environment:
       - TZ=${TIMEZONE}
-    ports:
-      - 9090:9090 # metrics
+    expose:
+      - 9090 # metrics
     extra_hosts:
       - host.docker.internal:host-gateway
     extends:

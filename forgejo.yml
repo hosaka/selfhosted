@@ -89,6 +89,8 @@ services:
     image: docker.io/docker:dind
     command: ["dockerd", "-H", "tcp://0.0.0.0:2375", "--tls=false"]
     privileged: true
+    expose:
+      - 2375 # tcp
     extends:
       file: common.yml
       service: log-to-json

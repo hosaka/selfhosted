@@ -73,6 +73,8 @@ services:
 
   immich-redis:
     image: docker.io/redis:6.2-alpine
+    expose:
+      - 6379 # api
     extends:
       file: common.yml
       service: log-to-json
@@ -90,6 +92,8 @@ services:
       - POSTGRES_USER=${IMMICH_DB_USERNAME}
       - POSTGRES_PASSWORD=${IMMICH_DB_PASSWORD}
       - POSTGRES_DB=${IMMICH_DB_DATABASE_NAME}
+    expose:
+      - 5432 # db
     extends:
       file: common.yml
       service: log-to-json
