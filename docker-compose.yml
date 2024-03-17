@@ -13,6 +13,28 @@ x-pg-healthcheck: &pg-healthcheck
 x-redis-healthcheck: &redis-healthcheck
   test: ["CMD", "redis-cli", "ping"]
 
+x-immich-server-common: &immich-server-common
+  image: docker.io/altran1502/immich-server:release
+  depends_on:
+    immich-redis:
+      condition: service_healthy
+    immich-database:
+      condition: service_healthy
+  environment:
+    - NODE_ENV=production
+    - DB_HOSTNAME=immich-database
+    - DB_USERNAME=${IMMICH_DB_USERNAME}
+    - DB_PASSWORD=${IMMICH_DB_PASSWORD}
+    - DB_DATABASE_NAME=${IMMICH_DB_DATABASE_NAME}
+    - REDIS_HOSTNAME=immich-redis
+    - JWT_SECRET=${IMMICH_JWT_SECRET}
+    - LOG_LEVEL=${IMMICH_LOG_LEVEL}
+    - TZ=${TIMEZONE}
+  restart: unless-stopped
+  volumes:
+    - /etc/localtime:/etc/localtime:ro
+    - ${IMMICH_UPLOAD_LOCATION}:/usr/src/app/upload
+
 x-hotio: &environment-hotio
   environment:
     - PUID=${MEDIA_PUID}
@@ -21,55 +43,52 @@ x-hotio: &environment-hotio
     - TZ=${TIMEZONE}
 
 networks:
-  proxy:
+  atuin:
   cloudflared:
-  qbit:
+  forgejo:
   immich:
-  paperless:
   monitor:
   mqtt:
-  forgejo:
-  atuin:
+  paperless:
+  proxy:
+  qbit:
 
 volumes:
   caddy-config:
 
   jellyfin-config:
-  radarr-config:
-  sonarr-config:
+  jellyseerr-config:
   lidarr-config:
   navidrome-data:
   prowlarr-config:
-  recyclarr-config:
-  jellyseerr-config:
-  sabnzbd-config:
   qbit-config:
   qbitmanage-config:
+  radarr-config:
+  recyclarr-config:
+  sabnzbd-config:
+  sonarr-config:
+
+  atuin-database-data:
+  forgejo-data:
+  forgejo-database-data:
+  forgejo-runner-data:
   frigate-config:
   home-assistant-config:
-
+  immich-database-data:
   immich-model-cache:
   immich-redis-data:
-  immich-database-data:
-
+  mosquitto-data:
   paperless-data:
   paperless-database-data:
   paperless-media:
   paperless-redis-data:
-
-  atuin-database-data:
   vaultwarden-data:
 
-  mosquitto-data:
-  forgejo-data:
-  forgejo-database-data:
-  forgejo-runner-data:
-
   # monitoring
-  gotify-data:
   diun-data:
-  grafana-data:
+  gotify-data:
   grafana-config:
+  grafana-data:
   prometheus-data:
 
 services:
@@ -80,7 +99,6 @@ services:
       - PROXY_CF_API_TOKEN=${PROXY_CF_API_TOKEN}
       - PROXY_PUBLIC_DOMAIN=${PROXY_PUBLIC_DOMAIN}
       - PROXY_PRIVATE_DOMAIN=${PROXY_PRIVATE_DOMAIN}
-      - CADDY_INGRESS_NETWORKS=proxy
       - PUID=${MEDIA_PUID}
       - PGID=${MEDIA_PGID}
       - UMASK=${MEDIA_UMASK}
@@ -89,10 +107,13 @@ services:
     networks:
       - proxy
       - cloudflared
+      - monitor
     ports:
       - 80:80
       - 443:443/tcp
       - 443:443/udp
+    expose:
+      - 2019 # metrics
     restart: unless-stopped
     volumes:
       - /etc/localtime:/etc/localtime:ro
@@ -292,61 +313,25 @@ services:
       - ${MEDIA_DOWNLOADS_TORRENT_PATH}:/data/media/downloads/torrent
 
   immich:
-    image: docker.io/altran1502/immich-server:release
-    depends_on:
-      immich-redis:
-        condition: service_healthy
-      immich-database:
-        condition: service_healthy
-    entrypoint: ["/bin/sh", "./start-server.sh"]
-    environment:
-      - NODE_ENV=production
-      - DB_HOSTNAME=immich-database
-      - DB_USERNAME=${IMMICH_DB_USERNAME}
-      - DB_PASSWORD=${IMMICH_DB_PASSWORD}
-      - DB_DATABASE_NAME=${IMMICH_DB_DATABASE_NAME}
-      - REDIS_HOSTNAME=immich-redis
-      - JWT_SECRET=${IMMICH_JWT_SECRET}
-      - LOG_LEVEL=${IMMICH_LOG_LEVEL}
-      - TZ=${TIMEZONE}
+    <<: *immich-server-common
+    command: ["start.sh", "immich"]
     expose:
       - 3001 # webui
     logging: *logging
     networks:
       - proxy
       - immich
-    restart: unless-stopped
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - ${IMMICH_UPLOAD_LOCATION}:/usr/src/app/upload
 
   immich-microservices:
-    image: docker.io/altran1502/immich-server:release
-    depends_on:
-      immich-redis:
-        condition: service_healthy
-      immich-database:
-        condition: service_healthy
+    <<: *immich-server-common
+    command: ["start.sh", "microservices"]
     devices:
       - ${IMMICH_TRANSCODE_CARD}:/dev/dri/card0
-    entrypoint: ["/bin/sh", "./start-microservices.sh"]
-    environment:
-      - NODE_ENV=production
-      - DB_HOSTNAME=immich-database
-      - DB_USERNAME=${IMMICH_DB_USERNAME}
-      - DB_PASSWORD=${IMMICH_DB_PASSWORD}
-      - DB_DATABASE_NAME=${IMMICH_DB_DATABASE_NAME}
-      - REDIS_HOSTNAME=immich-redis
-      - JWT_SECRET=${IMMICH_JWT_SECRET}
-      - LOG_LEVEL=${IMMICH_LOG_LEVEL}
-      - TZ=${TIMEZONE}
+    expose:
+      - 3001 # microservices
     logging: *logging
     networks:
       - immich
-    restart: unless-stopped
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - ${IMMICH_UPLOAD_LOCATION}:/usr/src/app/upload
 
   immich-machine-learning:
     image: docker.io/altran1502/immich-machine-learning:release
@@ -767,13 +752,12 @@ services:
       - "--web.enable-lifecycle" # reload config on /-/reload POST
     environment:
       - TZ=${TIMEZONE}
-    expose:
-      - 9090 # metrics
+    ports:
+      - 9090:9090 # metrics
     extra_hosts:
       - host.docker.internal:host-gateway
     logging: *logging
     networks:
-      - proxy
       - monitor
     restart: unless-stopped
     volumes:
@@ -827,6 +811,8 @@ services:
       - "--max_housekeeping_interval=15s"
     devices:
       - /dev/kmsg
+    environment:
+      - CADVISOR_HEALTHCHECK_URL=http://localhost:9250/healthz
     expose:
       - 9250 # metrics
     logging: *logging
