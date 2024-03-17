@@ -1,0 +1,29 @@
+version: "3"
+
+networks:
+  proxy:
+
+volumes:
+  navidrome-data:
+
+services:
+  navidrome:
+    image: docker.io/deluan/navidrome:0.51.1
+    environment:
+      - ND_SCANSCHEDULE=@daily
+      - ND_ENABLETRANSCODINGCONFIG=false
+      # used to fetch artist images
+      - ND_SPOTIFY_ID=${NAVIDROME_SPOTIFY_ID}
+      - ND_SPOTIFY_SECRET=${NAVIDROME_SPOTIFY_SECRET}
+    expose:
+      - 4533 # webui
+    extends:
+      file: common.yml
+      service: log-to-json
+    networks:
+      - proxy
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - navidrome-data:/data
+      - ${MEDIA_COLLECTION_MUSIC_PATH}:/music:ro

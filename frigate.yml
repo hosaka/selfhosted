@@ -1,0 +1,45 @@
+version: "3"
+
+networks:
+  mqtt:
+  proxy:
+
+volumes:
+  frigate-config:
+
+services:
+  frigate:
+    image: ghcr.io/blakeblackshear/frigate:0.13.2
+    devices:
+      - ${FRIGATE_HARDWARE_RENDER}:/dev/dri/renderD128
+    environment:
+      - TZ=${TIMEZONE}
+      - FRIGATE_MQTT_USER=${FRIGATE_MQTT_USER}
+      - FRIGATE_MQTT_PASSWORD=${FRIGATE_MQTT_PASSWORD}
+      - FRIGATE_CAMERA_USER=${FRIGATE_CAMERA_USER}
+      - FRIGATE_CAMERA1_HOST=${FRIGATE_CAMERA1_HOST}
+      - FRIGATE_CAMERA1_PASSWORD=${FRIGATE_CAMERA1_PASSWORD}
+      - FRIGATE_CAMERA2_HOST=${FRIGATE_CAMERA2_HOST}
+      - FRIGATE_CAMERA2_PASSWORD=${FRIGATE_CAMERA2_PASSWORD}
+      - LIBVA_DRIVER_NAME=radeonsi
+    expose:
+      - 5000 # webui
+      - 8554 # rtsp
+      - 8855 # webrtc
+    extends:
+      file: common.yml
+      service: log-to-json
+    networks:
+      - proxy
+      - mqtt
+    restart: unless-stopped
+    shm_size: 128m
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ${FRIGATE_STORAGE_PATH}:/media/frigate/recordings
+      - frigate-config:/config
+      - ./frigate/config.yml:/config/config.yml
+      - type: tmpfs
+        target: /tmp/cache
+        tmpfs:
+          size: 1000000000

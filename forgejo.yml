@@ -1,0 +1,122 @@
+version: "3"
+
+networks:
+  cloudflared:
+  forgejo:
+  proxy:
+
+volumes:
+  forgejo-data:
+  forgejo-database-data:
+  forgejo-runner-data:
+
+services:
+  forgejo:
+    # todo: automatically create a new user, part of the executed command:
+    # forgejo admin user create --admin --username user --password password --email email@domain.tld
+    image: codeberg.org/forgejo/forgejo:1.21-rootless
+    command: >-
+      bash -ec '
+      gitea --config /etc/gitea/app.ini &
+      sleep 10 ;
+      forgejo forgejo-cli actions register --secret $FORGEJO_RUNNER_SECRET --name box ;
+      sleep infinity ;
+      '
+    depends_on:
+      forgejo-database:
+        condition: service_healthy
+    environment:
+      - APP_NAME=Code
+      - USER_UID=1000
+      - USER_GID=1000
+      - FORGEJO__database__DB_TYPE=postgres
+      - FORGEJO__database__HOST=forgejo-database
+      - FORGEJO__database__NAME=${FORGEJO_DB_DATABASE_NAME}
+      - FORGEJO__database__PASSWD=${FORGEJO_DB_PASSWORD}
+      - FORGEJO__database__USER=${FORGEJO_DB_USERNAME}
+      - FORGEJO__git__PULL_REQUEST_PUSH_MESSAGE=false
+      - FORGEJO__git__VERBOSE_PUSH=false
+      - FORGEJO__openid__ENABLE_OPENID_SIGNUP=false
+      - FORGEJO__security__INSTALL_LOCK=true
+      - FORGEJO__security__INTERNAL_TOKEN=${FORGEJO_INTERNAL_TOKEN}
+      # todo: this should only accept our reverse proxy
+      # - FORGEJO__security__REVERSE_PROXY_TRUSTED_PROXIES=caddy
+      - FORGEJO__security__SECRET_KEY=${FORGEJO_SECRET_KEY}
+      - FORGEJO__server__DOMAIN=code.${PROXY_PUBLIC_DOMAIN}
+      - FORGEJO__server__LFS_JWT_SECRET=${FORGEJO_LFS_JWT_SECRET}
+      - FORGEJO__server__ROOT_URL=https://code.${PROXY_PUBLIC_DOMAIN}
+      - FORGEJO__server__SSH_DOMAIN=git.${PROXY_PUBLIC_DOMAIN}
+      - FORGEJO__server__SSH_LISTEN_PORT=2222
+      - FORGEJO__server__SSH_PORT=22
+      - FORGEJO__server__START_SSH_SERVER=true
+      - FORGEJO__service__DEFAULT_KEEP_EMAIL_PRIVATE=true
+      - FORGEJO__service__DISABLE_REGISTRATION=true
+      - FORGEJO_RUNNER_SECRET=${FORGEJO_RUNNER_SECRET}
+    expose:
+      - 3000 # webui
+      - 2222 # ssh
+    extends:
+      file: common.yml
+      service: log-to-json
+    restart: unless-stopped
+    networks:
+      - proxy
+      - forgejo
+      - cloudflared
+    volumes:
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+      - forgejo-data:/var/lib/gitea
+
+  forgejo-database:
+    image: docker.io/postgres:14-alpine
+    environment:
+      - POSTGRES_USER=${FORGEJO_DB_USERNAME}
+      - POSTGRES_PASSWORD=${FORGEJO_DB_PASSWORD}
+      - POSTGRES_DB=${FORGEJO_DB_DATABASE_NAME}
+    healthcheck:
+      test: pg_isready
+    extends:
+      file: common.yml
+      service: log-to-json
+    networks:
+      - forgejo
+    restart: unless-stopped
+    volumes:
+      - forgejo-database-data:/var/lib/postgresql/data
+
+  forgejo-dind:
+    image: docker.io/docker:dind
+    command: ["dockerd", "-H", "tcp://0.0.0.0:2375", "--tls=false"]
+    privileged: true
+    extends:
+      file: common.yml
+      service: log-to-json
+    networks:
+      - forgejo
+
+  forgejo-runner:
+    image: code.forgejo.org/forgejo/runner:3.3.0
+    command: >-
+      bash -ec '
+      while : ; do
+        forgejo-runner create-runner-file --connect --instance http://forgejo:3000 --name box --secret $FORGEJO_RUNNER_SECRET && break ;
+        sleep 1 ;
+      done ;
+      chown -R 1000:1000 /data ;
+      forgejo-runner --config runner.yml daemon ;
+      '
+    depends_on:
+      - forgejo
+      - forgejo-dind
+    environment:
+      - FORGEJO_RUNNER_SECRET=${FORGEJO_RUNNER_SECRET}
+    extends:
+      file: common.yml
+      service: log-to-json
+    networks:
+      - forgejo
+    restart: unless-stopped
+    volumes:
+      - forgejo-runner-data:/data
+      - ./forgejo/runner.yml:/data/runner.yml

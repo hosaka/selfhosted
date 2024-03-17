@@ -1,0 +1,40 @@
+version: "3"
+
+networks:
+  proxy:
+
+volumes:
+  vaultwarden-data:
+
+services:
+  vaultwarden:
+    image: docker.io/vaultwarden/server:1.30.2-alpine
+    environment:
+      - ADMIN_TOKEN=${VAULTWARDEN_ADMIN_TOKEN}
+      - DOMAIN=https://vaultwarden.${PROXY_PUBLIC_DOMAIN}
+      - INVITATIONS_ALLOWED=false
+      - ORG_CREATION_USERS=none
+      - PASSWORD_HINTS_ALLOWED=false
+      - SHOW_PASSWORD_HINT=false
+      - SIGNUPS_ALLOWED=false
+      - SMTP_FROM=${VAULTWARDEN_SMTP_FROM}
+      - SMTP_HOST=${VAULTWARDEN_SMTP_HOST}
+      - SMTP_PASSWORD=${VAULTWARDEN_SMTP_PASSWORD}
+      - SMTP_PORT=${VAULTWARDEN_SMTP_PORT}
+      - SMTP_SECURITY=${VAULTWARDEN_SMTP_SECURITY}
+      - SMTP_USERNAME=${VAULTWARDEN_SMTP_USERNAME}
+      - TZ=${TIMEZONE}
+      - YUBICO_CLIENT_ID=${VAULTWARDEN_YUBICO_CLIENT_ID}
+      - YUBICO_SECRET_KEY=${VAULTWARDEN_YUBICO_SECRET_KEY}
+    expose:
+      - 80 # webui
+      - 3012 # websocket
+    extends:
+      file: common.yml
+      service: log-to-json
+    networks:
+      - proxy
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - vaultwarden-data:/data

@@ -1,0 +1,102 @@
+version: "3"
+
+x-immich-server-common: &immich-server-common
+  image: docker.io/altran1502/immich-server:release
+  depends_on:
+    immich-redis:
+      condition: service_healthy
+    immich-database:
+      condition: service_healthy
+  environment:
+    - NODE_ENV=production
+    - DB_HOSTNAME=immich-database
+    - DB_USERNAME=${IMMICH_DB_USERNAME}
+    - DB_PASSWORD=${IMMICH_DB_PASSWORD}
+    - DB_DATABASE_NAME=${IMMICH_DB_DATABASE_NAME}
+    - REDIS_HOSTNAME=immich-redis
+    - JWT_SECRET=${IMMICH_JWT_SECRET}
+    - LOG_LEVEL=${IMMICH_LOG_LEVEL}
+    - TZ=${TIMEZONE}
+  restart: unless-stopped
+  volumes:
+    - /etc/localtime:/etc/localtime:ro
+    - ${IMMICH_UPLOAD_LOCATION}:/usr/src/app/upload
+
+networks:
+  immich:
+  proxy:
+
+volumes:
+  immich-database-data:
+  immich-model-cache:
+  immich-redis-data:
+
+services:
+  immich:
+    <<: *immich-server-common
+    command: ["start.sh", "immich"]
+    expose:
+      - 3001 # webui
+    extends:
+      file: common.yml
+      service: log-to-json
+    networks:
+      - proxy
+      - immich
+
+  immich-microservices:
+    <<: *immich-server-common
+    command: ["start.sh", "microservices"]
+    devices:
+      - ${IMMICH_TRANSCODE_CARD}:/dev/dri/card0
+    expose:
+      - 3001 # microservices
+    extends:
+      file: common.yml
+      service: log-to-json
+    networks:
+      - immich
+
+  immich-machine-learning:
+    image: docker.io/altran1502/immich-machine-learning:release
+    environment:
+      - NODE_ENV=production
+    extends:
+      file: common.yml
+      service: log-to-json
+    networks:
+      - immich
+    restart: unless-stopped
+    volumes:
+      - immich-model-cache:/cache
+      - ${IMMICH_UPLOAD_LOCATION}:/usr/src/app/upload
+
+  immich-redis:
+    image: docker.io/redis:6.2-alpine
+    extends:
+      file: common.yml
+      service: log-to-json
+    healthcheck:
+      test: redis-cli ping
+    networks:
+      - immich
+    restart: unless-stopped
+    volumes:
+      - immich-redis-data:/data
+
+  immich-database:
+    image: docker.io/tensorchord/pgvecto-rs:pg14-v0.2.0
+    environment:
+      - POSTGRES_USER=${IMMICH_DB_USERNAME}
+      - POSTGRES_PASSWORD=${IMMICH_DB_PASSWORD}
+      - POSTGRES_DB=${IMMICH_DB_DATABASE_NAME}
+    extends:
+      file: common.yml
+      service: log-to-json
+    healthcheck:
+      test: pg_isready
+    networks:
+      - immich
+    restart: unless-stopped
+    volumes:
+      - immich-database-data:/var/lib/postgresql/data

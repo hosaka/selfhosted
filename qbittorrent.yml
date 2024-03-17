@@ -1,0 +1,60 @@
+version: "3"
+
+networks:
+  proxy:
+  qbit:
+
+volumes:
+  qbit-config:
+  qbitmanage-config:
+
+services:
+  qbit:
+    image: docker.io/hotio/qbittorrent:release-4.6.3
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - PUID=${MEDIA_PUID}
+      - PGID=${MEDIA_PGID}
+      - UMASK=${MEDIA_UMASK}
+      - TZ=${TIMEZONE}
+      - VPN_ENABLED=${MEDIA_TORRENT_VPN_ENABLED}
+      - VPN_IP_CHECK_DELAY=${MEDIA_TORRENT_VPN_IP_CHECK_DELAY}
+      - VPN_IP_CHECK_EXIT=${MEDIA_TORRENT_VPN_IP_CHECK_EXIT}
+      - VPN_LAN_NETWORK=${MEDIA_TORRENT_VPN_LAN_NETWORK}
+    expose:
+      - 8080 # webui
+    extends:
+      file: common.yml
+      service: log-to-json
+    networks:
+      - proxy
+      - qbit
+    restart: unless-stopped
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1
+      - net.ipv6.conf.all.disable_ipv6=1
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - qbit-config:/config
+      - ./qbittorrent/wg0.conf:/config/wireguard/wg0.conf:ro
+      - ${MEDIA_DOWNLOADS_TORRENT_PATH}:/data/media/downloads/torrent
+
+  qbitmanage:
+    image: docker.io/hotio/qbitmanage:release-4.0.9
+    environment:
+      - PUID=${MEDIA_PUID}
+      - PGID=${MEDIA_PGID}
+      - UMASK=${MEDIA_UMASK}
+      - TZ=${TIMEZONE}
+    extends:
+      file: common.yml
+      service: log-to-json
+    networks:
+      - qbit
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - qbitmanage-config:/config
+      - ./qbittorrent/qbitmanage.yml:/config/config.yml
+      - ${MEDIA_DOWNLOADS_TORRENT_PATH}:/data/media/downloads/torrent

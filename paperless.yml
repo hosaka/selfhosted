@@ -1,0 +1,84 @@
+version: "3"
+
+networks:
+  paperless:
+  proxy:
+
+volumes:
+  paperless-data:
+  paperless-database-data:
+  paperless-media:
+  paperless-redis-data:
+
+services:
+  paperless:
+    image: docker.io/paperlessngx/paperless-ngx:2.6.2
+    depends_on:
+      paperless-redis:
+        condition: service_healthy
+      paperless-database:
+        condition: service_healthy
+    environment:
+      - PAPERLESS_URL=https://paperless.${PROXY_PRIVATE_DOMAIN}
+      - PAPERLESS_ADMIN_USER=${PAPERLESS_ADMIN_USER}
+      - PAPERLESS_ADMIN_PASSWORD=${PAPERLESS_ADMIN_PASSWORD}
+      - PAPERLESS_ALLOWED_HOSTS=localhost,paperless.${PROXY_PUBLIC_DOMAIN}
+      - PAPERLESS_CSRF_TRUSTED_ORIGINS=https://paperless.${PROXY_PUBLIC_DOMAIN}
+      - PAPERLESS_SECRET_KEY=${PAPERLESS_SECRET_KEY}
+      - PAPERLESS_REDIS=redis://paperless-redis:6379
+      - PAPERLESS_DBHOST=paperless-database
+      - PAPERLESS_DBUSER=${PAPERLESS_DB_USERNAME}
+      - PAPERLESS_DBPASS=${PAPERLESS_DB_PASSWORD}
+      - PAPERLESS_DBNAME=${PAPERLESS_DB_DATABASE_NAME}
+      - PAPERLESS_TIME_ZONE=${TIMEZONE}
+      - USERMAP_UID=${MEDIA_PUID}
+      - USERMAP_GID=${MEDIA_PGID}
+      - TZ=${TIMEZONE}
+    expose:
+      - 8000 # webui
+    extends:
+      file: common.yml
+      service: log-to-json
+    healthcheck:
+      test:
+        ["CMD", "curl", "-fs", "-S", "--max-time", "2", "http://localhost:8000"]
+    networks:
+      - proxy
+      - paperless
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - paperless-data:/usr/src/paperless/data
+      - paperless-media:/usr/src/paperless/media
+      - ${PAPERLESS_CONSUME_PATH}:/usr/src/paperless/consume
+      - ${PAPERLESS_EXPORT_PATH}:/usr/src/paperless/export
+
+  paperless-redis:
+    image: docker.io/redis:7-alpine
+    extends:
+      file: common.yml
+      service: log-to-json
+    healthcheck:
+      test: redis-cli ping
+    networks:
+      - paperless
+    restart: unless-stopped
+    volumes:
+      - paperless-redis-data:/data
+
+  paperless-database:
+    image: docker.io/postgres:14-alpine
+    environment:
+      - POSTGRES_USER=${PAPERLESS_DB_USERNAME}
+      - POSTGRES_PASSWORD=${PAPERLESS_DB_PASSWORD}
+      - POSTGRES_DB=${PAPERLESS_DB_DATABASE_NAME}
+    extends:
+      file: common.yml
+      service: log-to-json
+    healthcheck:
+      test: pg_isready
+    networks:
+      - paperless
+    restart: unless-stopped
+    volumes:
+      - paperless-database-data:/var/lib/postgresql/data

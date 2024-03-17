@@ -1,0 +1,47 @@
+version: "3"
+
+networks:
+  # todo: maybe a separate notify network is better than re-using monitor
+  monitor:
+  proxy:
+
+volumes:
+  diun-data:
+  gotify-data:
+
+services:
+  gotify:
+    image: docker.io/gotify/server:2.4.0
+    environment:
+      - TZ=${TIMEZONE}
+    expose:
+      - 80 # webui
+    extends:
+      file: common.yml
+      service: log-to-json
+    networks:
+      - proxy
+      - monitor
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - gotify-data:/app/data
+
+  diun:
+    image: docker.io/crazymax/diun:4.26
+    command: serve
+    environment:
+      - TZ=${TIMEZONE}
+      - DIUN_NOTIF_GOTIFY_ENDPOINT=http://gotify
+      - DIUN_NOTIF_GOTIFY_TOKEN=${MONITOR_DIUN_GOTIFY_TOKEN}
+    extends:
+      file: common.yml
+      service: log-to-json
+    networks:
+      - monitor
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - diun-data:/data
+      - ./diun/diun.yml:/diun.yml:ro
+      - ./diun/config.yml:/config.yml:ro

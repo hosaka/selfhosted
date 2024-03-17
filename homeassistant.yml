@@ -1,0 +1,45 @@
+version: "3"
+
+networks:
+  mqtt:
+  proxy:
+
+volumes:
+  home-assistant-config:
+  mosquitto-data:
+
+services:
+  homeassistant:
+    image: docker.io/homeassistant/home-assistant:2024.3
+    environment:
+      - TZ=${TIMEZONE}
+    expose:
+      - 8123 # webui
+    extends:
+      file: common.yml
+      service: log-to-json
+    networks:
+      - proxy
+      - mqtt
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /run/dbus:/run/dbus:ro
+      - home-assistant-config:/config
+
+  mosquitto:
+    image: docker.io/eclipse-mosquitto:2.0.18
+    environment:
+      - TZ=${TIMEZONE}
+    expose:
+      - 1883 # mqtt
+    extends:
+      file: common.yml
+      service: log-to-json
+    networks:
+      - mqtt
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - mosquitto-data:/mosquitto/data
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
