@@ -7,6 +7,12 @@ x-logging: &logging
     max-file: "3"
     tag: "{{.ImageName}}|{{.Name}}|{{.ImageFullID}}|{{.FullID}}"
 
+x-pg-healthcheck: &pg-healthcheck
+  test: ["CMD", "pg_isready"]
+
+x-redis-healthcheck: &redis-healthcheck
+  test: ["CMD", "redis-cli", "ping"]
+
 x-hotio: &environment-hotio
   environment:
     - PUID=${MEDIA_PUID}
@@ -288,8 +294,10 @@ services:
   immich:
     image: docker.io/altran1502/immich-server:release
     depends_on:
-      - immich-redis
-      - immich-database
+      immich-redis:
+        condition: service_healthy
+      immich-database:
+        condition: service_healthy
     entrypoint: ["/bin/sh", "./start-server.sh"]
     environment:
       - NODE_ENV=production
@@ -315,8 +323,10 @@ services:
   immich-microservices:
     image: docker.io/altran1502/immich-server:release
     depends_on:
-      - immich-redis
-      - immich-database
+      immich-redis:
+        condition: service_healthy
+      immich-database:
+        condition: service_healthy
     devices:
       - ${IMMICH_TRANSCODE_CARD}:/dev/dri/card0
     entrypoint: ["/bin/sh", "./start-microservices.sh"]
@@ -352,6 +362,7 @@ services:
 
   immich-redis:
     image: docker.io/redis:6.2-alpine
+    healthcheck: *redis-healthcheck
     logging: *logging
     networks:
       - immich
@@ -365,6 +376,7 @@ services:
       - POSTGRES_USER=${IMMICH_DB_USERNAME}
       - POSTGRES_PASSWORD=${IMMICH_DB_PASSWORD}
       - POSTGRES_DB=${IMMICH_DB_DATABASE_NAME}
+    healthcheck: *pg-healthcheck
     logging: *logging
     networks:
       - immich
@@ -387,6 +399,7 @@ services:
 
   paperless-redis:
     image: docker.io/redis:7-alpine
+    healthcheck: *redis-healthcheck
     logging: *logging
     networks:
       - paperless
@@ -400,6 +413,7 @@ services:
       - POSTGRES_USER=${PAPERLESS_DB_USERNAME}
       - POSTGRES_PASSWORD=${PAPERLESS_DB_PASSWORD}
       - POSTGRES_DB=${PAPERLESS_DB_DATABASE_NAME}
+    healthcheck: *pg-healthcheck
     logging: *logging
     networks:
       - paperless
@@ -410,8 +424,10 @@ services:
   paperless:
     image: docker.io/paperlessngx/paperless-ngx:2.6.2
     depends_on:
-      - paperless-redis
-      - paperless-database
+      paperless-redis:
+        condition: service_healthy
+      paperless-database:
+        condition: service_healthy
     environment:
       - PAPERLESS_URL=https://paperless.${PROXY_PRIVATE_DOMAIN}
       - PAPERLESS_ADMIN_USER=${PAPERLESS_ADMIN_USER}
@@ -433,9 +449,6 @@ services:
     healthcheck:
       test:
         ["CMD", "curl", "-fs", "-S", "--max-time", "2", "http://localhost:8000"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
     logging: *logging
     networks:
       - proxy
@@ -454,6 +467,7 @@ services:
       - POSTGRES_USER=${ATUIN_DB_USERNAME}
       - POSTGRES_PASSWORD=${ATUIN_DB_PASSWORD}
       - POSTGRES_DB=${ATUIN_DB_DATABASE_NAME}
+    healthcheck: *pg-healthcheck
     logging: *logging
     networks:
       - atuin
@@ -465,7 +479,8 @@ services:
     image: ghcr.io/atuinsh/atuin:18.0.1
     command: server start
     depends_on:
-      - atuin-database
+      atuin-database:
+        condition: service_healthy
     environment:
       - ATUIN_HOST=0.0.0.0
       - ATUIN_OPEN_REGISTRATION=false
@@ -620,7 +635,8 @@ services:
       sleep infinity ;
       '
     depends_on:
-      - forgejo-database
+      forgejo-database:
+        condition: service_healthy
     environment:
       - APP_NAME=Code
       - USER_UID=1000
@@ -668,6 +684,7 @@ services:
       - POSTGRES_USER=${FORGEJO_DB_USERNAME}
       - POSTGRES_PASSWORD=${FORGEJO_DB_PASSWORD}
       - POSTGRES_DB=${FORGEJO_DB_DATABASE_NAME}
+    healthcheck: *pg-healthcheck
     logging: *logging
     networks:
       - forgejo
