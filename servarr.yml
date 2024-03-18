@@ -44,7 +44,7 @@ services:
       - ${MEDIA_ROOT_PATH}:/data/media
 
   prowlarr:
-    image: docker.io/hotio/prowlarr:release-1.13.3.4273
+    image: docker.io/hotio/prowlarr:release-1.14.3.4333
     expose:
       - 9696 # webui
     extends:

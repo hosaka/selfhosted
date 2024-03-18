@@ -32,13 +32,9 @@ services:
       - PROXY_CF_API_TOKEN=${PROXY_CF_API_TOKEN}
       - PROXY_PUBLIC_DOMAIN=${PROXY_PUBLIC_DOMAIN}
       - PROXY_PRIVATE_DOMAIN=${PROXY_PRIVATE_DOMAIN}
-      - PUID=${MEDIA_PUID}
-      - PGID=${MEDIA_PGID}
-      - UMASK=${MEDIA_UMASK}
-      - TZ=${TIMEZONE}
     extends:
       file: common.yml
-      service: log-to-json
+      service: hotio
     networks:
       - proxy
       - cloudflared
