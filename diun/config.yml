@@ -84,6 +84,8 @@
   sort_tags: semver
   notify_on:
     - new
+  include_tags:
+    - ^\d+\.\d+\.\d+$
 
 - name: docker.io/crazymax/diun
   watch_repo: true
@@ -94,19 +96,50 @@
   include_tags:
     - ^\d+\.\d+\.\d+$
 
-# - name: docker.io/grafana/grafana
-#   watch_repo: true
-#   max_tags: 3
-#   sort_tags: semver
-#   notify_on:
-#     - new
-#
-# - name: docker.io/prom/prometheus
-#   watch_repo: true
-#   max_tags: 3
-#   sort_tags: semver
-#   notify_on:
-#     - new
+- name: docker.io/grafana/grafana
+  watch_repo: true
+  max_tags: 3
+  sort_tags: semver
+  notify_on:
+    - new
+  include_tags:
+    - ^\d+\.\d+\.\d+$
+
+- name: docker.io/prom/prometheus
+  watch_repo: true
+  max_tags: 3
+  sort_tags: semver
+  notify_on:
+    - new
+  include_tags:
+    - ^v\d+\.\d+\.\d+$
+
+- name: docker.io/prom/node-exporter
+  watch_repo: true
+  max_tags: 3
+  sort_tags: semver
+  notify_on:
+    - new
+  include_tags:
+    - ^v\d+\.\d+\.\d+$
+
+- name: docker.io/prometheuscommunity/smartctl-exporter
+  watch_repo: true
+  max_tags: 3
+  sort_tags: semver
+  notify_on:
+    - new
+  include_tags:
+    - ^v\d+\.\d+\.\d+$
+
+- name: gcr.io/cadvisor/cadvisor
+  watch_repo: true
+  max_tags: 3
+  sort_tags: semver
+  notify_on:
+    - new
+  include_tags:
+    - ^v\d+\.\d+\.\d+$
 
 - name: docker.io/paperlessngx/paperless-ngx
   watch_repo: true
@@ -160,4 +193,13 @@
   notify_on:
     - new
   include_tags:
-    - ^\d+\.\d+-rootless$
+    - ^\d+\.\d+\.\d+\-\d+\-rootless$
+
+- name: code.forgejo.org/forgejo/runner
+  watch_repo: true
+  max_tags: 3
+  sort_tags: semver
+  notify_on:
+    - new
+  include_tags:
+    - ^\d+\.\d+\.\d+$

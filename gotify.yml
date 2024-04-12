@@ -28,7 +28,7 @@ services:
       - gotify-data:/app/data
 
   diun:
-    image: docker.io/crazymax/diun:4.26
+    image: docker.io/crazymax/diun:4.27
     command: serve
     environment:
       - TZ=${TIMEZONE}

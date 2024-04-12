@@ -44,7 +44,7 @@ services:
       - ${MEDIA_ROOT_PATH}:/data/media
 
   prowlarr:
-    image: docker.io/hotio/prowlarr:release-1.14.3.4333
+    image: docker.io/hotio/prowlarr:release-1.15.0.4361
     expose:
       - 9696 # webui
     extends:
@@ -89,7 +89,7 @@ services:
       - ./recyclarr/recyclarr.yml:/config/recyclarr.yml
 
   sonarr:
-    image: docker.io/hotio/sonarr:release-4.0.2.1183
+    image: docker.io/hotio/sonarr:release-4.0.3.1413
     expose:
       - 8989 # webui
     extends:
