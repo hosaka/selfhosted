@@ -86,7 +86,8 @@ vaultwarden.{$PROXY_PRIVATE_DOMAIN}, vaultwarden.{$PROXY_PUBLIC_DOMAIN} {
     # proxy everything to Rocket
     reverse_proxy vaultwarden:80 {
         # send the true remote IP to Rocket, fail2ban can ban correct IP from the log
-        header_up X-Real-IP {remote_host}
+        # use http.request.header.Cf-Connecting-Ip instead of remote_host if proxying with Cloudflare
+        header_up X-Real-IP {http.request.header.Cf-Connecting-Ip}
     }
 }
 gotify.{$PROXY_PRIVATE_DOMAIN}, gotify.{$PROXY_PUBLIC_DOMAIN} {
