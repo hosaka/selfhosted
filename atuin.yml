@@ -28,7 +28,7 @@ services:
       - atuin-database-data:/var/lib/postgresql/data
 
   atuin:
-    image: ghcr.io/atuinsh/atuin:18.0.1
+    image: ghcr.io/atuinsh/atuin:18.2.0
     command: server start
     depends_on:
       atuin-database:
