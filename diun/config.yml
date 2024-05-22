@@ -7,29 +7,53 @@
   include_tags:
     - ^\d+\.\d+\.\d+$
 
-- name: docker.io/hotio/caddy:release
+- name: docker.io/hotio/caddy
+  watch_repo: true
+  sort_tags: reverse
   notify_on:
-    - update
+    - new
+  include_tags:
+    - ^release\-\d+\.\d+\.\d+$
 
-- name: docker.io/hotio/jellyfin:release
+- name: docker.io/hotio/jellyfin
+  watch_repo: true
+  sort_tags: reverse
   notify_on:
-    - update
+    - new
+  include_tags:
+    - ^release\-\d+\.\d+\.\d+$
 
-- name: docker.io/hotio/jellyseerr:release
+- name: docker.io/hotio/jellyseerr
+  watch_repo: true
+  sort_tags: reverse
   notify_on:
-    - update
+    - new
+  include_tags:
+    - ^release\-\d+\.\d+\.\d+$
 
-- name: docker.io/hotio/radarr:release
+- name: docker.io/hotio/radarr
+  watch_repo: true
+  sort_tags: reverse
   notify_on:
-    - update
+    - new
+  include_tags:
+    - ^release\-\d+\.\d+\.\d+\.\d+$
 
-- name: docker.io/hotio/sonarr:release
+- name: docker.io/hotio/sonarr
+  watch_repo: true
+  sort_tags: reverse
   notify_on:
-    - update
+    - new
+  include_tags:
+    - ^release\-\d+\.\d+\.\d+\.\d+$
 
-- name: docker.io/hotio/prowlarr:release
+- name: docker.io/hotio/prowlarr
+  watch_repo: true
+  sort_tags: reverse
   notify_on:
-    - update
+    - new
+  include_tags:
+    - ^release\-\d+\.\d+\.\d+\.\d+$
 
 - name: docker.io/recyclarr/recyclarr
   watch_repo: true
@@ -49,25 +73,45 @@
   include_tags:
     - ^\d+\.\d+\.\d+$
 
-- name: docker.io/hotio/lidarr:release
+- name: docker.io/hotio/lidarr
+  watch_repo: true
+  sort_tags: reverse
   notify_on:
-    - update
+    - new
+  include_tags:
+    - ^release\-\d+\.\d+\.\d+\.\d+$
 
-- name: docker.io/hotio/sabnzbd:release
+- name: docker.io/hotio/sabnzbd
+  watch_repo: true
+  sort_tags: reverse
   notify_on:
-    - update
+    - new
+  include_tags:
+    - ^release\-\d+\.\d+\.\d+$
 
-- name: docker.io/hotio/qbittorrent:release
+- name: docker.io/hotio/qbittorrent
+  watch_repo: true
+  sort_tags: reverse
   notify_on:
-    - update
+    - new
+  include_tags:
+    - ^release\-\d+\.\d+\.\d+$
 
-- name: docker.io/hotio/qbitmanage:release
+- name: docker.io/hotio/qbitmanage
+  watch_repo: true
+  sort_tags: reverse
   notify_on:
-    - update
+    - new
+  include_tags:
+    - ^release\-\d+\.\d+\.\d+$
 
-- name: docker.io/altran1502/immich-server:release
+- name: docker.io/altran1502/immich-server
+  watch_repo: true
+  sort_tags: reverse
   notify_on:
-    - update
+    - new
+  include_tags:
+    - ^v\d+\.\d+\.\d+$
 
 - name: docker.io/vaultwarden/server
   watch_repo: true
@@ -76,7 +120,7 @@
   notify_on:
     - new
   include_tags:
-    - ^\d+\.\d+\.\d+-alpine$
+    - ^\d+\.\d+\.\d+\-alpine$
 
 - name: docker.io/gotify/server
   watch_repo: true
@@ -203,3 +247,21 @@
     - new
   include_tags:
     - ^\d+\.\d+\.\d+$
+
+- name: ghcr.io/atuinsh/atuin
+  watch_repo: true
+  max_tags: 3
+  sort_tags: semver
+  notify_on:
+    - new
+  include_tags:
+    - ^\d+\.\d+\.\d+$
+
+- name: docker.io/searxng/searxng
+  watch_repo: true
+  max_tags: 3
+  sort_tags: semver
+  notify_on:
+    - new
+  include_tags:
+    - ^\d+\.\d+\.\d+\-[a-fA-F0-9]{9}$

@@ -34,6 +34,13 @@ services:
       - TZ=${TIMEZONE}
       - DIUN_NOTIF_GOTIFY_ENDPOINT=http://gotify
       - DIUN_NOTIF_GOTIFY_TOKEN=${MONITOR_DIUN_GOTIFY_TOKEN}
+      - DIUN_WATCH_WORKERS=10
+      - DIUN_WATCH_SCHEDULE=0 */6 * * *
+      - DIUN_REGOPTS_0_NAME=docker.io
+      - DIUN_REGOPTS_0_SELECTOR=image
+      - DIUN_REGOPTS_0_USERNAME=${MONITOR_DIUN_REGOPTS_USERNAME}
+      - DIUN_REGOPTS_0_PASSWORD=${MONITOR_DIUN_REGOPTS_PASSWORD}
+      - DIUN_PROVIDERS_FILE_FILENAME=/config.yml
     extends:
       file: common.yml
       service: log-to-json
@@ -43,5 +50,4 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - diun-data:/data
-      - ./diun/diun.yml:/diun.yml:ro
       - ./diun/config.yml:/config.yml:ro
