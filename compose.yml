@@ -13,6 +13,7 @@ include:
   - paperless.yml
   - qbittorrent.yml
   - sabnzbd.yml
+  - searxng.yml
   - servarr.yml
   - vaultwarden.yml
 
