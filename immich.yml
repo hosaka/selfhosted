@@ -1,7 +1,7 @@
 version: "3"
 
 x-immich-server-common: &immich-server-common
-  image: docker.io/altran1502/immich-server:release
+  image: docker.io/altran1502/immich-server:v1.105.1
   depends_on:
     immich-redis:
       condition: service_healthy
@@ -58,7 +58,7 @@ services:
       - immich
 
   immich-machine-learning:
-    image: docker.io/altran1502/immich-machine-learning:release
+    image: docker.io/altran1502/immich-machine-learning:v1.105.1
     environment:
       - NODE_ENV=production
     extends:
