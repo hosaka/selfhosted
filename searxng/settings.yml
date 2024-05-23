@@ -1,8 +1,79 @@
-use_default_settings: true
+use_default_settings:
+  engines:
+    keep_only:
+      - arch linux wiki
+      - arxiv
+      - bandcamp
+      - brave
+      - brave.images
+      - brave.news
+      - brave.videos
+      - codeberg
+      - currency
+      - docker hub
+      - duckduckgo
+      - duckduckgo images
+      - duckduckgo news
+      - duckduckgo videos
+      - gitea.com
+      - github
+      - gitlab
+      - google
+      - google images
+      - google news
+      - google videos
+      - internetarchivescholar
+      - jisho
+      - lemmy comments
+      - lemmy communities
+      - lemmy posts
+      - lemmy users
+      - mankier
+      - odysee
+      - openmeteo
+      - openstreetmap
+      - photon
+      - pubmed
+      - reddit
+      - semantic scholar
+      - sourcehut
+      - stackoverflow
+      - startpage
+      - superuser
+      - wikipedia
+      - wiktionary
+      - youtube
 general:
   enable_metrics: false
+search:
+  autocomplete: brave
+engines:
+  - name: duckduckgo images
+    disabled: false
+  - name: duckduckgo news
+    disabled: false
+  - name: duckduckgo videos
+    disabled: false
+  - name: google
+    disabled: true
+  - name: google images
+    disabled: true
+  - name: google news
+    disabled: true
+  - name: google videos
+    disabled: true
+  - name: startpage
+    disabled: false
+enabled_plugins:
+  - searx.plugins.oa_doi_rewrite
+  - searx.plugins.tracker_url_remover
 server:
   limiter: true
   image_proxy: true
+  http_protocol_version: "1.1"
+  method: GET
 ui:
   static_use_hash: true
+  query_in_title: true
+  results_on_new_tab: true
+  hotkeys: vim
