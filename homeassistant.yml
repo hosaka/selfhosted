@@ -10,7 +10,7 @@ volumes:
 
 services:
   homeassistant:
-    image: docker.io/homeassistant/home-assistant:2024.5
+    image: docker.io/homeassistant/home-assistant:2024.6
     environment:
       - TZ=${TIMEZONE}
     expose:

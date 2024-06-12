@@ -14,7 +14,7 @@ volumes:
 
 services:
   jellyseerr:
-    image: docker.io/hotio/jellyseerr:release-1.8.1
+    image: docker.io/hotio/jellyseerr:release-1.9.1
     expose:
       - 5055 # webui
     extends:
@@ -44,7 +44,7 @@ services:
       - ${MEDIA_ROOT_PATH}:/data/media
 
   prowlarr:
-    image: docker.io/hotio/prowlarr:release-1.17.2.4511
+    image: docker.io/hotio/prowlarr:release-1.18.0.4543
     expose:
       - 9696 # webui
     extends:
@@ -89,7 +89,7 @@ services:
       - ./recyclarr/recyclarr.yml:/config/recyclarr.yml
 
   sonarr:
-    image: docker.io/hotio/sonarr:release-4.0.4.1491
+    image: docker.io/hotio/sonarr:release-4.0.5.1710
     expose:
       - 8989 # webui
     extends:
