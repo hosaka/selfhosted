@@ -9,6 +9,7 @@ volumes:
   forgejo-data:
   forgejo-database-data:
   forgejo-runner-data:
+  forgejo-docker-certs:
 
 services:
   forgejo:
@@ -87,15 +88,20 @@ services:
 
   forgejo-dind:
     image: docker.io/docker:dind
-    command: ["dockerd", "-H", "tcp://0.0.0.0:2375", "--tls=false"]
+    hostname: docker # must set hostname as TLS certificates are only valid for docker or localhost
     privileged: true
+    environment:
+      - DOCKER_TLS_CERTDIR=/certs
+      - DOCKER_HOST=forgejo-dind
     expose:
-      - 2375 # tcp
+      - 2376 # tcp
     extends:
       file: common.yml
       service: log-to-json
     networks:
       - forgejo
+    volumes:
+      - forgejo-docker-certs:/certs
 
   forgejo-runner:
     image: code.forgejo.org/forgejo/runner:3.5.0
@@ -106,13 +112,16 @@ services:
         sleep 1 ;
       done ;
       chown -R 1000:1000 /data ;
-      forgejo-runner --config runner.yml daemon ;
+      while : ; do test -w .runner && forgejo-runner --config runner.yml daemon ; sleep 1 ; done
       '
     depends_on:
       - forgejo
       - forgejo-dind
     environment:
       - FORGEJO_RUNNER_SECRET=${FORGEJO_RUNNER_SECRET}
+      - DOCKER_HOST=tcp://docker:2376
+      - DOCKER_CERT_PATH=/certs/client
+      - DOCKER_TLS_VERIFY=1
     extends:
       file: common.yml
       service: log-to-json
@@ -121,4 +130,5 @@ services:
     restart: unless-stopped
     volumes:
       - forgejo-runner-data:/data
+      - forgejo-docker-certs:/certs
       - ./forgejo/runner.yml:/data/runner.yml
