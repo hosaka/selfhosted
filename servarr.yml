@@ -14,7 +14,7 @@ volumes:
 
 services:
   jellyseerr:
-    image: docker.io/hotio/jellyseerr:release-1.9.1
+    image: docker.io/hotio/jellyseerr:release-1.9.2
     expose:
       - 5055 # webui
     extends:

@@ -11,7 +11,7 @@ volumes:
 
 services:
   immich:
-    image: docker.io/altran1502/immich-server:v1.106.2
+    image: docker.io/altran1502/immich-server:v1.106.4
     depends_on:
       immich-redis:
         condition: service_healthy
@@ -43,7 +43,7 @@ services:
       - ${IMMICH_UPLOAD_LOCATION}:/usr/src/app/upload
 
   immich-machine-learning:
-    image: docker.io/altran1502/immich-machine-learning:v1.106.2
+    image: docker.io/altran1502/immich-machine-learning:v1.106.4
     environment:
       - NODE_ENV=production
     extends:
