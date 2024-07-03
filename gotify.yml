@@ -11,7 +11,7 @@ volumes:
 
 services:
   gotify:
-    image: docker.io/gotify/server:2.4.0
+    image: docker.io/gotify/server:2.5.0
     environment:
       - TZ=${TIMEZONE}
     expose:

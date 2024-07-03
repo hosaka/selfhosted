@@ -65,3 +65,18 @@ services:
     restart: unless-stopped
     volumes:
       - /etc/localtime:/etc/localtime:ro
+
+  rclone:
+    image: docker.io/rclone/rclone:1.66
+    command: "serve http /data/media --addr :8000"
+    expose:
+      - 8000 # http
+    extends:
+      file: common.yml
+      service: log-to-json
+    networks:
+      - proxy
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ${MEDIA_RCLONE_SERVE_PATH}:/data/media

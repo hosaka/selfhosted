@@ -8,7 +8,7 @@ volumes:
 
 services:
   jellyfin:
-    image: docker.io/hotio/jellyfin:release-10.9.6
+    image: docker.io/hotio/jellyfin:release-10.9.7
     devices:
       - ${MEDIA_JELLYFIN_CARD}:/dev/dri/card0
       - ${MEDIA_JELLYFIN_RENDER}:/dev/dri/renderD128
@@ -26,18 +26,3 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - ${MEDIA_COLLECTION_PATH}:/data/media/collection
       - jellyfin-config:/config
-
-  rclone:
-    image: docker.io/rclone/rclone:1.66
-    command: "serve http /data/media --addr :8000"
-    expose:
-      - 8000 # http
-    extends:
-      file: common.yml
-      service: log-to-json
-    networks:
-      - proxy
-    restart: unless-stopped
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - ${MEDIA_RCLONE_SERVE_PATH}:/data/media
