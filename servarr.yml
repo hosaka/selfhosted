@@ -29,7 +29,7 @@ services:
       - jellyseerr-config:/app/config
 
   lidarr:
-    image: docker.io/hotio/lidarr:release-2.3.3.4204
+    image: docker.io/hotio/lidarr:release-2.4.3.4248
     expose:
       - 8686 # webui
     extends:
@@ -44,7 +44,7 @@ services:
       - ${MEDIA_ROOT_PATH}:/data/media
 
   prowlarr:
-    image: docker.io/hotio/prowlarr:release-1.19.0.4568
+    image: docker.io/hotio/prowlarr:release-1.20.1.4603
     expose:
       - 9696 # webui
     extends:
@@ -74,7 +74,7 @@ services:
       - radarr-config:/config
 
   recyclarr:
-    image: docker.io/recyclarr/recyclarr:6.0.2
+    image: docker.io/recyclarr/recyclarr:7.1.1
     environment:
       - TZ=${TIMEZONE}
     extends:
@@ -89,7 +89,7 @@ services:
       - ./recyclarr/recyclarr.yml:/config/recyclarr.yml
 
   sonarr:
-    image: docker.io/hotio/sonarr:release-4.0.6.1805
+    image: docker.io/hotio/sonarr:release-4.0.8.1874
     expose:
       - 8989 # webui
     extends:
