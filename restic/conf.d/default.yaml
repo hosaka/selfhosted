@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=https://creativeprojects.github.io/resticprofile/jsonschema/config-2.json
+version: "2"
+
+profiles:
+  default:
+    # make sure this exists and necessary vars are set, see default.env file
+    env-file: "{{ .Env.HOME }}/.env"
+
+    prometheus-save-to-file: "{{ .Env.HOME }}/textfile_collector/{{ .Profile.Name }}.prom"

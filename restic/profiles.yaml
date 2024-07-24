@@ -8,3 +8,4 @@ includes:
 global:
   default-command: profiles
   scheduler: crond
+  # scheduler: crontab:-:/etc/crontabs/restic

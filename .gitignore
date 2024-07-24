@@ -6,6 +6,3 @@
 
 # vpn
 wg0.conf
-
-# keys
-*.key
