@@ -26,7 +26,7 @@ radarr:
           - 90a6f9a284dff5103f6346090e6280c8 # LQ (-10000)
           - b8cd450cbfa689c0259a01d9e29ba3d6 # 3D (-10000)
           - ae9b7c9ebde1f3bd336a8cbd1ec4c5e5 # No-RlsGroup (-10000)
-        quality_profiles:
+        assign_scores_to:
           - name: HD
 
       - trash_ids:
@@ -47,7 +47,7 @@ radarr:
           - f1b0bae9bc222dab32c1b38b5a7a1088 # TVER
           - 279bda7434fd9075786de274e6c3c202 # UNEXT
           - b6832f586342ef70d9c128d40c07b872 # Bad Dual Groups (-10000)
-        quality_profiles:
+        assign_scores_to:
           - name: HD
           - name: AnimeHD
 
@@ -76,24 +76,24 @@ radarr:
           - 60f6d50cbd3cfc3e9a8c00e3a30c3114 # VRV Streaming Service (10)
           - 4a3b087eea2ce012fcc1ce319259a3be # Anime Dual Audio (0)
           - b23eae459cc960816f2d6ba84af45055 # Dubs Only (-10000)
-        quality_profiles:
+        assign_scores_to:
           - name: AnimeHD
 
       - trash_ids:
           - 06b6542a47037d1e33b15aa3677c2365 # Anime Raws
-        quality_profiles:
+        assign_scores_to:
           - name: AnimeHD
             score: 50
 
       - trash_ids:
           - dc98083864ea246d05a42df0d05f81cc # x265 (HD) (-10000)
-        quality_profiles:
+        assign_scores_to:
           - name: HD
           - name: AnimeHD
 
       - trash_ids:
           - a5d148168c4506b55cf53984107c396e # 10bit (HD) (-10000)
-        quality_profiles:
+        assign_scores_to:
           - name: HD
           - name: AnimeHD
 
@@ -116,7 +116,7 @@ sonarr:
           - ec8fa7296b64e8cd390a1600981f3923 # Repack/Proper (11)
           - 9c11cd3f07101cdba90a2d81cf0e56b4 # LQ (-10000)
           - 82d40da2bc6923f41e14394075dd4b03 # No-RlsGroup (-10000)
-        quality_profiles:
+        assign_scores_to:
           - name: HD
 
       - trash_ids:
@@ -142,7 +142,7 @@ sonarr:
           - 43b3cf48cb385cd3eac608ee6bca7f09 # UHD Boost (20)
           - d2d299244a92b8a52d4921ce3897a256 # UHD Cut (-20)
           - 32b367365729d530ca1c124a0b180c64 # Bad Dual Groups (-10000)
-        quality_profiles:
+        assign_scores_to:
           - name: HD
           - name: AnimeHD
 
@@ -152,7 +152,7 @@ sonarr:
           - 7dd31f3dee6d2ef8eeaa156e23c3857e # B-Global
           - 4c67ff059210182b59cdd41697b8cb08 # Bilibili
           - 570b03b3145a25011bf073274a407259 # HIDIVE (0)
-        quality_profiles:
+        assign_scores_to:
           - name: AnimeHD
 
       - trash_ids:
@@ -180,17 +180,17 @@ sonarr:
           - 44a8ee6403071dd7b8a3a8dd3fe8cb20 # VRV Streaming Service (3)
           - b2550eb333d27b75833e25b8c2557b38 # 10bit (0)
           - 9c14d194486c4014d422adc64092d794 # Dubs Only (-10000)
-        quality_profiles:
+        assign_scores_to:
           - name: AnimeHD
 
       - trash_ids:
           - b4a1b3d705159cdca36d71e57ca86871 # Anime Raws (-10000)
-        quality_profiles:
+        assign_scores_to:
           - name: AnimeHD
             score: 50
 
       - trash_ids:
           - 47435ece6b99a0b477caf360e79ba0bb # x265 (HD) (-10000)
-        quality_profiles:
+        assign_scores_to:
           - name: HD
           - name: AnimeHD

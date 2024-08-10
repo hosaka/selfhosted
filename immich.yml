@@ -11,7 +11,7 @@ volumes:
 
 services:
   immich:
-    image: docker.io/altran1502/immich-server:v1.109.2
+    image: ghcr.io/immich-app/immich-server:v1.111.0
     depends_on:
       immich-redis:
         condition: service_healthy
@@ -34,6 +34,8 @@ services:
     extends:
       file: common.yml
       service: log-to-json
+    healthcheck:
+      disable: false
     networks:
       - proxy
       - immich
@@ -43,12 +45,14 @@ services:
       - ${IMMICH_UPLOAD_LOCATION}:/usr/src/app/upload
 
   immich-machine-learning:
-    image: docker.io/altran1502/immich-machine-learning:v1.109.2
+    image: ghcr.io/immich-app/immich-machine-learning:v1.111.0
     environment:
       - NODE_ENV=production
     extends:
       file: common.yml
       service: log-to-json
+    healthcheck:
+      disable: false
     networks:
       - immich
     restart: unless-stopped
@@ -64,7 +68,7 @@ services:
       file: common.yml
       service: log-to-json
     healthcheck:
-      test: redis-cli ping
+      test: redis-cli ping || exit 1
     networks:
       - immich
     restart: unless-stopped
@@ -100,7 +104,10 @@ services:
       file: common.yml
       service: log-to-json
     healthcheck:
-      test: pg_isready
+      test: pg_isready --dbname='${IMMICH_DB_DATABASE_NAME}' --username='${IMMICH_DB_USERNAME}' || exit 1; Chksum="$$(psql --dbname='${IMMICH_DB_DATABASE_NAME}' --username='${IMMICH_DB_USERNAME}' --tuples-only --no-align --command='SELECT COALESCE(SUM(checksum_failures), 0) FROM pg_stat_database')"; echo "checksum failure count is $$Chksum"; [ "$$Chksum" = '0' ] || exit 1
+      interval: 5m
+      start_interval: 30s
+      start_period: 5m
     networks:
       - immich
     restart: unless-stopped

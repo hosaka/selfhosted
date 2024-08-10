@@ -105,7 +105,7 @@
   include_tags:
     - ^release\-\d+\.\d+\.\d+$
 
-- name: docker.io/altran1502/immich-server
+- name: ghcr.io/immich-app/immich-server
   watch_repo: true
   sort_tags: reverse
   notify_on:

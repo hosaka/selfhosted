@@ -44,7 +44,7 @@ services:
       - ${MEDIA_ROOT_PATH}:/data/media
 
   prowlarr:
-    image: docker.io/hotio/prowlarr:release-1.20.1.4603
+    image: docker.io/hotio/prowlarr:release-1.21.2.4649
     expose:
       - 9696 # webui
     extends:
@@ -59,7 +59,7 @@ services:
       - prowlarr-config:/config
 
   radarr:
-    image: docker.io/hotio/radarr:release-5.7.0.8882
+    image: docker.io/hotio/radarr:release-5.8.3.8933
     expose:
       - 7878 # webui
     extends:
@@ -74,7 +74,7 @@ services:
       - radarr-config:/config
 
   recyclarr:
-    image: docker.io/recyclarr/recyclarr:7.1.1
+    image: docker.io/recyclarr/recyclarr:7.2.1
     environment:
       - TZ=${TIMEZONE}
     extends:
