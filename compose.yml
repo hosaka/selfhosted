@@ -1,6 +1,5 @@
-version: "3"
-
 include:
+  - authelia.yml
   - atuin.yml
   - forgejo.yml
   - frigate.yml
