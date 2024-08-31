@@ -1,0 +1,120 @@
+networks:
+  proxy:
+  syncstorage:
+
+volumes:
+  syncstorage-database-data:
+
+services:
+  syncstorage:
+    image: docker.io/mozilla/syncstorage-rs:0.13.6
+    depends_on:
+      syncstorage-database:
+        condition: service_healthy
+    environment:
+      - RUST_LOG=debug
+      - SYNC_HOST=0.0.0.0
+      - SYNC_HUMAN_LOGS=1
+      - SYNC_MASTER_SECRET=${SYNCSTORAGE_MASTER_SECRET}
+      - SYNC_SYNCSTORAGE__DATABASE_URL=mysql://${SYNCSTORAGE_DB_USERNAME}:${SYNCSTORAGE_DB_PASSWORD}@syncstorage-database:3306/syncstorage
+      - SYNC_TOKENSERVER__DATABASE_URL=mysql://${SYNCSTORAGE_DB_USERNAME}:${SYNCSTORAGE_DB_PASSWORD}@syncstorage-database:3306/tokenserver
+      - SYNC_TOKENSERVER__FXA_EMAIL_DOMAIN=api.accounts.firefox.com
+      - SYNC_TOKENSERVER__FXA_OAUTH_SERVER_URL=https://oauth.accounts.firefox.com/v1
+      - SYNC_TOKENSERVER__FXA_METRICS_HASH_SECRET=${SYNCSTORAGE_METRICS_HASH_SECRET}
+      - SYNC_TOKENSERVER__ADDITIONAL_BLOCKING_THREADS_FOR_FXA_REQUESTS=2
+      - SYNC_TOKENSERVER__RUN_MIGRATIONS=true
+      - SYNC_TOKENSERVER__NODE_TYPE=mysql
+      - SYNC_TOKENSERVER__ENABLED=true
+    expose:
+      - 8000 # api
+    extends:
+      file: common.yml
+      service: log-to-json
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "-fs",
+          "-S",
+          "--max-time",
+          "2",
+          "http://localhost:8000/__heartbeat__",
+        ]
+    networks:
+      - proxy
+      - syncstorage
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+
+  syncstorage-database:
+    image: docker.io/library/mariadb:10.11
+    entrypoint: >-
+      bash -ec "
+      SQL_INIT=/docker-entrypoint-initdb.d/init.sql;
+      echo 'CREATE DATABASE IF NOT EXISTS syncstorage; CREATE DATABASE IF NOT EXISTS tokenserver;' > $$SQL_INIT;
+      echo 'GRANT ALL PRIVILEGES ON syncstorage.* TO `${SYNCSTORAGE_DB_USERNAME}`@`%`;' >> $$SQL_INIT;
+      echo 'GRANT ALL PRIVILEGES ON tokenserver.* TO `${SYNCSTORAGE_DB_USERNAME}`@`%`;' >> $$SQL_INIT;
+      /usr/local/bin/docker-entrypoint.sh mariadbd
+      "
+    environment:
+      - MARIADB_DATABASE=syncstorage
+      - MARIADB_USER=${SYNCSTORAGE_DB_USERNAME}
+      - MARIADB_PASSWORD=${SYNCSTORAGE_DB_PASSWORD}
+      - MARIADB_RANDOM_ROOT_PASSWORD=true
+      - MARIADB_AUTO_UPGRADE=true
+    expose:
+      - 3306 # db
+    extends:
+      file: common.yml
+      service: log-to-json
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - syncstorage
+    restart: unless-stopped
+    volumes:
+      - syncstorage-database-data:/var/lib/mysql
+
+  syncstorage-database-init:
+    image: docker.io/library/mariadb:10.11
+    depends_on:
+      syncstorage:
+        condition: service_healthy
+      syncstorage-database:
+        condition: service_healthy
+    entrypoint: >-
+      bash -ec "
+      IS_DONE=10;
+      while [ $$IS_DONE -gt 0 ]; do
+        echo \"
+        INSERT IGNORE INTO services (id, service, pattern) VALUES ('1', 'sync-1.5', '{node}/1.5/{uid}');
+        INSERT INTO nodes (id, service, node, available, current_load, capacity, downed, backoff)
+        VALUES ('1', '1', 'sync.${PROXY_PUBLIC_DOMAIN}', '1', '0', '5', '0', '0') ON DUPLICATE KEY UPDATE node='sync.${PROXY_PUBLIC_DOMAIN}';
+        \" | mysql --host=syncstorage-database --user=${SYNCSTORAGE_DB_USERNAME} --password=${SYNCSTORAGE_DB_PASSWORD} tokenserver;
+        if [ $$? == 0 ] ; then
+          IS_DONE=0;
+          echo 'Done with syncstorage database init';
+          exit 0;
+        else
+          echo 'Waiting for syncstorage tables';
+          sleep 5;
+          ((IS_DONE--));
+        fi;
+      done;
+      echo 'Failed to init syncstorage database';
+      exit 1;
+      "
+    expose:
+      - 3306 # db
+    extends:
+      file: common.yml
+      service: log-to-json
+    networks:
+      - syncstorage
+    restart: no
