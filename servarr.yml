@@ -59,7 +59,7 @@ services:
       - prowlarr-config:/config
 
   radarr:
-    image: docker.io/hotio/radarr:release-5.8.3.8933
+    image: docker.io/hotio/radarr:release-5.9.1.9070
     expose:
       - 7878 # webui
     extends:
@@ -74,7 +74,7 @@ services:
       - radarr-config:/config
 
   recyclarr:
-    image: docker.io/recyclarr/recyclarr:7.2.1
+    image: docker.io/recyclarr/recyclarr:7.2.2
     environment:
       - TZ=${TIMEZONE}
     extends:
@@ -89,7 +89,7 @@ services:
       - ./recyclarr/recyclarr.yml:/config/recyclarr.yml
 
   sonarr:
-    image: docker.io/hotio/sonarr:release-4.0.8.1874
+    image: docker.io/hotio/sonarr:release-4.0.9.2244
     expose:
       - 8989 # webui
     extends:

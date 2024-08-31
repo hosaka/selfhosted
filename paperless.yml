@@ -12,7 +12,7 @@ volumes:
 
 services:
   paperless:
-    image: docker.io/paperlessngx/paperless-ngx:2.11.3
+    image: docker.io/paperlessngx/paperless-ngx:2.11.6
     depends_on:
       paperless-redis:
         condition: service_healthy
@@ -80,7 +80,7 @@ services:
       file: common.yml
       service: log-to-json
     healthcheck:
-      test: pg_isready
+      test: pg_isready --dbname='${PAPERLESS_DB_DATABASE_NAME}' --username='${PAPERLESS_DB_USERNAME}'
     networks:
       - paperless
     restart: unless-stopped

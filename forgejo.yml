@@ -15,7 +15,7 @@ services:
   forgejo:
     # todo: automatically create a new user, part of the executed command:
     # forgejo admin user create --admin --username user --password password --email email@domain.tld
-    image: codeberg.org/forgejo/forgejo:7.0.4-rootless
+    image: codeberg.org/forgejo/forgejo:8.0.2-rootless
     command: >-
       bash -ec '
       gitea --config /etc/gitea/app.ini &
@@ -30,6 +30,7 @@ services:
       - APP_NAME=Code
       - USER_UID=1000
       - USER_GID=1000
+      - GITEA_APP_INI=/etc/gitea/app.ini
       - FORGEJO__database__DB_TYPE=postgres
       - FORGEJO__database__HOST=forgejo-database
       - FORGEJO__database__NAME=${FORGEJO_DB_DATABASE_NAME}
@@ -76,7 +77,7 @@ services:
       - POSTGRES_PASSWORD=${FORGEJO_DB_PASSWORD}
       - POSTGRES_DB=${FORGEJO_DB_DATABASE_NAME}
     healthcheck:
-      test: pg_isready
+      test: pg_isready --dbname='${FORGEJO_DB_DATABASE_NAME}' --username='${FORGEJO_DB_USERNAME}'
     extends:
       file: common.yml
       service: log-to-json
@@ -104,7 +105,7 @@ services:
       - forgejo-docker-certs:/certs
 
   forgejo-runner:
-    image: code.forgejo.org/forgejo/runner:3.5.0
+    image: code.forgejo.org/forgejo/runner:3.5.1
     command: >-
       bash -ec '
       while : ; do

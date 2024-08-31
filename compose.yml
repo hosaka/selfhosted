@@ -50,7 +50,7 @@ services:
       - ./caddy/Caddyfile:/config/Caddyfile
 
   cloudflared:
-    image: docker.io/cloudflare/cloudflared:2024.8.2
+    image: docker.io/cloudflare/cloudflared:2024.8.3
     command: tunnel --no-autoupdate run --token ${PROXY_CF_TUNNEL_TOKEN}
     extra_hosts:
       - host.docker.internal:host-gateway
