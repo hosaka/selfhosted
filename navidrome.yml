@@ -8,7 +8,7 @@ volumes:
 
 services:
   navidrome:
-    image: docker.io/deluan/navidrome:0.52.5
+    image: docker.io/deluan/navidrome:0.53.0
     environment:
       - ND_SCANSCHEDULE=@daily
       - ND_ENABLETRANSCODINGCONFIG=false

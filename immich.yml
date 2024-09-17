@@ -11,7 +11,7 @@ volumes:
 
 services:
   immich:
-    image: ghcr.io/immich-app/immich-server:v1.114.0
+    image: ghcr.io/immich-app/immich-server:v1.115.0
     depends_on:
       immich-redis:
         condition: service_healthy
@@ -45,7 +45,7 @@ services:
       - ${IMMICH_UPLOAD_LOCATION}:/usr/src/app/upload
 
   immich-machine-learning:
-    image: ghcr.io/immich-app/immich-machine-learning:v1.114.0
+    image: ghcr.io/immich-app/immich-machine-learning:v1.115.0
     environment:
       - NODE_ENV=production
     extends:

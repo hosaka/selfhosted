@@ -74,7 +74,7 @@ services:
       - radarr-config:/config
 
   recyclarr:
-    image: docker.io/recyclarr/recyclarr:7.2.3
+    image: docker.io/recyclarr/recyclarr:7.2.4
     environment:
       - TZ=${TIMEZONE}
     extends:
