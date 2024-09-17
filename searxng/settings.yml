@@ -47,6 +47,7 @@ general:
   enable_metrics: false
 search:
   autocomplete: brave
+  default_lang: en-US
 engines:
   - name: duckduckgo images
     disabled: false
