@@ -9,7 +9,7 @@ volumes:
 
 services:
   searxng:
-    image: docker.io/searxng/searxng:2024.9.15-55e2f4a97
+    image: docker.io/searxng/searxng:2024.9.29-f07ab6deb
     cap_drop:
       - ALL
     cap_add:
