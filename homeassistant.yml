@@ -10,7 +10,7 @@ volumes:
 
 services:
   homeassistant:
-    image: docker.io/homeassistant/home-assistant:2024.9.3
+    image: docker.io/homeassistant/home-assistant:2024.10.1
     environment:
       - TZ=${TIMEZONE}
     expose:
@@ -28,7 +28,7 @@ services:
       - home-assistant-config:/config
 
   mosquitto:
-    image: docker.io/eclipse-mosquitto:2.0.18
+    image: docker.io/eclipse-mosquitto:2.0.19
     environment:
       - TZ=${TIMEZONE}
     expose:

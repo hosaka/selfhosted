@@ -29,7 +29,7 @@ services:
       - jellyseerr-config:/app/config
 
   lidarr:
-    image: docker.io/hotio/lidarr:release-2.5.3.4341
+    image: docker.io/hotio/lidarr:release-2.6.4.4402
     expose:
       - 8686 # webui
     extends:
