@@ -1,5 +1,3 @@
-version: "3"
-
 networks:
   immich:
   proxy:
@@ -11,7 +9,7 @@ volumes:
 
 services:
   immich:
-    image: ghcr.io/immich-app/immich-server:v1.117.0
+    image: ghcr.io/immich-app/immich-server:v1.119.1
     depends_on:
       immich-redis:
         condition: service_healthy
@@ -30,7 +28,7 @@ services:
       - JWT_SECRET=${IMMICH_JWT_SECRET}
       - TZ=${TIMEZONE}
     expose:
-      - 3001 # webui
+      - 2283 # webui
     extends:
       file: common.yml
       service: log-to-json
@@ -45,7 +43,7 @@ services:
       - ${IMMICH_UPLOAD_LOCATION}:/usr/src/app/upload
 
   immich-machine-learning:
-    image: ghcr.io/immich-app/immich-machine-learning:v1.117.0
+    image: ghcr.io/immich-app/immich-machine-learning:v1.119.1
     environment:
       - NODE_ENV=production
     extends:

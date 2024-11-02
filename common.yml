@@ -1,5 +1,3 @@
-version: "3"
-
 services:
   log-to-json:
     logging:

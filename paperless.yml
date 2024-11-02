@@ -1,5 +1,3 @@
-version: "3"
-
 networks:
   paperless:
   proxy:
@@ -12,7 +10,7 @@ volumes:
 
 services:
   paperless:
-    image: docker.io/paperlessngx/paperless-ngx:2.12.0
+    image: docker.io/paperlessngx/paperless-ngx:2.13.2
     depends_on:
       paperless-redis:
         condition: service_healthy

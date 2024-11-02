@@ -1,5 +1,3 @@
-version: "3"
-
 networks:
   # todo: maybe a separate notify network is better than re-using monitor
   monitor:

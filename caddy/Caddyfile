@@ -51,7 +51,7 @@ qbit.{$PROXY_PRIVATE_DOMAIN} {
     reverse_proxy qbit:8080
 }
 immich.{$PROXY_PRIVATE_DOMAIN}, immich.{$PROXY_PUBLIC_DOMAIN} {
-    reverse_proxy immich:3001
+    reverse_proxy immich:2283
 }
 http://switch.{$PROXY_PRIVATE_DOMAIN} {
     reverse_proxy rclone:8000
