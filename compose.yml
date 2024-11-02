@@ -1,5 +1,5 @@
 include:
-  - authelia.yml
+  # - authelia.yml
   - atuin.yml
   - forgejo.yml
   - frigate.yml
@@ -79,3 +79,16 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - ${MEDIA_RCLONE_SERVE_PATH}:/data/media
+
+  whoami:
+    image: docker.io/traefik/whoami:v1.10.3
+    expose:
+      - 80 # http
+    extends:
+      file: common.yml
+      service: log-to-json
+    networks:
+      - proxy
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
