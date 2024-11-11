@@ -6,7 +6,7 @@ volumes:
 
 services:
   jellyfin:
-    image: docker.io/hotio/jellyfin:release-10.10.0
+    image: docker.io/hotio/jellyfin:release-10.10.1
     devices:
       - ${MEDIA_JELLYFIN_CARD}:/dev/dri/card0
       - ${MEDIA_JELLYFIN_RENDER}:/dev/dri/renderD128

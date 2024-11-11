@@ -94,7 +94,7 @@ services:
   lldap:
     # todo: figure out how to create default authelia user/pwd with lldap_password_manager gruop
     # probably using the lldap bootstrap.sh script as suggested in the readme
-    image: docker.io/lldap/lldap:v0.5.0-alpine
+    image: docker.io/lldap/lldap:v0.6.0-alpine
     environment:
       - LLDAP_LDAP_BASE_DN=${LLDAP_BASE_DN}
       - LLDAP_LDAP_USER_PASS=${LLDAP_USER_PASS}

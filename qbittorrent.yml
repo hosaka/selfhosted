@@ -35,7 +35,7 @@ services:
       - ${MEDIA_DOWNLOADS_TORRENT_PATH}:/data/media/downloads/torrent
 
   qbitmanage:
-    image: docker.io/hotio/qbitmanage:release-4.1.12
+    image: docker.io/hotio/qbitmanage:release-4.1.13
     extends:
       file: common.yml
       service: hotio
