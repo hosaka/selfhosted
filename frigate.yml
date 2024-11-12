@@ -10,6 +10,8 @@ services:
     image: ghcr.io/blakeblackshear/frigate:0.14.1
     devices:
       - ${FRIGATE_HARDWARE_RENDER}:/dev/dri/renderD128
+      - ${FRIGATE_DETECTOR_CORAL0_DEVICE}:/dev/apex_0
+      - ${FRIGATE_DETECTOR_CORAL1_DEVICE}:/dev/apex_1
     environment:
       - TZ=${TIMEZONE}
       - FRIGATE_MQTT_USER=${FRIGATE_MQTT_USER}

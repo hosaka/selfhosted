@@ -1,3 +1,5 @@
+version: 0.14
+
 mqtt:
   host: mosquitto
   user: "{FRIGATE_MQTT_USER}"
@@ -8,50 +10,55 @@ go2rtc:
     entrance_main:
       - "rtsp://{FRIGATE_CAMERA_USER}:{FRIGATE_CAMERA1_PASSWORD}@{FRIGATE_CAMERA1_HOST}:554/h264Preview_01_main"
       - "ffmpeg:entrance_main#audio=opus"
+    entrance_sub:
+      - "rtsp://{FRIGATE_CAMERA_USER}:{FRIGATE_CAMERA1_PASSWORD}@{FRIGATE_CAMERA1_HOST}:554/h264Preview_01_sub"
+      - "ffmpeg:entrance_sub"
     bedroom_main:
       - "rtsp://{FRIGATE_CAMERA_USER}:{FRIGATE_CAMERA2_PASSWORD}@{FRIGATE_CAMERA2_HOST}:554/h264Preview_01_main"
       - "ffmpeg:bedroom_main#audio=opus"
 
-# detectors:
-#   coral:
-#     type: edgetpu
-#     device: ":0"
+detectors:
+  coral0:
+    type: edgetpu
+    device: pci:0
+  coral1:
+    type: edgetpu
+    device: pci:1
 
-detect:
-  enabled: false
-
-record:
-  enabled: false
-  retain:
-    days: 7
-    mode: all
-
-# ffmpeg:
-#   input_args: preset-rtsp-restream
-#   output_args:
-#     record: preset-record-generic-audio-copy
-#   hwaccel_args: preset-vaapi
+ffmpeg:
+  input_args: preset-rtsp-restream
+  output_args:
+    record: preset-record-generic-audio-copy
+  # hwaccel_args: preset-vaapi
 
 cameras:
   entrance:
+    record:
+      enabled: true
+      events:
+        retain:
+          mode: active_objects
     ffmpeg:
       inputs:
         - path: "rtsp://127.0.0.1:8554/entrance_main"
-          input_args: preset-rtsp-restream
           roles:
             - record
-      output_args:
-        record: preset-record-generic-audio-copy
-      hwaccel_args: preset-vaapi
+        - path: "rtsp://127.0.0.1:8554/entrance_sub"
+          roles:
+            - detect
+    motion:
+      mask:
+        - 0,1,0.307,1,0.306,0.93,0.008,0.928,0.006,0.884,0.203,0,0,0
+        - 0.689,1,0.777,0,1,0,1,1
   bedroom:
+    motion:
+      enabled: false
+    detect:
+      enabled: false
+    record:
+      enabled: false
     ffmpeg:
       inputs:
         - path: "rtsp://127.0.0.1:8554/bedroom_main"
-          input_args: preset-rtsp-restream
           roles:
             - record
-      output_args:
-        record: preset-record-generic-audio-copy
-      hwaccel_args: preset-vaapi
-    record:
-      enabled: false
