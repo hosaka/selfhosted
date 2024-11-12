@@ -14,26 +14,7 @@ profiles:
       tag:
         - docker
 
-  immich-database:
-    inherit: default
-
-    backup:
-      schedule: weekly
-
-      use:
-        - name: stop-start-container
-          container: immich
-
-      stdin: true
-      stdin-command: docker compose -p box exec immich-database pg_dumpall -c -U postgres | gzip -c
-      stdin-filename: "{{ .Profile.Name }}.sql.gz"
-
-      tag:
-        - docker
-        - sqldump
-
 groups:
   private:
     profiles:
       - immich
-      - immich-database
