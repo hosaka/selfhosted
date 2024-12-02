@@ -17,6 +17,7 @@ services:
         condition: service_healthy
     devices:
       - ${IMMICH_TRANSCODE_CARD}:/dev/dri/card0
+      - ${IMMICH_TRANSCODE_RENDER}:/dev/dri/renderD128
     environment:
       - IMMICH_ENV=production
       - IMMICH_LOG_LEVEL=${IMMICH_LOG_LEVEL:-log}
