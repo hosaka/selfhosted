@@ -9,7 +9,7 @@ volumes:
 
 services:
   grafana:
-    image: docker.io/grafana/grafana:11.3.0
+    image: docker.io/grafana/grafana:11.3.1
     extends:
       file: common.yml
       service: log-to-json
@@ -42,7 +42,7 @@ services:
       - ./grafana/datasources:/etc/grafana/provisioning/datasources
 
   prometheus:
-    image: docker.io/prom/prometheus:v2.55.1
+    image: docker.io/prom/prometheus:v3.0.1
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--storage.tsdb.path=/prometheus"

@@ -31,7 +31,7 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - qbit-config:/config
-      - ./qbittorrent/wg0.conf:/config/wireguard/wg0.conf:ro
+      - ./qbittorrent/wg0.conf:/config/wireguard/wg0.conf
       - ${MEDIA_DOWNLOADS_TORRENT_PATH}:/data/media/downloads/torrent
 
   qbitmanage:

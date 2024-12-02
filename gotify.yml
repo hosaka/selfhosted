@@ -9,7 +9,7 @@ volumes:
 
 services:
   gotify:
-    image: docker.io/gotify/server:2.5.0
+    image: docker.io/gotify/server:2.6.1
     environment:
       - TZ=${TIMEZONE}
     expose:
