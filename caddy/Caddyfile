@@ -14,6 +14,10 @@
       reverse_proxy forgejo:3000
       rewrite * /hosaka/.dotfiles/raw/branch/main/.local/bin/dotinstall
   }
+  handle_path /public.pgp {
+      reverse_proxy forgejo:3000
+      rewrite * /hosaka/.dotfiles/raw/branch/main/.gnupg/public.pgp
+  }
 }
 
 # auth.{$PROXY_PUBLIC_DOMAIN} {
