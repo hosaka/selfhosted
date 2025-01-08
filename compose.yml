@@ -26,7 +26,7 @@ volumes:
 
 services:
   caddy:
-    image: docker.io/hotio/caddy:release-2.8.4
+    image: docker.io/hotio/caddy:release-2.9.0
     environment:
       - PROXY_CF_API_EMAIL=${PROXY_CF_API_EMAIL}
       - PROXY_CF_API_TOKEN=${PROXY_CF_API_TOKEN}
@@ -49,7 +49,7 @@ services:
       - ./caddy/Caddyfile:/config/Caddyfile
 
   cloudflared:
-    image: docker.io/cloudflare/cloudflared:2024.11.1
+    image: docker.io/cloudflare/cloudflared:2024.12.2
     command: tunnel --no-autoupdate run --token ${PROXY_CF_TUNNEL_TOKEN}
     extra_hosts:
       - host.docker.internal:host-gateway

@@ -6,7 +6,7 @@ volumes:
 
 services:
   sabnzbd:
-    image: docker.io/hotio/sabnzbd:release-4.3.3
+    image: docker.io/hotio/sabnzbd:release-4.4.1
     expose:
       - 8080 # webui
     extends:

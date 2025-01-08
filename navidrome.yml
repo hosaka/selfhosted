@@ -6,13 +6,15 @@ volumes:
 
 services:
   navidrome:
-    image: docker.io/deluan/navidrome:0.53.3
+    image: docker.io/deluan/navidrome:0.54.3
     environment:
       - ND_SCANSCHEDULE=@daily
       - ND_ENABLETRANSCODINGCONFIG=false
+      # data collection: https://www.navidrome.org/docs/getting-started/insights/
+      - ND_ENABLEINSIGHTSCOLLECTOR=true
       # used to fetch artist images
-      - ND_SPOTIFY_ID=${NAVIDROME_SPOTIFY_ID}
-      - ND_SPOTIFY_SECRET=${NAVIDROME_SPOTIFY_SECRET}
+      - ND_LASTFM_APIKEY=${NAVIDROME_LASTFM_APIKEY}
+      - ND_LASTFM_SECRET=${NAVIDROME_LASTFM_SECRET}
     expose:
       - 4533 # webui
     extends:

@@ -6,7 +6,7 @@ volumes:
 
 services:
   vaultwarden:
-    image: docker.io/vaultwarden/server:1.32.5-alpine
+    image: docker.io/vaultwarden/server:1.32.7-alpine
     environment:
       - ADMIN_TOKEN=${VAULTWARDEN_ADMIN_TOKEN}
       - DOMAIN=https://vaultwarden.${PROXY_PUBLIC_DOMAIN}
