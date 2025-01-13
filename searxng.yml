@@ -7,7 +7,7 @@ volumes:
 
 services:
   searxng:
-    image: docker.io/searxng/searxng:2025.1.6-6dab7fe78
+    image: docker.io/searxng/searxng:2025.1.13-09cce1851
     cap_drop:
       - ALL
     cap_add:
@@ -15,10 +15,10 @@ services:
       - SETGID
       - SETUID
     environment:
-      - TZ=${TIMEZONE}
       - SEARXNG_SECRET=${SEARXNG_SECRET}
       - SEARXNG_BASE_URL=https://search.${PROXY_PUBLIC_DOMAIN}
       - SEARXNG_REDIS_URL=redis://searxng-redis:6379
+      - TZ=${TIMEZONE}
     expose:
       - 8080 # webui
     extends:
