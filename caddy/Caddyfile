@@ -1,23 +1,23 @@
 {
-    email {env.PROXY_CF_API_EMAIL}
-    acme_dns cloudflare {env.PROXY_CF_API_TOKEN}
-    # acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
-    skip_install_trust
+	email {env.PROXY_CF_API_EMAIL}
+	acme_dns cloudflare {env.PROXY_CF_API_TOKEN}
+	# acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+	skip_install_trust
 }
 
 # public
 {$PROXY_PUBLIC_DOMAIN} {
-  handle {
-      respond 404
-  }
-  handle_path /sh/dotinstall {
-      reverse_proxy forgejo:3000
-      rewrite * /hosaka/.dotfiles/raw/branch/main/.local/bin/dotinstall
-  }
-  handle_path /public.pgp {
-      reverse_proxy forgejo:3000
-      rewrite * /hosaka/.dotfiles/raw/branch/main/.gnupg/public.pgp
-  }
+	handle {
+		respond 404
+	}
+	handle_path /sh/dotinstall {
+		reverse_proxy forgejo:3000
+		rewrite * /hosaka/.dotfiles/raw/branch/main/.local/bin/dotinstall
+	}
+	handle_path /public.pgp {
+		reverse_proxy forgejo:3000
+		rewrite * /hosaka/.dotfiles/raw/branch/main/.gnupg/public.pgp
+	}
 }
 
 # auth.{$PROXY_PUBLIC_DOMAIN} {
@@ -27,181 +27,181 @@
 #     reverse_proxy lldap:17170
 # }
 jellyfin.{$PROXY_PRIVATE_DOMAIN} {
-    reverse_proxy jellyfin:8096
+	reverse_proxy jellyfin:8096
 }
 jellyseerr.{$PROXY_PRIVATE_DOMAIN} {
-    reverse_proxy jellyseerr:5055
+	reverse_proxy jellyseerr:5055
 }
 radarr.{$PROXY_PRIVATE_DOMAIN} {
-    reverse_proxy radarr:7878
+	reverse_proxy radarr:7878
 }
 sonarr.{$PROXY_PRIVATE_DOMAIN} {
-    reverse_proxy sonarr:8989
+	reverse_proxy sonarr:8989
 }
 prowlarr.{$PROXY_PRIVATE_DOMAIN} {
-    reverse_proxy prowlarr:9696
+	reverse_proxy prowlarr:9696
 }
 navidrome.{$PROXY_PRIVATE_DOMAIN}, navidrome.{$PROXY_PUBLIC_DOMAIN} {
-    reverse_proxy navidrome:4533
+	reverse_proxy navidrome:4533
 }
 lidarr.{$PROXY_PRIVATE_DOMAIN} {
-    reverse_proxy lidarr:8686
+	reverse_proxy lidarr:8686
 }
 nzb.{$PROXY_PRIVATE_DOMAIN} {
-    reverse_proxy sabnzbd:8080
+	reverse_proxy sabnzbd:8080
 }
 qbit.{$PROXY_PRIVATE_DOMAIN} {
-    reverse_proxy qbit:8080
+	reverse_proxy qbit:8080
 }
 immich.{$PROXY_PRIVATE_DOMAIN}, immich.{$PROXY_PUBLIC_DOMAIN} {
-    reverse_proxy immich:2283
+	reverse_proxy immich:2283
 }
 http://switch.{$PROXY_PRIVATE_DOMAIN} {
-    reverse_proxy rclone:8000
+	reverse_proxy rclone:8000
 }
 paperless.{$PROXY_PRIVATE_DOMAIN}, paperless.{$PROXY_PUBLIC_DOMAIN} {
-    reverse_proxy paperless:8000
-    @admin {
-        path /admin*
-        not remote_ip private_ranges
-    }
-    redir @admin /
+	reverse_proxy paperless:8000
+	@admin {
+		path /admin*
+		not remote_ip private_ranges
+	}
+	redir @admin /
 }
 atuin.{$PROXY_PRIVATE_DOMAIN}, atuin.{$PROXY_PUBLIC_DOMAIN} {
-    reverse_proxy atuin:8888
+	reverse_proxy atuin:8888
 }
 vaultwarden.{$PROXY_PRIVATE_DOMAIN}, vaultwarden.{$PROXY_PUBLIC_DOMAIN} {
-    encode gzip
+	encode gzip
 
-    header {
-        # enable HTTP Strict Transport Security (HSTS)
-        Strict-Transport-Security "max-age=31536000; preload"
-        # enable cross-site filter (XSS) and tell browser to block detected attacks
-        X-XSS-Protection "1; mode=block"
-        # disallow the site to be rendered within a frame (clickjacking protection)
-        X-Frame-Options "DENY"
-        # prevent search engines from indexing
-        X-Robots-Tag "none"
-        # remove server name
-        -Server
-    }
+	header {
+		# enable HTTP Strict Transport Security (HSTS)
+		Strict-Transport-Security "max-age=31536000; preload"
+		# enable cross-site filter (XSS) and tell browser to block detected attacks
+		X-XSS-Protection "1; mode=block"
+		# disallow the site to be rendered within a frame (clickjacking protection)
+		X-Frame-Options "DENY"
+		# prevent search engines from indexing
+		X-Robots-Tag "none"
+		# remove server name
+		-Server
+	}
 
-    # allow access to the admin interface only from local networks
-    @admin {
-        path /admin*
-        not remote_ip private_ranges
-    }
-    redir @admin /
+	# allow access to the admin interface only from local networks
+	@admin {
+		path /admin*
+		not remote_ip private_ranges
+	}
+	redir @admin /
 
-    # proxy everything to Rocket
-    reverse_proxy vaultwarden:80 {
-        # send the true remote IP to Rocket, fail2ban can ban correct IP from the log
-        # use http.request.header.Cf-Connecting-Ip instead of remote_host if proxying with Cloudflare
-        header_up X-Real-IP {http.request.header.Cf-Connecting-Ip}
-    }
+	# proxy everything to Rocket
+	reverse_proxy vaultwarden:80 {
+		# send the true remote IP to Rocket, fail2ban can ban correct IP from the log
+		# use http.request.header.Cf-Connecting-Ip instead of remote_host if proxying with Cloudflare
+		header_up X-Real-IP {http.request.header.Cf-Connecting-Ip}
+	}
 }
 gotify.{$PROXY_PRIVATE_DOMAIN}, gotify.{$PROXY_PUBLIC_DOMAIN} {
-    reverse_proxy gotify:80
+	reverse_proxy gotify:80
 }
 hass.{$PROXY_PRIVATE_DOMAIN} {
-    reverse_proxy homeassistant:8123
+	reverse_proxy homeassistant:8123
 }
 frigate.{$PROXY_PRIVATE_DOMAIN} {
-    reverse_proxy frigate:5000
+	reverse_proxy frigate:5000
 }
 code.{$PROXY_PRIVATE_DOMAIN}, code.{$PROXY_PUBLIC_DOMAIN} {
-    reverse_proxy forgejo:3000
+	reverse_proxy forgejo:3000
 }
 search.{$PROXY_PRIVATE_DOMAIN}, search.{$PROXY_PUBLIC_DOMAIN} {
-  log {
-      output discard
-  }
+	log {
+		output discard
+	}
 
-  @api {
-      path /config
-      path /healthz
-      path /stats/errors
-      path /stats/checker
-  }
+	@api {
+		path /config
+		path /healthz
+		path /stats/errors
+		path /stats/checker
+	}
 
-  @static {
-      path /static/*
-  }
+	@static {
+		path /static/*
+	}
 
-  @notstatic {
-      not path /static/*
-  }
+	@notstatic {
+		not path /static/*
+	}
 
-  @imageproxy {
-      path /image_proxy
-  }
+	@imageproxy {
+		path /image_proxy
+	}
 
-  @notimageproxy {
-      not path /image_proxy
-  }
+	@notimageproxy {
+		not path /image_proxy
+	}
 
-  header {
-      # enable HTTP Strict Transport Security (HSTS)
-      Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-      # enable cross-site filter (XSS) and tell browser to block detected attacks
-      X-XSS-Protection "1; mode=block"
-      # prevent some browsers from MIME-sniffing a response away from the declared Content-Type
-      X-Content-Type-Options "nosniff"
-      # disable some features
-      Permissions-Policy "accelerometer=(),ambient-light-sensor=(),autoplay=(),camera=(),encrypted-media=(),focus-without-user-activation=(),geolocation=(),gyroscope=(),magnetometer=(),microphone=(),midi=(),payment=(),picture-in-picture=(),speaker=(),sync-xhr=(),usb=(),vr=()"
-      # disable some features (legacy)
-      Feature-Policy "accelerometer 'none';ambient-light-sensor 'none'; autoplay 'none';camera 'none';encrypted-media 'none';focus-without-user-activation 'none'; geolocation 'none';gyroscope 'none';magnetometer 'none';microphone 'none';midi 'none';payment 'none';picture-in-picture 'none'; speaker 'none';sync-xhr 'none';usb 'none';vr 'none'"
-      # referer
-      Referrer-Policy "no-referrer"
-      # prevent search engines from indexing
-      X-Robots-Tag "noindex, noarchive, nofollow"
-      # remove server header
-      -Server
-  }
+	header {
+		# enable HTTP Strict Transport Security (HSTS)
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		# enable cross-site filter (XSS) and tell browser to block detected attacks
+		X-XSS-Protection "1; mode=block"
+		# prevent some browsers from MIME-sniffing a response away from the declared Content-Type
+		X-Content-Type-Options "nosniff"
+		# disable some features
+		Permissions-Policy "accelerometer=(),ambient-light-sensor=(),autoplay=(),camera=(),encrypted-media=(),focus-without-user-activation=(),geolocation=(),gyroscope=(),magnetometer=(),microphone=(),midi=(),payment=(),picture-in-picture=(),speaker=(),sync-xhr=(),usb=(),vr=()"
+		# disable some features (legacy)
+		Feature-Policy "accelerometer 'none';ambient-light-sensor 'none'; autoplay 'none';camera 'none';encrypted-media 'none';focus-without-user-activation 'none'; geolocation 'none';gyroscope 'none';magnetometer 'none';microphone 'none';midi 'none';payment 'none';picture-in-picture 'none'; speaker 'none';sync-xhr 'none';usb 'none';vr 'none'"
+		# referer
+		Referrer-Policy "no-referrer"
+		# prevent search engines from indexing
+		X-Robots-Tag "noindex, noarchive, nofollow"
+		# remove server header
+		-Server
+	}
 
-  header @api {
-      Access-Control-Allow-Methods "GET, OPTIONS"
-      Access-Control-Allow-Origin  "*"
-  }
+	header @api {
+		Access-Control-Allow-Methods "GET, OPTIONS"
+		Access-Control-Allow-Origin "*"
+	}
 
-  header @static {
-      # Cache
-      Cache-Control "public, max-age=31536000"
-      defer
-  }
+	header @static {
+		# Cache
+		Cache-Control "public, max-age=31536000"
+		defer
+	}
 
-  header @notstatic {
-      # No Cache
-      Cache-Control "no-cache, no-store"
-      Pragma "no-cache"
-  }
+	header @notstatic {
+		# No Cache
+		Cache-Control "no-cache, no-store"
+		Pragma "no-cache"
+	}
 
-  # CSP (see http://content-security-policy.com/ )
-  header @imageproxy {
-      Content-Security-Policy "default-src 'none'; img-src 'self' data:"
-  }
+	# CSP (see http://content-security-policy.com/ )
+	header @imageproxy {
+		Content-Security-Policy "default-src 'none'; img-src 'self' data:"
+	}
 
-  header @notimageproxy {
-      Content-Security-Policy "upgrade-insecure-requests; default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; form-action 'self' https://github.com/searxng/searxng/issues/new; font-src 'self'; frame-ancestors 'self'; base-uri 'self'; connect-src 'self' https://overpass-api.de; img-src 'self' data: https://*.tile.openstreetmap.org; frame-src https://www.youtube-nocookie.com https://player.vimeo.com https://www.dailymotion.com https://www.deezer.com https://www.mixcloud.com https://w.soundcloud.com https://embed.spotify.com"
-  }
+	header @notimageproxy {
+		Content-Security-Policy "upgrade-insecure-requests; default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; form-action 'self' https://github.com/searxng/searxng/issues/new; font-src 'self'; frame-ancestors 'self'; base-uri 'self'; connect-src 'self' https://overpass-api.de; img-src 'self' data: https://*.tile.openstreetmap.org; frame-src https://www.youtube-nocookie.com https://player.vimeo.com https://www.dailymotion.com https://www.deezer.com https://www.mixcloud.com https://w.soundcloud.com https://embed.spotify.com"
+	}
 
-  handle {
-      encode zstd gzip
-      reverse_proxy searxng:8080 {
-          header_up X-Forwarded-Port {http.request.port}
-          header_up X-Forwarded-Proto {http.request.scheme}
-          header_up X-Real-IP {remote_host}
-      }
-  }
+	handle {
+		encode zstd gzip
+		reverse_proxy searxng:8080 {
+			header_up X-Forwarded-Port {http.request.port}
+			header_up X-Forwarded-Proto {http.request.scheme}
+			header_up X-Real-IP {remote_host}
+		}
+	}
 }
 grafana.{$PROXY_PRIVATE_DOMAIN}, grafana.{$PROXY_PUBLIC_DOMAIN} {
-    # forward_auth authelia:9091 {
-    #     uri /api/authz/forward-auth
-    #     copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
-    # }
-    reverse_proxy grafana:3000
+	# forward_auth authelia:9091 {
+	#     uri /api/authz/forward-auth
+	#     copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
+	# }
+	reverse_proxy grafana:3000
 }
 
 whoami.{$PROXY_PRIVATE_DOMAIN}, whoami.{$PROXY_PUBLIC_DOMAIN} {
-    reverse_proxy whoami:80
+	reverse_proxy whoami:80
 }
