@@ -255,7 +255,7 @@
   notify_on:
     - new
   include_tags:
-    - ^\d+\.\d+\.\d+\-\d+\-rootless$
+    - ^\d+\.\d+\.\d+\-rootless$
 
 - name: code.forgejo.org/forgejo/runner
   watch_repo: true
