@@ -13,7 +13,7 @@ services:
   forgejo:
     # todo: automatically create a new user, part of the executed command:
     # forgejo admin user create --admin --username user --password password --email email@domain.tld
-    image: codeberg.org/forgejo/forgejo:9.0.1-rootless
+    image: codeberg.org/forgejo/forgejo:10.0.1-rootless
     command: >-
       bash -ec '
       gitea --config /etc/gitea/app.ini &
@@ -104,7 +104,7 @@ services:
   #     - forgejo-docker-certs:/certs
   #
   # forgejo-runner:
-  #   image: code.forgejo.org/forgejo/runner:5.0.4
+  #   image: code.forgejo.org/forgejo/runner:6.2.2
   #   command: >-
   #     bash -ec '
   #     while : ; do
