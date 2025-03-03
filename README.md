@@ -25,7 +25,9 @@ I have previously attempted to run containers using rootless podman with moderat
 
 ### Configuration
 
-All applications are configured with a single `.env` file. See [default.env](default.env). Services can be disabled by commenting them out from the include list in `compose.yml`.
+All applications are configured with a single [default.env](default.env). This env file is encrypted using [SOPS](https://getsops.io/docs/) and must be decrypted first before it can be used: `sops decrypt default.env > .env`.
+
+Individual services can be disabled by commenting them out from the include list in `compose.yml`.
 
 ## Backups
 
