@@ -13,6 +13,8 @@ My selfhosted config.
 - Silverstone SX650-G 650W SFX
 - Intel I350-T4 4x1Gb NIC
 - APC BK500JP UPS
+- Dual Edge TPU M.2
+- Dual Edge TPU PCIe Adapter
 - Jonsbo N1 Mini ITX
 
 ## Software
@@ -46,4 +48,4 @@ Backups are done using `restic` and `resticprofile`. See the [restic/README.md](
 
 ### Hardware
 
-- [ ] Replace the NIC with a TPU such as Coral PCIe Accelerator or a dGPU with a small form factor
+- [x] Replace the NIC with a TPU such as Coral PCIe Accelerator or a dGPU with a small form factor
