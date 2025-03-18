@@ -10,6 +10,14 @@
 
 Note that `setcap` only applies to a specific binary. After running `self-update` command for restic/resticprofile, run the `setcap` command again (only for restic itself) and chmod the updated binary (both restic and resticprofile) to 750.
 
+```bash
+cd /usr/local/bin
+restic self-update && resticprofile self-update
+chown root:restic restic{,profile}
+chmod 750 restic{,profile}
+setcap cap_dac_read_search=+ep restic{,profile}
+```
+
 ## Repository secrets
 
 A `.env` file is used and sourced by `resticprofile` that contains resticr epository secrets. See an example in [default.env](default.env).
