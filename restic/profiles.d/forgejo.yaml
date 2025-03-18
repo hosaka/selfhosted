@@ -13,6 +13,11 @@ profiles:
         # and should probably be suspended
         - /var/lib/docker/volumes/box_forgejo-data
 
+      exclude:
+        # we don't want to backup github mirrors, if desired
+        # fork the mirror under your own username
+        - /var/lib/docker/volumes/box_forgejo-data/_data/git/repositories/github
+
       tag:
         - docker
 
