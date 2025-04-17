@@ -47,6 +47,10 @@ navidrome.{$PROXY_PRIVATE_DOMAIN}, navidrome.{$PROXY_PUBLIC_DOMAIN} {
 lidarr.{$PROXY_PRIVATE_DOMAIN} {
 	reverse_proxy lidarr:8686
 }
+kavita.{$PROXY_PRIVATE_DOMAIN} {
+	encode gzip
+	reverse_proxy kavita:5000
+}
 nzb.{$PROXY_PRIVATE_DOMAIN} {
 	reverse_proxy sabnzbd:8080
 }

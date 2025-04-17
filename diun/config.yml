@@ -283,3 +283,12 @@
     - new
   include_tags:
     - ^\d+\.\d+\.\d+\-[a-fA-F0-9]{9}$
+
+- name: docker.io/jvmilazz0/kavita
+  watch_repo: true
+  max_tags: 3
+  sort_tags: semver
+  notify_on:
+    - new
+  include_tags:
+    - ^\d+\.\d+\.\d+$

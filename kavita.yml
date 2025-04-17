@@ -1,0 +1,25 @@
+networks:
+  proxy:
+
+volumes:
+  kavita-config:
+
+services:
+  kavita:
+    image: docker.io/jvmilazz0/kavita:0.8.6
+    environment:
+      - PUID=${MEDIA_PUID}
+      - PGID=${MEDIA_PGID}
+      - TZ=${TIMEZONE}
+    expose:
+      - 5000 # webui
+    extends:
+      file: common.yml
+      service: log-to-json
+    networks:
+      - proxy
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - kavita-config:/kavita/config
+      - ${MEDIA_COLLECTION_BOOKS_PATH}:/data/media

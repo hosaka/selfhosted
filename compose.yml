@@ -7,6 +7,7 @@ include:
   - homeassistant.yml
   - immich.yml
   - jellyfin.yml
+  - kavita.yml
   - metrics.yml
   - navidrome.yml
   - paperless.yml
