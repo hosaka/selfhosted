@@ -7,7 +7,7 @@ volumes:
 
 services:
   frigate:
-    image: ghcr.io/blakeblackshear/frigate:0.15.0
+    image: ghcr.io/blakeblackshear/frigate:0.15.1
     devices:
       - ${FRIGATE_HARDWARE_RENDER}:/dev/dri/renderD128
       - ${FRIGATE_DETECTOR_CORAL0_DEVICE}:/dev/apex_0
