@@ -57,7 +57,7 @@ services:
       - prowlarr-config:/config
 
   radarr:
-    image: docker.io/hotio/radarr:release-5.22.4.9896
+    image: docker.io/hotio/radarr:release-5.23.3.9987
     expose:
       - 7878 # webui
     extends:
