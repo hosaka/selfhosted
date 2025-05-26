@@ -9,7 +9,7 @@ volumes:
 
 services:
   immich:
-    image: ghcr.io/immich-app/immich-server:v1.132.3
+    image: ghcr.io/immich-app/immich-server:v1.133.1
     depends_on:
       immich-redis:
         condition: service_healthy
@@ -44,7 +44,7 @@ services:
       - ${IMMICH_UPLOAD_LOCATION}:/usr/src/app/upload
 
   immich-machine-learning:
-    image: ghcr.io/immich-app/immich-machine-learning:v1.132.3
+    image: ghcr.io/immich-app/immich-machine-learning:v1.133.1
     environment:
       - NODE_ENV=production
     extends:
@@ -75,38 +75,19 @@ services:
       - immich-redis-data:/data
 
   immich-database:
-    image: docker.io/tensorchord/pgvecto-rs:pg14-v0.2.0
-    command:
-      [
-        "postgres",
-        "-c",
-        "shared_preload_libraries=vectors.so",
-        "-c",
-        'search_path="$$user", public, vectors',
-        "-c",
-        "logging_collector=on",
-        "-c",
-        "max_wal_size=2GB",
-        "-c",
-        "shared_buffers=512MB",
-        "-c",
-        "wal_compression=on",
-      ]
+    image: ghcr.io/immich-app/postgres:14-vectorchord0.3.0-pgvectors0.2.0
     environment:
       - POSTGRES_USER=${IMMICH_DB_USERNAME}
       - POSTGRES_PASSWORD=${IMMICH_DB_PASSWORD}
       - POSTGRES_DB=${IMMICH_DB_DATABASE_NAME}
       - POSTGRES_INITDB_ARGS="--data-checksums"
+      # uncomment if database is not stored on SSDs
+      # - DB_STORAGE_TYPE="HDD"
     expose:
       - 5432 # db
     extends:
       file: common.yml
       service: log-to-json
-    healthcheck:
-      test: pg_isready --dbname='${IMMICH_DB_DATABASE_NAME}' --username='${IMMICH_DB_USERNAME}' || exit 1; Chksum="$$(psql --dbname='${IMMICH_DB_DATABASE_NAME}' --username='${IMMICH_DB_USERNAME}' --tuples-only --no-align --command='SELECT COALESCE(SUM(checksum_failures), 0) FROM pg_stat_database')"; echo "checksum failure count is $$Chksum"; [ "$$Chksum" = '0' ] || exit 1
-      interval: 5m
-      start_interval: 30s
-      start_period: 5m
     networks:
       - immich
     restart: unless-stopped
