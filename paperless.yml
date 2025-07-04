@@ -10,7 +10,7 @@ volumes:
 
 services:
   paperless:
-    image: docker.io/paperlessngx/paperless-ngx:2.16.3
+    image: docker.io/paperlessngx/paperless-ngx:2.17.1
     depends_on:
       paperless-redis:
         condition: service_healthy

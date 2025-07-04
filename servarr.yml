@@ -12,7 +12,7 @@ volumes:
 
 services:
   jellyseerr:
-    image: docker.io/hotio/jellyseerr:release-2.6.0
+    image: docker.io/hotio/jellyseerr:release-2.7.0
     expose:
       - 5055 # webui
     extends:
@@ -87,7 +87,7 @@ services:
       - ./recyclarr/recyclarr.yml:/config/recyclarr.yml
 
   sonarr:
-    image: docker.io/hotio/sonarr:release-4.0.14.2939
+    image: docker.io/hotio/sonarr:release-4.0.15.2941
     expose:
       - 8989 # webui
     extends:
