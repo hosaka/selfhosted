@@ -82,7 +82,7 @@
   include_tags:
     - ^\d+\.\d+\.\d+$
 
-- name: ghcr.io/deluan/navidrome
+- name: ghcr.io/navidrome/navidrome
   watch_repo: true
   max_tags: 3
   sort_tags: semver

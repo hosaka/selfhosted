@@ -28,6 +28,10 @@ prune:
 logs service:
   docker compose logs --tail 100 --follow {{ service }}
 
+[doc('restart a service')]
+restart service:
+  docker compose restart {{ service }}
+
 [doc('encrypt .env file saving it to default.env')]
 encrypt:
   sops encrypt .env > default.env
