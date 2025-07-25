@@ -27,7 +27,7 @@ volumes:
 
 services:
   caddy:
-    image: docker.io/hotio/caddy:release-2.10.0
+    image: ghcr.io/hotio/caddy:release-2.10.0
     environment:
       - PROXY_CF_API_EMAIL=${PROXY_CF_API_EMAIL}
       - PROXY_CF_API_TOKEN=${PROXY_CF_API_TOKEN}

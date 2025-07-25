@@ -12,7 +12,7 @@ volumes:
 
 services:
   jellyseerr:
-    image: docker.io/hotio/jellyseerr:release-2.7.0
+    image: ghcr.io/hotio/jellyseerr:release-2.7.1
     expose:
       - 5055 # webui
     extends:
@@ -27,7 +27,7 @@ services:
       - jellyseerr-config:/app/config
 
   lidarr:
-    image: docker.io/hotio/lidarr:release-2.12.4.4658
+    image: ghcr.io/hotio/lidarr:release-2.12.4.4658
     expose:
       - 8686 # webui
     extends:
@@ -42,7 +42,7 @@ services:
       - ${MEDIA_ROOT_PATH}:/data/media
 
   prowlarr:
-    image: docker.io/hotio/prowlarr:release-1.37.0.5076
+    image: ghcr.io/hotio/prowlarr:release-1.37.0.5076
     expose:
       - 9696 # webui
     extends:
@@ -57,7 +57,7 @@ services:
       - prowlarr-config:/config
 
   radarr:
-    image: docker.io/hotio/radarr:release-5.26.2.10099
+    image: ghcr.io/hotio/radarr:release-5.26.2.10099
     expose:
       - 7878 # webui
     extends:
@@ -87,7 +87,7 @@ services:
       - ./recyclarr/recyclarr.yml:/config/recyclarr.yml
 
   sonarr:
-    image: docker.io/hotio/sonarr:release-4.0.15.2941
+    image: ghcr.io/hotio/sonarr:release-4.0.15.2941
     expose:
       - 8989 # webui
     extends:

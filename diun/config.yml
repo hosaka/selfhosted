@@ -25,7 +25,7 @@
   include_tags:
     - ^v\d+\.\d+\.\d+\-alpine$
 
-- name: docker.io/hotio/caddy
+- name: ghcr.io/hotio/caddy
   watch_repo: true
   sort_tags: reverse
   notify_on:
@@ -33,7 +33,7 @@
   include_tags:
     - ^release\-\d+\.\d+\.\d+$
 
-- name: docker.io/hotio/jellyfin
+- name: ghcr.io/hotio/jellyfin
   watch_repo: true
   sort_tags: reverse
   notify_on:
@@ -41,7 +41,7 @@
   include_tags:
     - ^release\-\d+\.\d+\.\d+$
 
-- name: docker.io/hotio/jellyseerr
+- name: ghcr.io/hotio/jellyseerr
   watch_repo: true
   sort_tags: reverse
   notify_on:
@@ -49,7 +49,7 @@
   include_tags:
     - ^release\-\d+\.\d+\.\d+$
 
-- name: docker.io/hotio/radarr
+- name: ghcr.io/hotio/radarr
   watch_repo: true
   sort_tags: reverse
   notify_on:
@@ -57,7 +57,7 @@
   include_tags:
     - ^release\-\d+\.\d+\.\d+\.\d+$
 
-- name: docker.io/hotio/sonarr
+- name: ghcr.io/hotio/sonarr
   watch_repo: true
   sort_tags: reverse
   notify_on:
@@ -65,7 +65,7 @@
   include_tags:
     - ^release\-\d+\.\d+\.\d+\.\d+$
 
-- name: docker.io/hotio/prowlarr
+- name: ghcr.io/hotio/prowlarr
   watch_repo: true
   sort_tags: reverse
   notify_on:
@@ -91,7 +91,7 @@
   include_tags:
     - ^\d+\.\d+\.\d+$
 
-- name: docker.io/hotio/lidarr
+- name: ghcr.io/hotio/lidarr
   watch_repo: true
   sort_tags: reverse
   notify_on:
@@ -99,7 +99,7 @@
   include_tags:
     - ^release\-\d+\.\d+\.\d+\.\d+$
 
-- name: docker.io/hotio/sabnzbd
+- name: ghcr.io/hotio/sabnzbd
   watch_repo: true
   sort_tags: reverse
   notify_on:
@@ -107,7 +107,7 @@
   include_tags:
     - ^release\-\d+\.\d+\.\d+$
 
-- name: docker.io/hotio/qbittorrent
+- name: ghcr.io/hotio/qbittorrent
   watch_repo: true
   sort_tags: reverse
   notify_on:
@@ -115,7 +115,7 @@
   include_tags:
     - ^release\-\d+\.\d+\.\d+$
 
-- name: docker.io/hotio/qbitmanage
+- name: ghcr.io/hotio/qbitmanage
   watch_repo: true
   sort_tags: reverse
   notify_on:

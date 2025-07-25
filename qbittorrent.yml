@@ -8,7 +8,7 @@ volumes:
 
 services:
   qbit:
-    image: docker.io/hotio/qbittorrent:release-5.0.4
+    image: ghcr.io/hotio/qbittorrent:release-5.0.4
     cap_add:
       - NET_ADMIN
     environment:
@@ -35,7 +35,7 @@ services:
       - ${MEDIA_DOWNLOADS_TORRENT_PATH}:/data/media/downloads/torrent
 
   qbitmanage:
-    image: docker.io/hotio/qbitmanage:release-4.4.0
+    image: ghcr.io/hotio/qbitmanage:release-4.5.0
     extends:
       file: common.yml
       service: hotio
