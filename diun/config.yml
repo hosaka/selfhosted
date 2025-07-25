@@ -73,7 +73,7 @@
   include_tags:
     - ^release\-\d+\.\d+\.\d+\.\d+$
 
-- name: docker.io/recyclarr/recyclarr
+- name: ghcr.io/recyclarr/recyclarr
   watch_repo: true
   max_tags: 3
   sort_tags: semver
@@ -82,7 +82,7 @@
   include_tags:
     - ^\d+\.\d+\.\d+$
 
-- name: docker.io/deluan/navidrome
+- name: ghcr.io/deluan/navidrome
   watch_repo: true
   max_tags: 3
   sort_tags: semver
@@ -131,7 +131,7 @@
   include_tags:
     - ^v\d+\.\d+\.\d+$
 
-- name: docker.io/vaultwarden/server
+- name: ghcr.io/dani-garcia/vaultwarden
   watch_repo: true
   max_tags: 3
   sort_tags: semver
@@ -140,7 +140,7 @@
   include_tags:
     - ^\d+\.\d+\.\d+\-alpine$
 
-- name: docker.io/gotify/server
+- name: ghcr.io/gotify/server
   watch_repo: true
   max_tags: 3
   sort_tags: semver
@@ -149,7 +149,7 @@
   include_tags:
     - ^\d+\.\d+\.\d+$
 
-- name: docker.io/crazymax/diun
+- name: ghcr.io/crazy-max/diun
   watch_repo: true
   max_tags: 3
   sort_tags: semver
@@ -203,7 +203,7 @@
   include_tags:
     - ^v\d+\.\d+\.\d+$
 
-- name: docker.io/paperlessngx/paperless-ngx
+- name: ghcr.io/paperless-ngx/paperless-ngx
   watch_repo: true
   max_tags: 3
   sort_tags: semver
@@ -212,7 +212,7 @@
   include_tags:
     - ^\d+\.\d+\.\d+$
 
-- name: docker.io/homeassistant/home-assistant
+- name: ghcr.io/home-assistant/home-assistant
   watch_repo: true
   max_tags: 3
   sort_tags: semver
@@ -275,7 +275,7 @@
   include_tags:
     - ^\d+\.\d+\.\d+$
 
-- name: docker.io/searxng/searxng
+- name: ghcr.io/searxng/searxng
   watch_repo: true
   max_tags: 3
   sort_tags: semver
@@ -284,7 +284,7 @@
   include_tags:
     - ^\d+\.\d+\.\d+\-[a-fA-F0-9]{9}$
 
-- name: docker.io/jvmilazz0/kavita
+- name: ghcr.io/kareadita/kavita
   watch_repo: true
   max_tags: 3
   sort_tags: semver

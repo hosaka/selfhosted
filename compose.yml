@@ -50,7 +50,7 @@ services:
       - ./caddy/Caddyfile:/config/Caddyfile
 
   cloudflared:
-    image: docker.io/cloudflare/cloudflared:2025.6.1
+    image: docker.io/cloudflare/cloudflared:2025.7.0
     command: tunnel --no-autoupdate run --token ${PROXY_CF_TUNNEL_TOKEN}
     extra_hosts:
       - host.docker.internal:host-gateway
@@ -67,7 +67,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
 
   rclone:
-    image: docker.io/rclone/rclone:1.66
+    image: ghcr.io/rclone/rclone:1.70
     command: "serve http /data/media --addr :8000"
     expose:
       - 8000 # http
@@ -82,7 +82,7 @@ services:
       - ${MEDIA_RCLONE_SERVE_PATH}:/data/media
 
   whoami:
-    image: docker.io/traefik/whoami:v1.10.3
+    image: ghcr.io/traefik/whoami:v1.11.0
     expose:
       - 80 # http
     extends:
