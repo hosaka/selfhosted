@@ -12,7 +12,7 @@ volumes:
 
 services:
   jellyseerr:
-    image: ghcr.io/hotio/jellyseerr:release-2.7.1
+    image: ghcr.io/hotio/jellyseerr:release-2.7.3
     expose:
       - 5055 # webui
     extends:

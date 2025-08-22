@@ -9,7 +9,7 @@ volumes:
 
 services:
   immich:
-    image: ghcr.io/immich-app/immich-server:v1.136.0
+    image: ghcr.io/immich-app/immich-server:v1.138.1
     depends_on:
       immich-redis:
         condition: service_healthy
@@ -41,10 +41,10 @@ services:
     restart: unless-stopped
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - ${IMMICH_UPLOAD_LOCATION}:/usr/src/app/upload
+      - ${IMMICH_UPLOAD_LOCATION}:/data
 
   immich-machine-learning:
-    image: ghcr.io/immich-app/immich-machine-learning:v1.136.0
+    image: ghcr.io/immich-app/immich-machine-learning:v1.138.1
     environment:
       - NODE_ENV=production
     extends:
@@ -57,7 +57,7 @@ services:
     restart: unless-stopped
     volumes:
       - immich-model-cache:/cache
-      - ${IMMICH_UPLOAD_LOCATION}:/usr/src/app/upload
+      - ${IMMICH_UPLOAD_LOCATION}:/data
 
   immich-redis:
     image: docker.io/valkey/valkey:8-alpine
