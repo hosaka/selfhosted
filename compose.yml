@@ -2,7 +2,7 @@ include:
   # - authelia.yml
   - atuin.yml
   - forgejo.yml
-  - frigate.yml
+  # - frigate.yml
   - gotify.yml
   - homeassistant.yml
   - immich.yml
