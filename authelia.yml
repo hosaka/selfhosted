@@ -11,7 +11,7 @@ volumes:
 
 services:
   authelia:
-    image: docker.io/authelia/authelia:4.39.6
+    image: docker.io/authelia/authelia:4.39.7
     depends_on:
       authelia-redis:
         condition: service_healthy

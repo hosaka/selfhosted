@@ -6,7 +6,7 @@ volumes:
 
 services:
   sabnzbd:
-    image: ghcr.io/hotio/sabnzbd:release-4.5.2
+    image: ghcr.io/hotio/sabnzbd:release-4.5.3
     expose:
       - 8080 # webui
     extends:

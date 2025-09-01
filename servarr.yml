@@ -27,7 +27,7 @@ services:
       - jellyseerr-config:/app/config
 
   lidarr:
-    image: ghcr.io/hotio/lidarr:release-2.12.4.4658
+    image: ghcr.io/hotio/lidarr:release-2.13.3.4711
     expose:
       - 8686 # webui
     extends:
@@ -42,7 +42,7 @@ services:
       - ${MEDIA_ROOT_PATH}:/data/media
 
   prowlarr:
-    image: ghcr.io/hotio/prowlarr:release-1.37.0.5076
+    image: ghcr.io/hotio/prowlarr:release-2.0.5.5160
     expose:
       - 9696 # webui
     extends:

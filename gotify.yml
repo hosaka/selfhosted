@@ -26,7 +26,7 @@ services:
       - gotify-data:/app/data
 
   diun:
-    image: ghcr.io/crazy-max/diun:4.29
+    image: ghcr.io/crazy-max/diun:4.30
     command: serve
     environment:
       - TZ=${TIMEZONE}
