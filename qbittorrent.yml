@@ -8,14 +8,17 @@ volumes:
 
 services:
   qbit:
-    image: ghcr.io/hotio/qbittorrent:release-5.0.4
+    image: ghcr.io/hotio/qbittorrent:release-5.0.5
     cap_add:
       - NET_ADMIN
     environment:
       - VPN_ENABLED=${MEDIA_TORRENT_VPN_ENABLED}
-      - VPN_IP_CHECK_DELAY=${MEDIA_TORRENT_VPN_IP_CHECK_DELAY}
-      - VPN_IP_CHECK_EXIT=${MEDIA_TORRENT_VPN_IP_CHECK_EXIT}
+      - VPN_PROVIDER=${MEDIA_TORRENT_VPN_PROVIDER}
       - VPN_LAN_NETWORK=${MEDIA_TORRENT_VPN_LAN_NETWORK}
+      - VPN_CONF=wg0
+      - VPN_LAN_LEAK_ENABLED=false
+      - VPN_AUTO_PORT_FORWARD=true
+      - VPN_HEALTHCHECK_ENABLED=true
     expose:
       - 8080 # webui
     extends:
