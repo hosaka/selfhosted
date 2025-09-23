@@ -28,6 +28,10 @@ prune:
 logs service:
   docker compose logs --tail 100 --follow {{ service }}
 
+[doc('bring services down')]
+stop service:
+  docker compose stop {{ service }}
+
 [doc('restart a service')]
 restart service:
   docker compose restart {{ service }}
@@ -42,4 +46,4 @@ decrypt:
 
 [doc('rsync selfhosted config to the server'), no-cd, no-exit-message]
 sync:
-  rsync -chavzP {{ cwd + "/" }} alex@box.hosaka.cc:box/
+  rsync -chavzP --no-perms --no-owner --no-group {{ cwd + "/" }} alex@box.hosaka.cc:box/
