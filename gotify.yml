@@ -9,7 +9,7 @@ volumes:
 
 services:
   gotify:
-    image: ghcr.io/gotify/server:2.7.2
+    image: ghcr.io/gotify/server:2.7.3
     environment:
       - TZ=${TIMEZONE}
     expose:
