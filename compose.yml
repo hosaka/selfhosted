@@ -4,7 +4,7 @@ include:
   - forgejo.yml
   # - frigate.yml
   - gotify.yml
-  - homeassistant.yml
+  # - homeassistant.yml
   - immich.yml
   - jellyfin.yml
   - kavita.yml
