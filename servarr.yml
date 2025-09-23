@@ -27,7 +27,7 @@ services:
       - jellyseerr-config:/app/config
 
   lidarr:
-    image: ghcr.io/hotio/lidarr:release-2.13.3.4711
+    image: ghcr.io/hotio/lidarr:pr-plugins-2.14.2.4786
     expose:
       - 8686 # webui
     extends:
@@ -57,7 +57,7 @@ services:
       - prowlarr-config:/config
 
   radarr:
-    image: ghcr.io/hotio/radarr:release-5.26.2.10099
+    image: ghcr.io/hotio/radarr:release-5.27.5.10198
     expose:
       - 7878 # webui
     extends:
