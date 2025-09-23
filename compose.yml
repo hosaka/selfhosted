@@ -15,6 +15,7 @@ include:
   - sabnzbd.yml
   - searxng.yml
   - servarr.yml
+  - slskd.yml
   - vaultwarden.yml
 
 networks:

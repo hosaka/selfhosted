@@ -292,3 +292,12 @@
     - new
   include_tags:
     - ^\d+\.\d+\.\d+$
+
+- name: ghcr.io/slskd/slskd
+  watch_repo: true
+  max_tags: 3
+  sort_tags: semver
+  notify_on:
+    - new
+  include_tags:
+    - ^\d+\.\d+\.\d+$

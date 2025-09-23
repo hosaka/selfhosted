@@ -54,6 +54,9 @@ kavita.{$PROXY_PRIVATE_DOMAIN} {
 nzb.{$PROXY_PRIVATE_DOMAIN} {
 	reverse_proxy sabnzbd:8080
 }
+slskd.{$PROXY_PRIVATE_DOMAIN} {
+	reverse_proxy slskd:5030
+}
 qbit.{$PROXY_PRIVATE_DOMAIN} {
 	reverse_proxy qbit:8080
 }

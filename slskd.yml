@@ -1,0 +1,37 @@
+networks:
+  proxy:
+
+volumes:
+  slskd-config:
+
+services:
+  slskd:
+    image: ghcr.io/slskd/slskd:0.23.2
+    environment:
+      - SLSKD_NO_AUTH=true
+      - SLSKD_REMOTE_CONFIGURATION=false
+      - SLSKD_SLSK_USERNAME=${MEDIA_SLSKD_USERNAME}
+      - SLSKD_SLSK_PASSWORD=${MEDIA_SLSKD_PASSWORD}
+      # these subdirectories must exists under MEDIA_DOWNLOADS_SOULSEEK_PATH/
+      - SLSKD_DOWNLOADS_DIR=/data/media/downloads/soulseek/downloads
+      - SLSKD_INCOMPLETE_DIR=/data/media/downloads/soulseek/incomplete
+      # uncomment the next line and the corresponding volume mount to enable sharing
+      # - SLSKD_SHARED_DIR=/data/media/collection
+      - SLSKD_UMASK=${MEDIA_UMASK}
+      - TZ=${TIMEZONE}
+    expose:
+      - 5030 # webui
+      - 50300 # api
+    extends:
+      file: common.yml
+      service: log-to-json
+    networks:
+      - proxy
+    restart: unless-stopped
+    user: ${MEDIA_PUID}:${MEDIA_PGID}
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - slskd-config:/app
+      # - ${MEDIA_COLLECTION_MUSIC_PATH}:/data/media/collection/music
+      - ${MEDIA_DOWNLOADS_SOULSEEK_PATH}:/data/media/downloads/soulseek
+
