@@ -47,3 +47,7 @@ decrypt:
 [doc('rsync selfhosted config to the server'), no-cd, no-exit-message]
 sync:
   rsync -chavzP --no-perms --no-owner --no-group {{ cwd + "/" }} alex@box.hosaka.cc:box/
+
+[doc('ssh into the server'), no-exit-message]
+ssh:
+  ssh alex@box.hosaka.cc
