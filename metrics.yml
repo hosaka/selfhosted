@@ -9,7 +9,7 @@ volumes:
 
 services:
   grafana:
-    image: docker.io/grafana/grafana:12.1.1
+    image: docker.io/grafana/grafana:12.2.0
     extends:
       file: common.yml
       service: log-to-json
