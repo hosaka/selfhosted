@@ -104,7 +104,7 @@ services:
   #     - forgejo-docker-certs:/certs
   #
   # forgejo-runner:
-  #   image: code.forgejo.org/forgejo/runner:11.1.1
+  #   image: code.forgejo.org/forgejo/runner:11.1.2
   #   command: >-
   #     bash -ec '
   #     while : ; do

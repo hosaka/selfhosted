@@ -97,7 +97,7 @@
   notify_on:
     - new
   include_tags:
-    - ^release\-\d+\.\d+\.\d+\.\d+$
+    - ^pr\-plugins\-\d+\.\d+\.\d+\.\d+$
 
 - name: ghcr.io/hotio/sabnzbd
   watch_repo: true

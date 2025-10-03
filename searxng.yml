@@ -7,7 +7,7 @@ volumes:
 
 services:
   searxng:
-    image: ghcr.io/searxng/searxng:2025.9.29-ebc61debf
+    image: ghcr.io/searxng/searxng:2025.10.3-cdf5f4343
     cap_drop:
       - ALL
     cap_add:
