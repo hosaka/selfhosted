@@ -7,26 +7,68 @@ volumes:
   grafana-data:
   prometheus-data:
 
+configs:
+  grafana.ini:
+    content: |
+      instance_name = selfhosted
+
+      [server]
+      domain = grafana.${PROXY_PUBLIC_DOMAIN}
+      root_url = https://grafana.${PROXY_PUBLIC_DOMAIN}
+
+      [security]
+      admin_user=${MONITOR_GRAFANA_SECURITY_ADMIN_USER}
+      admin_password=${MONITOR_GRAFANA_SECURITY_ADMIN_PASSWORD}
+      cookie_secure = true
+      cookie_samesite = strict
+      disable_gravatar = true
+
+      [analytics]
+      reporting_enabled = false
+      check_for_updates = false
+      feedback_links_enabled = false
+
+      [secretscan]
+      enabled = false
+
+      [users]
+      allow_sign_up = false
+
+      [auth]
+      disable_login_form = true
+
+      [auth.generic_oauth]
+      enabled = true
+      name = Authelia
+      ; create new grafana users when using oauth
+      allow_sign_up = true
+      ; bypass login screen and jump to oauth instead
+      ; auto_login = true
+      client_id = ${AUTH_GRAFANA_CLIENT_ID}
+      client_secret = ${AUTH_GRAFANA_CLIENT_SECRET}
+      scopes = openid profile email groups
+      empty_scopes = false
+      auth_url = https://auth.${PROXY_PUBLIC_DOMAIN}/api/oidc/authorization
+      token_url = https://auth.${PROXY_PUBLIC_DOMAIN}/api/oidc/token
+      api_url = https://auth.${PROXY_PUBLIC_DOMAIN}/api/oidc/userinfo
+      login_attribute_path = preferred_username
+      name_attribute_path = name
+      email_attribute_path = email
+      role_attribute_path = contains(groups[*], 'grafana_admin') && 'GrafanaAdmin'
+      ; groups_attribute_path = groups
+      allow_assign_grafana_admin = true
+      use_pkce = true
+
 services:
   grafana:
     image: docker.io/grafana/grafana:12.2.0
+    configs:
+      - source: grafana.ini
+        target: /etc/grafana/grafana.ini
     extends:
       file: common.yml
       service: log-to-json
     environment:
-      - GF_ANALYTICS_CHECK_FOR_UPDATES=false
-      - GF_ANALYTICS_FEEDBACK_LINKS_ENABLED=false
-      - GF_ANALYTICS_REPORTING_ENABLED=false
-      - GF_DEFAULT_INSTANCE_NAME=selfhosted
-      - GF_SECRETSCAN_ENABLED=false
-      - GF_SECURITY_ADMIN_PASSWORD=${MONITOR_GRAFANA_SECURITY_ADMIN_PASSWORD}
-      - GF_SECURITY_ADMIN_USER=${MONITOR_GRAFANA_SECURITY_ADMIN_USER}
-      - GF_SECURITY_COOKIE_SECURE=true
-      - GF_SECURITY_COOKIE_SAMESITE=strict
-      - GF_SECURITY_DISABLE_GRAVATAR=true
-      - GF_SERVER_DOMAIN=grafana.${PROXY_PUBLIC_DOMAIN}
-      - GF_SERVER_ROOT_URL=https://grafana.${PROXY_PUBLIC_DOMAIN}
-      - GF_USERS_ALLOW_SIGN_UP=false
       - TZ=${TIMEZONE}
     expose:
       - 3000 # webui
