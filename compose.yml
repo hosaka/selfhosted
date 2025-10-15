@@ -1,5 +1,5 @@
 include:
-  # - authelia.yml
+  - authelia.yml
   - atuin.yml
   - forgejo.yml
   # - frigate.yml

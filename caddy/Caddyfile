@@ -20,12 +20,12 @@
 	}
 }
 
-# auth.{$PROXY_PUBLIC_DOMAIN} {
-#     reverse_proxy authelia:9091
-# }
-# users.{$PROXY_PRIVATE_DOMAIN} {
-#     reverse_proxy lldap:17170
-# }
+auth.{$PROXY_PUBLIC_DOMAIN} {
+	reverse_proxy authelia:9091
+}
+users.{$PROXY_PRIVATE_DOMAIN} {
+	reverse_proxy lldap:17170
+}
 jellyfin.{$PROXY_PRIVATE_DOMAIN} {
 	reverse_proxy jellyfin:8096
 }

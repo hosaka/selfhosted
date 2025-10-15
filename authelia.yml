@@ -4,14 +4,80 @@ networks:
   ldap:
 
 volumes:
-  authelia-data:
   authelia-database-data:
   authelia-redis-data:
   lldap-data:
 
+configs:
+  authelia.configuration.yml:
+    content: |
+      access_control:
+        default_policy: two_factor
+
+      authentication_backend:
+        # password reset through authelia works fine
+        password_reset:
+          disable: false
+
+        # how often to check if there is an user update in ldap
+        refresh_interval: 1m
+
+        ldap:
+          implementation: lldap
+          address: ldap://lldap:3890
+          base_dn: ${LLDAP_BASE_DN}
+
+          # "uid" should be the username you created for authentication with the "lldap_strict_readonly" permission
+          # if using Authelia to change user passwords, then this user needs the "lldap_password_manager" permission
+          user: uid=authelia,ou=people,${LLDAP_BASE_DN}
+          password: ${AUTHELIA_LDAP_PASSWORD}
+
+          # to allow sign in both with username and email, comment this filter to use defaults
+          # users_filter: "(&({username_attribute}={input})(objectClass=person))"
+
+      session:
+        secret: ${AUTHELIA_SESSION_SECRET}
+        cookies:
+          - domain: ${PROXY_PUBLIC_DOMAIN}
+            authelia_url: https://auth.${PROXY_PUBLIC_DOMAIN}
+            # default_redirection_url: https://home.${PROXY_PUBLIC_DOMAIN}
+        redis:
+          host: authelia-redis
+          port: 6379
+
+      storage:
+        encryption_key: ${AUTHELIA_STORAGE_ENCRYPTION_KEY}
+        postgres:
+          address: authelia-database
+          database: ${AUTHELIA_DB_DATABASE_NAME:-authelia}
+          username: ${AUTHELIA_DB_USERNAME}
+          password: ${AUTHELIA_DB_PASSWORD}
+
+      totp:
+        issuer: ${PROXY_PUBLIC_DOMAIN}
+
+      notifier:
+        smtp:
+          address: ${AUTHELIA_SMTP_ADDRESS}
+          username: ${AUTHELIA_SMTP_USERNAME}
+          password: ${AUTHELIA_SMTP_PASSWORD}
+          sender: ${AUTHELIA_SMTP_SENDER}
+
+      identity_validation:
+        reset_password:
+          jwt_secret: ${AUTHELIA_JWT_SECRET}
+
+      identity_providers:
+        oidc:
+          jwks:
+            # todo: get this from the env somehow so X_AUTHELIA_CONFIG_FILTERS can be removed
+            - key: {{ secret "/config/jwks/private.pem" | mindent 10 "|" | msquote }}
 services:
   authelia:
-    image: docker.io/authelia/authelia:4.39.11
+    image: docker.io/authelia/authelia:4.39.13
+    configs:
+      - source: authelia.configuration.yml
+        target: /config/configuration.yml
     depends_on:
       authelia-redis:
         condition: service_healthy
@@ -19,26 +85,6 @@ services:
         condition: service_healthy
     environment:
       - X_AUTHELIA_CONFIG_FILTERS=template
-      - PROXY_PUBLIC_DOMAIN=${PROXY_PUBLIC_DOMAIN}
-      - PROXY_REDIRECT_TO=https://code.${PROXY_PUBLIC_DOMAIN}
-      - AUTHELIA_TOTP_ISSUER=${PROXY_PUBLIC_DOMAIN}
-      - AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET=${AUTHELIA_JWT_SECRET}
-      - AUTHELIA_SESSION_REDIS_HOST=authelia-redis
-      - AUTHELIA_SESSION_REDIS_PORT=6379
-      - AUTHELIA_SESSION_SECRET=${AUTHELIA_SESSION_SECRET}
-      - AUTHELIA_STORAGE_POSTGRES_ADDRESS=authelia-database
-      - AUTHELIA_STORAGE_POSTGRES_USERNAME=${AUTHELIA_DB_USERNAME}
-      - AUTHELIA_STORAGE_POSTGRES_PASSWORD=${AUTHELIA_DB_PASSWORD}
-      - AUTHELIA_STORAGE_POSTGRES_DATABASE=${AUTHELIA_DB_DATABASE_NAME}
-      - AUTHELIA_STORAGE_ENCRYPTION_KEY=${AUTHELIA_STORAGE_ENCRYPTION_KEY}
-      - AUTHELIA_NOTIFIER_SMTP_ADDRESS=${AUTHELIA_SMTP_ADDRESS}
-      - AUTHELIA_NOTIFIER_SMTP_USERNAME=${AUTHELIA_SMTP_USERNAME}
-      - AUTHELIA_NOTIFIER_SMTP_PASSWORD=${AUTHELIA_SMTP_PASSWORD}
-      - AUTHELIA_NOTIFIER_SMTP_SENDER=${AUTHELIA_SMTP_SENDER}
-      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_BASE_DN=${LLDAP_BASE_DN}
-      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ADDRESS=ldap://lldap:3890
-      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_USER=uid=authelia,ou=people,${LLDAP_BASE_DN}
-      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD=${AUTHELIA_LDAP_PASSWORD}
       - TZ=${TIMEZONE}
     expose:
       - 9091 # api
@@ -54,11 +100,17 @@ services:
     restart: unless-stopped
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - authelia-data:/config
-      - ./authelia/configuration.yml:/config/configuration.yml:ro
+      - ./authelia/jwks/private.pem:/config/jwks/private.pem:ro
 
   authelia-redis:
-    image: docker.io/redis:7-alpine
+    image: docker.io/valkey/valkey:8-alpine
+    command: --save 30 1 --loglevel warning
+    cap_drop:
+      - ALL
+    cap_add:
+      - SETGID
+      - SETUID
+      - DAC_OVERRIDE
     expose:
       - 6379 # api
     extends:
