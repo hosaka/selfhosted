@@ -6,3 +6,6 @@
 
 # vpn
 wg0.conf
+
+# pem
+*.pem
