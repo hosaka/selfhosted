@@ -47,6 +47,14 @@ decrypt:
     sops decrypt default.env > .env
     sops decrypt ./authelia/jwks/private.pem.enc > ./authelia/jwks/private.pem
 
+[doc('generate random OIDC client id (uses authelia docker image)')]
+genid:
+    docker run --rm authelia/authelia:latest authelia crypto rand --length 72 --charset rfc3986
+
+[doc('generate random OIDC client secret (uses authelia docker image)')]
+gensecret:
+    docker run --rm authelia/authelia:latest authelia crypto hash generate pbkdf2 --variant sha512 --random --random.length 72 --random.charset rfc3986
+
 [doc('rsync selfhosted config to the server')]
 [no-cd]
 [no-exit-message]
