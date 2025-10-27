@@ -11,14 +11,15 @@ volumes:
 
 services:
   forgejo:
-    # todo: automatically create a new user, part of the executed command:
+    # note: to automatically create a new user, add to the executed command, before sleep infinity:
     # forgejo admin user create --admin --username user --password password --email email@domain.tld
     image: codeberg.org/forgejo/forgejo:12.0.4-rootless
     command: >-
       bash -ec '
       gitea --config /etc/gitea/app.ini &
       sleep 10 ;
-      forgejo forgejo-cli actions register --secret $FORGEJO_RUNNER_SECRET --name box ;
+      forgejo forgejo-cli actions register --secret ${FORGEJO_RUNNER_SECRET} --name box || true ;
+      forgejo admin auth add-oauth --provider=openidConnect --name=Authelia --key=${AUTH_FORGEJO_CLIENT_ID} --secret=${AUTH_FORGEJO_CLIENT_SECRET} --auto-discover-url=https://auth.${PROXY_PUBLIC_DOMAIN}/.well-known/openid-configuration --scopes=openid --scopes=email --scopes=profile --scopes=groups --group-claim-name=groups --admin-group=forgejo_admin --skip-local-2fa || true ;
       sleep infinity ;
       '
     depends_on:
@@ -37,10 +38,10 @@ services:
       - FORGEJO__git__PULL_REQUEST_PUSH_MESSAGE=false
       - FORGEJO__git__VERBOSE_PUSH=false
       - FORGEJO__openid__ENABLE_OPENID_SIGNUP=false
+      - FORGEJO__openid__ENABLE_OPENID_SIGNIN=false
       - FORGEJO__security__INSTALL_LOCK=true
       - FORGEJO__security__INTERNAL_TOKEN=${FORGEJO_INTERNAL_TOKEN}
-      # todo: this should only accept our reverse proxy
-      # - FORGEJO__security__REVERSE_PROXY_TRUSTED_PROXIES=caddy
+      - FORGEJO__security__REVERSE_PROXY_TRUSTED_PROXIES=127.0.0.0/8,::1/128
       - FORGEJO__security__SECRET_KEY=${FORGEJO_SECRET_KEY}
       - FORGEJO__server__DOMAIN=code.${PROXY_PUBLIC_DOMAIN}
       - FORGEJO__server__LFS_JWT_SECRET=${FORGEJO_LFS_JWT_SECRET}
@@ -51,7 +52,9 @@ services:
       - FORGEJO__server__START_SSH_SERVER=true
       - FORGEJO__service__DEFAULT_KEEP_EMAIL_PRIVATE=true
       - FORGEJO__service__DISABLE_REGISTRATION=true
-      - FORGEJO_RUNNER_SECRET=${FORGEJO_RUNNER_SECRET}
+      - FORGEJO__service__ALLOW_ONLY_EXTERNAL_REGISTRATION=true
+      - FORGEJO__service__ENABLE_INTERNAL_SIGNIN=false
+      - FORGEJO__oauth2_client__UPDATE_AVATAR=true
     expose:
       - 3000 # webui
       - 2222 # ssh
