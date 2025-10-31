@@ -208,7 +208,9 @@ grafana.{$PROXY_PRIVATE_DOMAIN}, grafana.{$PROXY_PUBLIC_DOMAIN} {
 	# }
 	reverse_proxy grafana:3000
 }
-
+# ffs.{$PROXY_PUBLIC_DOMAIN} {
+# 	reverse_proxy syncstorage:8000
+# }
 whoami.{$PROXY_PRIVATE_DOMAIN}, whoami.{$PROXY_PUBLIC_DOMAIN} {
 	reverse_proxy whoami:80
 }
