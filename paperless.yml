@@ -17,6 +17,16 @@ services:
       paperless-database:
         condition: service_healthy
     environment:
+      - PAPERLESS_APPS=allauth.socialaccount.providers.openid_connect
+      # disable regular login form, leaving SSO as the only option
+      - PAPERLESS_DISABLE_REGULAR_LOGIN=True
+      # automatically redirect to the first configured SSO instead of the login form
+      - PAPERLESS_REDIRECT_LOGIN_TO_SSO=False
+      # automatically signup SSO users using retrieved email/username
+      - PAPERLESS_SOCIAL_AUTO_SIGNUP=False
+      # allow SSO users to signup for a new paperless account with a confirmation form
+      - PAPERLESS_SOCIALACCOUNT_ALLOW_SIGNUPS=True
+      - PAPERLESS_SOCIALACCOUNT_PROVIDERS={"openid_connect":{"SCOPE":["openid","profile","email"],"OAUTH_PKCE_ENABLED":true,"APPS":[{"provider_id":"authelia","name":"Authelia","client_id":"${AUTH_PAPERLESS_CLIENT_ID}","secret":"${AUTH_PAPERLESS_CLIENT_SECRET}","settings":{"server_url":"https://auth.${PROXY_PUBLIC_DOMAIN}","token_auth_method":"client_secret_basic"}}]}}
       - PAPERLESS_URL=https://paperless.${PROXY_PRIVATE_DOMAIN}
       - PAPERLESS_ADMIN_USER=${PAPERLESS_ADMIN_USER}
       - PAPERLESS_ADMIN_PASSWORD=${PAPERLESS_ADMIN_PASSWORD}
