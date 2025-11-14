@@ -275,14 +275,15 @@
   include_tags:
     - ^\d+\.\d+\.\d+$
 
-- name: ghcr.io/searxng/searxng
-  watch_repo: true
-  max_tags: 3
-  sort_tags: semver
-  notify_on:
-    - new
-  include_tags:
-    - ^\d+\.\d+\.\d+\-[a-fA-F0-9]{9}$
+# note: too noisy
+# - name: ghcr.io/searxng/searxng
+#   watch_repo: true
+#   max_tags: 3
+#   sort_tags: semver
+#   notify_on:
+#     - new
+#   include_tags:
+#     - ^\d+\.\d+\.\d+\-[a-fA-F0-9]{9}$
 
 - name: ghcr.io/kareadita/kavita
   watch_repo: true
