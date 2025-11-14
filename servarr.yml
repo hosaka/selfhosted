@@ -87,7 +87,7 @@ services:
       - ./recyclarr/recyclarr.yml:/config/recyclarr.yml
 
   sonarr:
-    image: ghcr.io/hotio/sonarr:release-4.0.15.2941
+    image: ghcr.io/hotio/sonarr:release-4.0.16.2944
     expose:
       - 8989 # webui
     extends:

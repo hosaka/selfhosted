@@ -52,7 +52,7 @@ services:
       - ./caddy/Caddyfile:/config/Caddyfile
 
   cloudflared:
-    image: docker.io/cloudflare/cloudflared:2025.10.1
+    image: docker.io/cloudflare/cloudflared:2025.11.1
     command: tunnel --no-autoupdate run --token ${PROXY_CF_TUNNEL_TOKEN}
     extra_hosts:
       - host.docker.internal:host-gateway
