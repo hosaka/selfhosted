@@ -1,0 +1,9 @@
+[tools]
+"npm:bash-language-server" = "latest"
+hadolint = "latest"
+"github:terror/just-lsp" = "latest"
+marksman = "latest"
+shellcheck = "latest"
+shfmt = "latest"
+taplo = "latest"
+"npm:yaml-language-server" = "latest"
