@@ -12,7 +12,12 @@ configs:
   authelia.configuration.yml:
     content: |
       access_control:
-        default_policy: two_factor
+        default_policy: deny
+        rules:
+        - domain: '*.${PROXY_PRIVATE_DOMAIN}'
+          policy: one_factor
+        - domain: ${PROXY_PUBLIC_DOMAIN}
+          policy: one_factor
 
       authentication_backend:
         # password reset through authelia works fine
@@ -67,14 +72,29 @@ configs:
         reset_password:
           jwt_secret: ${AUTHELIA_JWT_SECRET}
 
+      definitions:
+        user_attributes:
+          immich_role:
+            expression: '"immich_admin" in groups ? "admin" : "user"'
+
       identity_providers:
         oidc:
           jwks:
             # todo: get this from the env somehow so X_AUTHELIA_CONFIG_FILTERS can be removed
             - key: {{ secret "/config/jwks/private.pem" | mindent 10 "|" | msquote }}
+
           claims_policies:
             grafana:
               id_token: ['email', 'name', 'groups', 'preferred_username']
+            immich:
+              custom_claims:
+                immich_role:
+                  attribute: immich_role
+          scopes:
+            immich:
+              claims:
+                - immich_role
+
           clients:
             - client_name: grafana
               client_id: ${AUTH_GRAFANA_CLIENT_ID}
@@ -86,6 +106,7 @@ configs:
               pkce_challenge_method: S256
               redirect_uris:
                 - https://grafana.${PROXY_PUBLIC_DOMAIN}/login/generic_oauth
+                - https://grafana.${PROXY_PRIVATE_DOMAIN}/login/generic_oauth
               scopes:
                 - openid
                 - email
@@ -108,6 +129,7 @@ configs:
               pkce_challenge_method: S256
               redirect_uris:
                 - https://code.${PROXY_PUBLIC_DOMAIN}/user/oauth2/Authelia/callback
+                - https://code.${PROXY_PRIVATE_DOMAIN}/user/oauth2/Authelia/callback
               scopes:
                 - openid
                 - email
@@ -131,6 +153,7 @@ configs:
               redirect_uris:
                 # note the trailing slash at the end, this is a bug in paperless
                 - https://paperless.${PROXY_PUBLIC_DOMAIN}/accounts/oidc/authelia/login/callback/
+                - https://paperless.${PROXY_PRIVATE_DOMAIN}/accounts/oidc/authelia/login/callback/
               scopes:
                 - openid
                 - email
@@ -143,6 +166,32 @@ configs:
               access_token_signed_response_alg: none
               userinfo_signed_response_alg: none
               token_endpoint_auth_method: client_secret_basic
+
+            - client_name: immich
+              client_id: ${AUTH_IMMICH_CLIENT_ID}
+              client_secret: ${AUTH_IMMICH_CLIENT_SECRET_HASH}
+              claims_policy: immich
+              public: false
+              authorization_policy: two_factor
+              require_pkce: false
+              redirect_uris:
+                - https://immich.${PROXY_PUBLIC_DOMAIN}/auth/login
+                - https://immich.${PROXY_PUBLIC_DOMAIN}/user-settings
+                - https://immich.${PROXY_PRIVATE_DOMAIN}/auth/login
+                - https://immich.${PROXY_PRIVATE_DOMAIN}/user-settings
+                - app.immich:///oauth-callback
+              scopes:
+                - openid
+                - email
+                - profile
+                - immich
+              response_types:
+                - code
+              grant_types:
+                - authorization_code
+              access_token_signed_response_alg: RS256
+              userinfo_signed_response_alg: RS256
+              token_endpoint_auth_method: client_secret_post
 
 services:
   authelia:
