@@ -61,7 +61,7 @@ configs:
 
 services:
   grafana:
-    image: docker.io/grafana/grafana:12.2.1
+    image: docker.io/grafana/grafana:12.3.0
     configs:
       - source: grafana.ini
         target: /etc/grafana/grafana.ini
