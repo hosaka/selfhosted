@@ -8,12 +8,12 @@ services:
   jellyfin:
     image: ghcr.io/hotio/jellyfin:release-10.11.3
     devices:
-      - ${MEDIA_JELLYFIN_CARD}:/dev/dri/card0
-      - ${MEDIA_JELLYFIN_RENDER}:/dev/dri/renderD128
+      - ${JELLYFIN_CARD}:/dev/dri/card0
+      - ${JELLYFIN_RENDER}:/dev/dri/renderD128
     expose:
       - 8096 # webui
     group_add:
-      - ${MEDIA_JELLYFIN_VIDEO_GROUP}
+      - ${JELLYFIN_VIDEO_GROUP}
     extends:
       file: common.yml
       service: hotio
