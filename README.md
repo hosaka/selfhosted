@@ -44,9 +44,10 @@ Backups are done using `restic` and `resticprofile`. See the [restic/README.md](
 ### Software
 
 - [ ] Move cloudflared tunnel config to a local file in this repo
-- [ ] Browser sync, e.g. [syncstorage-rs](https://github.com/mozilla-services/syncstorage-rs)
-- [ ] WebDAV with CardDAV and CalDAV for calendar and contacts sync or use [cal.com](https://github.com/calcom/cal.com)
+- [x] Browser sync, e.g. [syncstorage-rs](https://github.com/mozilla-services/syncstorage-rs) for Firefox
+- [ ] CardDAV and CalDAV for calendar and contacts sync like [radicale](https://radicale.org/v3.html) or use [cal.com](https://github.com/calcom/cal.com)
 - [ ] [Safe{Wallet}](https://github.com/safe-global/safe-wallet-web) for multisig wallets
+- [ ] Code Statistics using [wakapi](https://wakapi.dev/) 
 
 ### Hardware
 
