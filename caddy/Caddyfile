@@ -209,8 +209,11 @@ grafana.{$PROXY_PRIVATE_DOMAIN}, grafana.{$PROXY_PUBLIC_DOMAIN} {
 # }
 whoami.{$PROXY_PRIVATE_DOMAIN}, whoami.{$PROXY_PUBLIC_DOMAIN} {
 	forward_auth authelia:9091 {
-	    uri /api/authz/forward-auth
-	    copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
+		uri /api/authz/forward-auth
+		copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
 	}
 	reverse_proxy whoami:80
+}
+waka.{$PROXY_PRIVATE_DOMAIN}, waka.{$PROXY_PUBLIC_DOMAIN} {
+	reverse_proxy wakapi:3000
 }

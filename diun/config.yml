@@ -311,3 +311,12 @@
     - new
   include_tags:
     - ^v\d+\.\d+\.\d+$
+
+- name: ghcr.io/muety/wakapi
+  watch_repo: true
+  max_tags: 3
+  sort_tags: semver
+  notify_on:
+    - new
+  include_tags:
+    - ^\d+\.\d+\.\d+$

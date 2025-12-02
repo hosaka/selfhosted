@@ -18,6 +18,7 @@ include:
   # - syncstorage.yml
   - slskd.yml
   - vaultwarden.yml
+  - wakapi.yml
 
 networks:
   cloudflared:
