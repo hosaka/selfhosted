@@ -7,7 +7,7 @@ volumes:
 
 services:
   slskd:
-    image: ghcr.io/slskd/slskd:0.23.2
+    image: ghcr.io/slskd/slskd:0.24.1
     environment:
       - SLSKD_NO_AUTH=true
       - SLSKD_NO_HTTPS=true
