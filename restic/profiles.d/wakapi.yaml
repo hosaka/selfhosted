@@ -1,0 +1,20 @@
+# yaml-language-server: $schema=https://creativeprojects.github.io/resticprofile/jsonschema/config-2.json
+version: "2"
+
+profiles:
+  wakapi:
+    inherit: default
+
+    backup:
+      schedule: daily
+
+      source:
+        - /var/lib/docker/volumes/box_wakapi-data
+
+      tag:
+        - docker
+
+groups:
+  tools:
+    profiles:
+      - wakapi

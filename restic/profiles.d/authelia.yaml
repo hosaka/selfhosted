@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://creativeprojects.github.io/resticprofile/jsonschema/config-2.json
+version: "2"
+
+profiles:
+  authelia-database:
+    inherit: default
+
+    backup:
+      schedule: weekly
+
+      use:
+        - name: stop-start-container
+          container: authelia
+
+      stdin: true
+      stdin-command: docker compose -p box exec authelia-database pg_dumpall -c -U authelia | gzip -c
+      stdin-filename: "{{ .Profile.Name }}.sql.gz"
+
+      tag:
+        - docker
+        - sqldump
+groups:
+  tools:
+    profiles:
+      - authelia-database
