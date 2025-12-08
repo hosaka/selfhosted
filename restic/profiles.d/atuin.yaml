@@ -19,8 +19,3 @@ profiles:
       tag:
         - docker
         - sqldump
-
-groups:
-  private:
-    profiles:
-      - atuin-database

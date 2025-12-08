@@ -40,9 +40,3 @@ profiles:
       tag:
         - docker
         - sqldump
-
-groups:
-  private:
-    profiles:
-      - paperless
-      - paperless-database

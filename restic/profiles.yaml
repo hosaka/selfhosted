@@ -9,3 +9,35 @@ global:
   default-command: profiles
   scheduler: crond
   # scheduler: crontab:-:/etc/crontabs/restic
+
+groups:
+  private:
+    profiles:
+      - atuin-database
+      - forgejo
+      - forgejo-database
+      - frigate
+      - immich
+      - jellyfin
+      - navidrome
+      - paperless
+      - paperless-database
+      - vaultwarden
+  tools:
+    profiles:
+      - authelia-database
+      - caddy
+      - gotify
+      - grafana
+      - homeassistant
+      - slskd
+      - wakapi
+  servarr:
+    profiles:
+      - radarr
+      - sonarr
+      - lidarr
+      - prowlarr
+      - jellyseerr
+      - qbit
+      - nzb

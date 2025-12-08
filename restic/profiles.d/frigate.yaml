@@ -21,8 +21,3 @@ profiles:
 
       tag:
         - docker
-
-groups:
-  tools:
-    profiles:
-      - frigate

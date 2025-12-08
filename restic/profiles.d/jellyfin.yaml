@@ -22,8 +22,3 @@ profiles:
 
       tag:
         - docker
-
-groups:
-  private:
-    profiles:
-      - jellyfin

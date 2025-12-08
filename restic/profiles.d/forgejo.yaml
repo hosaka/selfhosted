@@ -38,9 +38,3 @@ profiles:
       tag:
         - docker
         - sqldump
-
-groups:
-  private:
-    profiles:
-      - forgejo
-      - forgejo-database

@@ -114,14 +114,3 @@ profiles:
 
       tag:
         - docker
-
-groups:
-  servarr:
-    profiles:
-      - radarr
-      - sonarr
-      - lidarr
-      - prowlarr
-      - jellyseerr
-      - qbit
-      - nzb

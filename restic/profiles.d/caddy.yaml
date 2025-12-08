@@ -18,8 +18,3 @@ profiles:
 
       tag:
         - docker
-
-groups:
-  tools:
-    profiles:
-      - caddy

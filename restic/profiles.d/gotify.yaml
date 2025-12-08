@@ -17,8 +17,3 @@ profiles:
 
       tag:
         - docker
-
-groups:
-  tools:
-    profiles:
-      - gotify

@@ -19,7 +19,3 @@ profiles:
       tag:
         - docker
         - sqldump
-groups:
-  tools:
-    profiles:
-      - authelia-database
