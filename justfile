@@ -40,11 +40,13 @@ restart service:
 [doc('encrypt files for storing them in git repository')]
 encrypt:
     sops encrypt .env > default.env
+    sops encrypt ./restic/.env > ./restic/default.env
     sops encrypt ./authelia/jwks/private.pem > ./authelia/jwks/private.pem.enc
 
 [doc('decrypt files stored in git repository')]
 decrypt:
     sops decrypt default.env > .env
+    sops decrypt ./restic/default.env > ./restic/.env
     sops decrypt ./authelia/jwks/private.pem.enc > ./authelia/jwks/private.pem
 
 [doc('generate random OIDC client id (uses authelia docker image)')]
