@@ -16,7 +16,7 @@ configs:
         rules:
         - domain: '*.${PROXY_PRIVATE_DOMAIN}'
           policy: one_factor
-        - domain: ${PROXY_PUBLIC_DOMAIN}
+        - domain: '*.${PROXY_PUBLIC_DOMAIN}'
           policy: one_factor
 
       authentication_backend:

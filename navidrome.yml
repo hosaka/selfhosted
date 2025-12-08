@@ -13,6 +13,7 @@ services:
       # data collection: https://www.navidrome.org/docs/getting-started/insights/
       - ND_ENABLEINSIGHTSCOLLECTOR=true
       # used to fetch artist images
+      - ND_LASTFM_ENABLED=true
       - ND_LASTFM_APIKEY=${NAVIDROME_LASTFM_APIKEY}
       - ND_LASTFM_SECRET=${NAVIDROME_LASTFM_SECRET}
     expose:
