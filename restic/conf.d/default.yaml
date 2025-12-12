@@ -4,6 +4,6 @@ version: "2"
 profiles:
   default:
     # make sure this exists and necessary vars are set, see default.env file
-    env-file: "{{ .Env.HOME }}/.env"
+    env-file: "{{ .ConfigDir }}/.env"
 
     prometheus-save-to-file: "{{ .Env.HOME }}/textfile_collector/{{ .Profile.Name }}.prom"
