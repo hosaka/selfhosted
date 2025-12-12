@@ -7,3 +7,8 @@ profiles:
     env-file: "{{ .ConfigDir }}/.env"
 
     prometheus-save-to-file: "{{ .Env.HOME }}/textfile_collector/{{ .Profile.Name }}.prom"
+
+    # notify all failed backups by default
+    backup:
+      use:
+        - name: notify-on-fail

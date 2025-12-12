@@ -6,7 +6,7 @@ profiles:
     inherit: default
 
     backup:
-      schedule: daily
+      schedule: weekly
 
       use:
         - name: stop-start-container

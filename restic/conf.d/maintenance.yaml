@@ -7,10 +7,16 @@ profiles:
 
     check:
       schedule: weekly
-      # send-after: ""
-      # send-after-fail: ""
+
+      use:
+        - name: notify-on-success
+        - name: notify-on-fail
 
     forget:
       schedule: monthly
       keep-last: 3
       prune: true
+
+      use:
+        - name: notify-on-success
+        - name: notify-on-fail

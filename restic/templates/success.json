@@ -1,0 +1,4 @@
+{
+  "title": "Completed {{ .ProfileCommand }}: {{ .ProfileName }}",
+  "message": "\n{{ .Stdout }}"
+}

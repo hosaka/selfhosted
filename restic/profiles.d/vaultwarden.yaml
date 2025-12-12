@@ -9,6 +9,7 @@ profiles:
       schedule: daily
 
       use:
+        - name: notify-on-success
         - name: stop-start-container
           container: vaultwarden
 

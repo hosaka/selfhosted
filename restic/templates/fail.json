@@ -1,0 +1,4 @@
+{
+  "title": "Failed {{ .ProfileCommand }}: {{ .ProfileName }}",
+  "message": "\n{{ .Error.Message }}\n{{ .Error.CommandLine }}\n{{ .Error.ExitCode }}\n\n{{ .Error.Stderr }}"
+}

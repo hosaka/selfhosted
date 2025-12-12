@@ -8,3 +8,21 @@ mixins:
 
     run-before: docker compose -p box stop $container
     run-finally: docker compose -p box start $container
+
+  notify-on-success:
+    send-after:
+      method: POST
+      url: ${NOTIFY_URL}
+      body-template: templates/success.json
+      headers:
+        - name: Content-Type
+          value: application/json
+
+  notify-on-fail:
+    send-after-fail:
+      method: POST
+      url: ${NOTIFY_URL}
+      body-template: templates/fail.json
+      headers:
+        - name: Content-Type
+          value: application/json

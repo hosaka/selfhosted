@@ -8,6 +8,9 @@ profiles:
     backup:
       schedule: weekly
 
+      use:
+        - name: notify-on-success
+
       source:
         - /mnt/pool/immich
 
