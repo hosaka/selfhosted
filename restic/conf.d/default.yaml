@@ -8,7 +8,8 @@ profiles:
 
     prometheus-save-to-file: "{{ .Env.HOME }}/textfile_collector/{{ .Profile.Name }}.prom"
 
+    # note: for some reason this also causes notify-on-success to be inherited by all profiles
     # notify all failed backups by default
-    backup:
-      use:
-        - name: notify-on-fail
+    # backup:
+    #   use:
+    #     - name: notify-on-fail

@@ -10,6 +10,7 @@ profiles:
 
       use:
         - name: notify-on-success
+        - name: notify-on-fail
 
       source:
         - /mnt/pool/immich
