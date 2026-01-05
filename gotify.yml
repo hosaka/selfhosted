@@ -9,7 +9,7 @@ volumes:
 
 services:
   gotify:
-    image: ghcr.io/gotify/server:2.7.3
+    image: ghcr.io/gotify/server:2.8.0
     environment:
       - TZ=${TIMEZONE}
     expose:
@@ -26,7 +26,7 @@ services:
       - gotify-data:/app/data
 
   diun:
-    image: ghcr.io/crazy-max/diun:4.30
+    image: ghcr.io/crazy-max/diun:4.31
     command: serve
     environment:
       - TZ=${TIMEZONE}

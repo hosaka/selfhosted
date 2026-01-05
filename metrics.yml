@@ -149,7 +149,7 @@ services:
     user: root
 
   cadvisor:
-    image: gcr.io/cadvisor/cadvisor:v0.52.1
+    image: gcr.io/cadvisor/cadvisor:v0.55.1
     command:
       - "--port=9250"
       - "--docker_only=true"
