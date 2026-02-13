@@ -1,9 +1,13 @@
 [tools]
-"npm:bash-language-server" = "latest"
+age = "latest"
+age-plugin-yubikey = "latest"
+sops = "latest"
+
 hadolint = "latest"
 "github:terror/just-lsp" = "latest"
 marksman = "latest"
 shellcheck = "latest"
 shfmt = "latest"
 taplo = "latest"
-"npm:yaml-language-server" = "latest"
+# "npm:bash-language-server" = "latest"
+# "npm:yaml-language-server" = "latest"

@@ -1,3 +1,5 @@
 creation_rules:
-  - pgp: >-
-      2A420F2982E589326CA49D1B0644B87ED144C988
+  - age: >-
+      age1yubikey1qwwnsmww37xputt2xndxhqp82zrqk2hq7mjgvmgrg7jyw96g2xds6j0jzyn
+  # - pgp: >-
+  #     2A420F2982E589326CA49D1B0644B87ED144C988
