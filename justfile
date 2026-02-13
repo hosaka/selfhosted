@@ -1,4 +1,4 @@
-cwd := quote(invocation_directory())
+cwd := quote(invocation_directory() + "/")
 
 [doc('list recipes (default)')]
 @help:
@@ -61,7 +61,7 @@ gensecret:
 [no-cd]
 [no-exit-message]
 sync:
-    rsync -chavzP --no-perms --no-owner --no-group {{ cwd + "/" }} alex@box.hosaka.cc:box/
+    rsync -chavzP --no-perms --no-owner --no-group {{ cwd }} alex@box.hosaka.cc:box/
 
 [doc('ssh into the server')]
 [no-exit-message]

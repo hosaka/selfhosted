@@ -13,7 +13,7 @@ services:
   forgejo:
     # note: to automatically create a new user, add to the executed command, before sleep infinity:
     # forgejo admin user create --admin --username user --password password --email email@domain.tld
-    image: codeberg.org/forgejo/forgejo:13.0.3-rootless
+    image: codeberg.org/forgejo/forgejo:14.0.2-rootless
     command: >-
       bash -ec '
       gitea --config /etc/gitea/app.ini &
@@ -107,7 +107,7 @@ services:
   #     - forgejo-docker-certs:/certs
   #
   # forgejo-runner:
-  #   image: code.forgejo.org/forgejo/runner:12.4.0
+  #   image: code.forgejo.org/forgejo/runner:12.6.4
   #   command: >-
   #     bash -ec '
   #     while : ; do

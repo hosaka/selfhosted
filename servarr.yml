@@ -27,7 +27,7 @@ services:
       - jellyseerr-config:/app/config
 
   lidarr:
-    image: ghcr.io/hotio/lidarr:pr-plugins-3.1.1.4901
+    image: ghcr.io/hotio/lidarr:pr-plugins-3.1.2.4913
     expose:
       - 8686 # webui
     extends:

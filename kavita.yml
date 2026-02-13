@@ -6,7 +6,7 @@ volumes:
 
 services:
   kavita:
-    image: ghcr.io/kareadita/kavita:0.8.8
+    image: ghcr.io/kareadita/kavita:0.8.9
     environment:
       - PUID=${MEDIA_PUID}
       - PGID=${MEDIA_PGID}

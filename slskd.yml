@@ -7,7 +7,7 @@ volumes:
 
 services:
   slskd:
-    image: ghcr.io/slskd/slskd:0.24.1
+    image: ghcr.io/slskd/slskd:0.24.3
     environment:
       - SLSKD_NO_AUTH=true
       - SLSKD_NO_HTTPS=true
@@ -34,7 +34,7 @@ services:
       - slskd-data:/app
 
   slskd-gluetun:
-    image: docker.io/qmcgaw/gluetun:v3.41.0
+    image: docker.io/qmcgaw/gluetun:v3.41.1
     cap_add:
       - NET_ADMIN
     environment:
