@@ -25,7 +25,7 @@ I have previously attempted to run containers using rootless podman with moderat
 
 ### Configuration
 
-All applications are configured with a single [default.env](default.env). This env file is encrypted using [SOPS](https://getsops.io/docs/) and must be decrypted first before it can be used: `sops decrypt default.env > .env`.
+All applications are configured with a single [default.env](default.env). This env file is encrypted using [SOPS](https://getsops.io/docs/) with [age](https://age-encryption.org/) and must be decrypted first before it can be used: `sops decrypt default.env > .env`. Prior to commit `6adee98ae6ad` SOPS with PGP backend was used.
 
 Individual services can be disabled by commenting them out from the include list in `compose.yml`.
 
