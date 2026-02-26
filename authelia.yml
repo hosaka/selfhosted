@@ -11,6 +11,8 @@ volumes:
 configs:
   authelia.configuration.yml:
     content: |
+      theme: 'auto'
+
       access_control:
         default_policy: deny
         rules:
