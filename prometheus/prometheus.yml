@@ -22,7 +22,3 @@ scrape_configs:
   - job_name: "cadvisor"
     static_configs:
       - targets: ["cadvisor:9250"]
-
-  # - job_name: "cloudflared"
-  #   static_configs:
-  #     - targets: ["cloudflared:4506"]

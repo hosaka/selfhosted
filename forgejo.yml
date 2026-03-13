@@ -1,5 +1,5 @@
 networks:
-  cloudflared:
+  frp:
   forgejo:
   proxy:
 
@@ -65,7 +65,7 @@ services:
     networks:
       - proxy
       - forgejo
-      - cloudflared
+      - frp
     volumes:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro

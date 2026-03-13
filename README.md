@@ -19,7 +19,9 @@ My selfhosted config.
 
 ## Software
 
-Containers are run with docker, Cloudflare tunnel is the entrypoint with Caddy acting as a reverse proxy to other services. See `compose.yml` and the list of includes it contains.
+Containers are run with docker, a [frp](https://github.com/fatedier/frp) on a VPS is the entrypoint with Caddy acting as a reverse proxy to other services. See `compose.yml` and the list of includes it contains.
+
+I have previously ran Cloudflare Tunnel but decided to ditch it in favour of having more control over non HTTP traffic and more control over my traffic in general. Using Fast Reverse Proxy makes TCP/UDP much easier to work with and in most cases doesn't require connecting client to install any additional software.
 
 I have previously attempted to run containers using rootless podman with moderate success, but inter-container networking was difficult and at times too slow (slurp4netns). The fact that other tools like kustomize are needed to have a flexible configuration was another downside. Perhaps I will revisit podman again someday.
 
@@ -43,7 +45,6 @@ Backups are done using `restic` and `resticprofile`. See the [restic/README.md](
 
 ### Software
 
-- [ ] Move cloudflared tunnel config to a local file in this repo
 - [x] Browser sync, e.g. [syncstorage-rs](https://github.com/mozilla-services/syncstorage-rs) for Firefox
 - [ ] CardDAV and CalDAV for calendar and contacts sync like [radicale](https://radicale.org/v3.html) or use [cal.com](https://github.com/calcom/cal.com)
 - [ ] [Safe{Wallet}](https://github.com/safe-global/safe-wallet-web) for multisig wallets

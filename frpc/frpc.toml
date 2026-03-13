@@ -1,0 +1,36 @@
+serverAddr = "{{ .Envs.PROXY_FRP_SERVER_ADDR }}"
+serverPort = 7000
+auth.token = "{{ .Envs.PROXY_FRP_AUTH_TOKEN }}"
+
+webServer.addr = "0.0.0.0"
+webServer.port = 7400
+
+[[proxies]]
+name = "https"
+type = "tcp"
+localIP = "caddy"
+localPort = 443
+remotePort = 443
+
+[[proxies]]
+name = "http"
+type = "tcp"
+localIP = "caddy"
+localPort = 80
+remotePort = 80
+
+[[proxies]]
+name = "ssh-host"
+type = "tcpmux"
+multiplexer = "httpconnect"
+customDomains = ["ssh.{{ .Envs.PROXY_PUBLIC_DOMAIN }}"]
+localIP = "host.docker.internal"
+localPort = 22
+
+[[proxies]]
+name = "ssh-code"
+type = "tcpmux"
+multiplexer = "httpconnect"
+customDomains = ["git.{{ .Envs.PROXY_PUBLIC_DOMAIN }}"]
+localIP = "forgejo"
+localPort = 2222

@@ -21,9 +21,9 @@ include:
   - wakapi.yml
 
 networks:
-  cloudflared:
-  monitor:
+  frp:
   proxy:
+  monitor:
 
 volumes:
   caddy-config:
@@ -41,7 +41,7 @@ services:
       service: hotio
     networks:
       - proxy
-      - cloudflared
+      - frp
     ports:
       - 80:80
       - 443:443/tcp
@@ -52,22 +52,27 @@ services:
       - caddy-config:/config
       - ./caddy/Caddyfile:/config/Caddyfile
 
-  cloudflared:
-    image: docker.io/cloudflare/cloudflared:2026.2.0
-    command: tunnel --no-autoupdate run --token ${PROXY_CF_TUNNEL_TOKEN}
+  frpc:
+    image: ghcr.io/fatedier/frpc:v0.67.0
+    command: --config /etc/frp/frpc.toml
+    environment:
+      - PROXY_FRP_SERVER_ADDR=${PROXY_FRP_SERVER_ADDR}
+      - PROXY_FRP_AUTH_TOKEN=${PROXY_FRP_AUTH_TOKEN}
+      - PROXY_PUBLIC_DOMAIN=${PROXY_PUBLIC_DOMAIN}
     extra_hosts:
       - host.docker.internal:host-gateway
-    # expose:
-    #   - 4506 # metrics
+    expose:
+      - 7400 # webui
     extends:
       file: common.yml
       service: log-to-json
+    hostname: box.${PROXY_PUBLIC_DOMAIN}
     networks:
-      - cloudflared
-      # - monitor
+      - frp
     restart: unless-stopped
     volumes:
       - /etc/localtime:/etc/localtime:ro
+      - ./frpc/frpc.toml:/etc/frp/frpc.toml:ro
 
   rclone:
     image: ghcr.io/rclone/rclone:1.70
