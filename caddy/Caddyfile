@@ -220,3 +220,6 @@ waka.{$PROXY_PRIVATE_DOMAIN}, waka.{$PROXY_PUBLIC_DOMAIN} {
 frp.{$PROXY_PRIVATE_DOMAIN} {
 	reverse_proxy frpc:7400
 }
+frp.{$PROXY_PUBLIC_DOMAIN} {
+	reverse_proxy frp.{$PROXY_PUBLIC_DOMAIN}:7500
+}
