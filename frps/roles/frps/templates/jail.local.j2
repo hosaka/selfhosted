@@ -1,0 +1,14 @@
+# See man 5 jail.conf for details.
+
+[DEFAULT]
+destemail = {{ fail2ban_destemail }}
+sender = {{ fail2ban_sender }}
+mta = {{ fail2ban_mta }}
+action = {{ fail2ban_default_action }}
+
+# "maxretry" is the number of failures before a host get banned.
+maxretry = {{ fail2ban_default_maxretry }}
+# "bantime" is ban duration
+bantime = {{ fail2ban_default_bantime }}
+# banned if a host has reached "maxretry" during the last "findtime"
+findtime = {{ fail2ban_default_findtime }}

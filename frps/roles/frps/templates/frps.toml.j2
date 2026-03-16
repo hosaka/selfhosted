@@ -5,12 +5,11 @@ allowPorts = [
   { single = 22 },
   { single = 80 },
   { single = 443 },
-  # { start = 2000, end = 3000 },
 ]
 
-auth.token = "{{ .Envs.PROXY_FRP_AUTH_TOKEN }}"
+auth.token = "{{ frps_auth_token }}"
 
 webServer.addr = "0.0.0.0"
 webServer.port = 7500
-webServer.user = "admin"
-webServer.password = "{{ .Envs.PROXY_FRP_WEBSERVER_PASSWORD }}"
+webServer.user = "{{ frps_webserver_user }}"
+webServer.password = "{{ frps_webserver_password }}"

@@ -1,0 +1,23 @@
+frps_allowed_ports:
+  - { port: 22, proto: "tcp", comment: "ssh" }
+  - { port: 80, proto: "tcp", comment: "http" }
+  - { port: 443, proto: "tcp", comment: "https" }
+  - { port: 5638, proto: "tcp", comment: "ssh" }
+  - { port: 7000, proto: "any", comment: "frp" }
+  - { port: 7500, proto: "tcp", comment: "frp webui" }
+  - { port: 3912, proto: "tcp", comment: "frp tcpmux" }
+
+fail2ban_default_bantime: 1h
+fail2ban_default_findtime: 10m
+fail2ban_default_maxretry: 3
+fail2ban_default_action: "%(action_mwl)s" # ban, email, log
+fail2ban_default_backend: auto
+
+fail2ban_mta: mail
+
+fail2ban_jails:
+  - name: sshd
+    enabled: true
+    port: ssh
+    logpath: /var/log/auth.log
+    backend: systemd

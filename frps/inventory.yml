@@ -1,0 +1,11 @@
+frps:
+  hosts:
+    frp-test:
+      ansible_host: 157.245.198.185
+      ansible_user: root
+    # frp.hosaka.cc:
+    #   ansible_port: 5638
+    #   ansible_user: debian
+  vars:
+    frp_version: 0.67.0
+    frp_checksum: "sha256:f8629ca7ca56b8e7e7a9903779b8d5c47c56ad1b75b99b2d7138477acc4c7105"

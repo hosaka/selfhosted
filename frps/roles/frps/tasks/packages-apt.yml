@@ -1,0 +1,14 @@
+- name: update package cache
+  apt:
+    update_cache: true
+    cache_valid_time: 43200 # 12 hours
+
+- name: ensure ufw is installed
+  apt:
+    name: ufw
+    state: present
+
+- name: ensure fail2ban is installed
+  apt:
+    name: fail2ban
+    state: present

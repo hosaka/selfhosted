@@ -1,0 +1,6 @@
+frp_url: "https://github.com/fatedier/frp/releases/download/v{{ frp_version }}/frp_{{ frp_version }}_linux_amd64.tar.gz"
+
+frps_bin_dir: /usr/local/bin
+frps_bin: "{{ frps_bin_dir }}/frps"
+frps_config_dir: /etc/frp
+frps_config: "{{ frps_config_dir }}/frps.toml"

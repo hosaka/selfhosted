@@ -1,0 +1,16 @@
+# {{ item.name }} jail - Managed by Ansible
+[{{ item.name }}]
+enabled = {{ item.enabled | string | lower }}
+port = {{ item.port }}
+logpath = {{ item.logpath }}
+backend = {{ item.backend | default(fail2ban_default_backend )}}
+{% if item.maxretry is defined %}
+maxretry = {{ item.maxretry }}
+{% endif %}
+{% if item.bantime is defined %}
+bantime = {{ item.bantime }}
+{% endif %}
+{% if item.findtime is defined %}
+findtime = {{ item.findtime }}
+{% endif %}
+

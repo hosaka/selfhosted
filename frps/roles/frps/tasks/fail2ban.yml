@@ -1,0 +1,32 @@
+- name: create fail2ban local configuration directory
+  ansible.builtin.file:
+    path: /etc/fail2ban/jail.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: fail2ban default settings
+  ansible.builtin.template:
+    src: jail.local.j2
+    dest: /etc/fail2ban/jail.local
+    owner: root
+    group: root
+    mode: "0644"
+  notify: restart fail2ban
+
+- name: deploy individual jail configurations
+  ansible.builtin.template:
+    src: jail.conf.j2
+    dest: "/etc/fail2ban/jail.d/{{ item.name }}.conf"
+    owner: root
+    group: root
+    mode: "0644"
+  loop: "{{ fail2ban_jails }}"
+  notify: restart fail2ban
+
+- name: start and enable fail2ban
+  ansible.builtin.service:
+    name: fail2ban
+    state: started
+    enabled: yes

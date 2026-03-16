@@ -1,0 +1,29 @@
+[tools]
+uv = "0.10.10"
+
+[settings]
+python.uv_venv_auto = true
+
+[tasks.prep]
+description = "Setup ansible"
+run = '''
+uv tool install ansible-core --with ansible
+'''
+
+[tasks.decrypt]
+description = "Decrypt secrets"
+run = '''
+sops decrypt group_vars/all.yml.enc > group_vars/all.yml
+'''
+
+[tasks.encrypt]
+description = "Encrypt secrets"
+run = '''
+sops encrypt group_vars/all.yml > group_vars/all.yml.enc
+'''
+
+[tasks.frps]
+description = "Deploy frps with ansible"
+run = '''
+ansible-playbook -i inventory.yml frps.yml
+'''

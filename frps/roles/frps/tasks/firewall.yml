@@ -1,0 +1,32 @@
+- name: reset ufw rules
+  community.general.ufw:
+    state: reset
+
+- name: set default policies
+  community.general.ufw:
+    direction: "{{ item.direction }}"
+    default: "{{ item.policy }}"
+  loop:
+    - { direction: incoming, policy: deny }
+    - { direction: outgoing, policy: allow }
+
+- name: allow required ports
+  community.general.ufw:
+    rule: allow
+    port: "{{ item.port }}"
+    proto: "{{ item.proto }}"
+    comment: "{{ item.comment }}"
+  loop: "{{ frps_allowed_ports }}"
+
+- name: enable ufw
+  community.general.ufw:
+    state: enabled
+
+- name: verify UFW status
+  ansible.builtin.command: ufw status verbose
+  register: ufw_status
+  changed_when: false
+
+- name: show firewall status
+  ansible.builtin.debug:
+    var: ufw_status.stdout_lines
