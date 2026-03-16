@@ -72,7 +72,7 @@ services:
       - radarr-config:/config
 
   recyclarr:
-    image: ghcr.io/recyclarr/recyclarr:7.5.2
+    image: ghcr.io/recyclarr/recyclarr:8.5.0
     environment:
       - TZ=${TIMEZONE}
     extends:

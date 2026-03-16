@@ -249,7 +249,7 @@ configs:
 
 services:
   authelia:
-    image: docker.io/authelia/authelia:4.39.15
+    image: docker.io/authelia/authelia:4.39.16
     configs:
       - source: authelia.configuration.yml
         target: /config/configuration.yml
