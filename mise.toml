@@ -1,7 +1,7 @@
 [tools]
-age = "latest"
-age-plugin-yubikey = "latest"
 sops = "latest"
+# age = "latest"
+# age-plugin-yubikey = "latest"
 
 hadolint = "latest"
 marksman = "latest"
