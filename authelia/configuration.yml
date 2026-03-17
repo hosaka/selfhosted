@@ -1,0 +1,260 @@
+theme: "auto"
+
+access_control:
+  default_policy: deny
+  rules:
+    - domain: '*.{{ env "PROXY_PRIVATE_DOMAIN" }}'
+      policy: one_factor
+    - domain: '*.{{ env "PROXY_PUBLIC_DOMAIN" }}'
+      policy: one_factor
+
+authentication_backend:
+  # password reset through authelia works fine
+  password_reset:
+    disable: false
+
+  # how often to check if there is an user update in ldap
+  refresh_interval: 1m
+
+  ldap:
+    implementation: lldap
+    address: ldap://lldap:3890
+    base_dn: '{{ env "LLDAP_BASE_DN" }}'
+
+    # "uid" should be the username you created for authentication with the "lldap_strict_readonly" permission
+    # if using Authelia to change user passwords, then this user needs the "lldap_password_manager" permission
+    user: 'uid=authelia,ou=people,{{ env "LLDAP_BASE_DN" }}'
+    password: '{{ env "AUTH_LDAP_PASSWORD" }}'
+
+    # to allow sign in both with username and email, comment this filter to use defaults
+    # users_filter: "(&({username_attribute}={input})(objectClass=person))"
+
+session:
+  secret: '{{ env "AUTH_SESSION_SECRET" }}'
+  cookies:
+    - domain: '{{ env "PROXY_PUBLIC_DOMAIN" }}'
+      authelia_url: 'https://auth.{{ env "PROXY_PUBLIC_DOMAIN" }}'
+      # default_redirection_url: 'https://home.{{ env "PROXY_PUBLIC_DOMAIN" }}'
+  redis:
+    host: authelia-redis
+    port: 6379
+
+storage:
+  encryption_key: '{{ env "AUTH_STORAGE_ENCRYPTION_KEY" }}'
+  postgres:
+    address: authelia-database
+    database: '{{ env "AUTH_DB_DATABASE_NAME" }}'
+    username: '{{ env "AUTH_DB_USERNAME" }}'
+    password: '{{ env "AUTH_DB_PASSWORD" }}'
+
+totp:
+  issuer: '{{ env "PROXY_PUBLIC_DOMAIN" }}'
+
+notifier:
+  smtp:
+    address: '{{ env "AUTH_SMTP_ADDRESS" }}'
+    username: '{{ env "AUTH_SMTP_USERNAME" }}'
+    password: '{{ env "AUTH_SMTP_PASSWORD" }}'
+    sender: '{{ env "AUTH_SMTP_SENDER" }}'
+
+identity_validation:
+  reset_password:
+    jwt_secret: '{{ env "AUTH_JWT_SECRET" }}'
+
+definitions:
+  user_attributes:
+    immich_role:
+      expression: '"immich_admin" in groups ? "admin" : "user"'
+
+identity_providers:
+  oidc:
+    jwks:
+      # note the multiline prefix | and lack of single quotes here is important
+      # see www.authelia.com/configuration/prologue/security-sensitive-values/#multi-line-value
+      - key: |
+          {{ secret "/config/jwks/private.pem" | mindent 10 "|" | msquote }}
+
+    claims_policies:
+      grafana:
+        id_token: ["email", "name", "groups", "preferred_username"]
+      immich:
+        custom_claims:
+          immich_role:
+            attribute: immich_role
+    scopes:
+      immich:
+        claims:
+          - immich_role
+
+    clients:
+      - client_name: grafana
+        client_id: '{{ env "AUTH_GRAFANA_CLIENT_ID" }}'
+        client_secret: '{{ env "AUTH_GRAFANA_CLIENT_SECRET_HASH" }}'
+        claims_policy: grafana
+        public: false
+        authorization_policy: two_factor
+        consent_mode: implicit
+        require_pkce: true
+        pkce_challenge_method: S256
+        redirect_uris:
+          - 'https://grafana.{{env "PROXY_PUBLIC_DOMAIN" }}/login/generic_oauth'
+          - 'https://grafana.{{env "PROXY_PRIVATE_DOMAIN" }}/login/generic_oauth'
+        scopes:
+          - openid
+          - email
+          - profile
+          - groups
+        response_types:
+          - code
+        grant_types:
+          - authorization_code
+        access_token_signed_response_alg: none
+        userinfo_signed_response_alg: none
+        token_endpoint_auth_method: client_secret_basic
+
+      - client_name: forgejo
+        client_id: '{{ env "AUTH_FORGEJO_CLIENT_ID" }}'
+        client_secret: '{{ env "AUTH_FORGEJO_CLIENT_SECRET_HASH" }}'
+        public: false
+        authorization_policy: two_factor
+        consent_mode: implicit
+        require_pkce: true
+        pkce_challenge_method: S256
+        redirect_uris:
+          - 'https://code.{{ env "PROXY_PUBLIC_DOMAIN" }}/user/oauth2/Authelia/callback'
+          - 'https://code.{{ env "PROXY_PRIVATE_DOMAIN" }}/user/oauth2/Authelia/callback'
+        scopes:
+          - openid
+          - email
+          - profile
+          - groups
+        response_types:
+          - code
+        grant_types:
+          - authorization_code
+        access_token_signed_response_alg: none
+        userinfo_signed_response_alg: none
+        token_endpoint_auth_method: client_secret_basic
+
+      - client_name: paperless
+        client_id: '{{ env "AUTH_PAPERLESS_CLIENT_ID" }}'
+        client_secret: '{{ env "AUTH_PAPERLESS_CLIENT_SECRET_HASH" }}'
+        public: false
+        authorization_policy: one_factor
+        consent_mode: implicit
+        require_pkce: true
+        pkce_challenge_method: S256
+        redirect_uris:
+          # note the trailing slash at the end, this is a bug in paperless
+          - 'https://paperless.{{ env "PROXY_PUBLIC_DOMAIN" }}/accounts/oidc/authelia/login/callback/'
+          - 'https://paperless.{{ env "PROXY_PRIVATE_DOMAIN" }}/accounts/oidc/authelia/login/callback/'
+        scopes:
+          - openid
+          - email
+          - profile
+          - groups
+        response_types:
+          - code
+        grant_types:
+          - authorization_code
+        access_token_signed_response_alg: none
+        userinfo_signed_response_alg: none
+        token_endpoint_auth_method: client_secret_basic
+
+      - client_name: immich
+        client_id: '{{ env "AUTH_IMMICH_CLIENT_ID" }}'
+        client_secret: '{{ env "AUTH_IMMICH_CLIENT_SECRET_HASH" }}'
+        claims_policy: immich
+        public: false
+        authorization_policy: one_factor
+        consent_mode: implicit
+        require_pkce: true
+        pkce_challenge_method: S256
+        redirect_uris:
+          - 'https://immich.{{ env "PROXY_PUBLIC_DOMAIN" }}/auth/login'
+          - 'https://immich.{{ env "PROXY_PUBLIC_DOMAIN" }}/user-settings'
+          - 'https://immich.{{ env "PROXY_PRIVATE_DOMAIN" }}/auth/login'
+          - 'https://immich.{{ env "PROXY_PRIVATE_DOMAIN" }}/user-settings'
+          - app.immich:///oauth-callback
+        scopes:
+          - openid
+          - email
+          - profile
+          - immich
+        response_types:
+          - code
+        grant_types:
+          - authorization_code
+        access_token_signed_response_alg: RS256
+        userinfo_signed_response_alg: RS256
+        token_endpoint_auth_method: client_secret_post
+
+      - client_name: jellyfin
+        client_id: '{{ env "AUTH_JELLYFIN_CLIENT_ID" }}'
+        client_secret: '{{ env "AUTH_JELLYFIN_CLIENT_SECRET_HASH" }}'
+        public: false
+        authorization_policy: one_factor
+        consent_mode: implicit
+        require_pkce: true
+        pkce_challenge_method: S256
+        redirect_uris:
+          - 'https://jellyfin.{{ env "PROXY_PUBLIC_DOMAIN" }}/sso/OID/redirect/authelia'
+          - 'https://jellyfin.{{ env "PROXY_PRIVATE_DOMAIN" }}/sso/OID/redirect/authelia'
+          - org.jellyfin.mobile://login-callback
+        scopes:
+          - openid
+          - email
+          - profile
+          - groups
+        response_types:
+          - code
+        grant_types:
+          - authorization_code
+        access_token_signed_response_alg: none
+        userinfo_signed_response_alg: none
+        token_endpoint_auth_method: client_secret_post
+
+      - client_name: wakapi
+        client_id: '{{ env "AUTH_WAKAPI_CLIENT_ID" }}'
+        client_secret: '{{ env "AUTH_WAKAPI_CLIENT_SECRET_HASH" }}'
+        public: false
+        authorization_policy: one_factor
+        consent_mode: implicit
+        require_pkce: false
+        redirect_uris:
+          - 'https://waka.{{ env "PROXY_PUBLIC_DOMAIN" }}/oidc/authelia/callback'
+          - 'https://waka.{{ env "PROXY_PRIVATE_DOMAIN" }}/oidc/authelia/callback'
+        scopes:
+          - openid
+          - email
+          - profile
+        response_types:
+          - code
+        grant_types:
+          - authorization_code
+        access_token_signed_response_alg: none
+        userinfo_signed_response_alg: none
+        token_endpoint_auth_method: client_secret_post
+
+      - client_name: kavita
+        client_id: '{{ env "AUTH_KAVITA_CLIENT_ID" }}'
+        client_secret: '{{ env "AUTH_KAVITA_CLIENT_SECRET_HASH" }}'
+        public: false
+        authorization_policy: one_factor
+        consent_mode: implicit
+        require_pkce: false
+        redirect_uris:
+          - 'https://kavita.{{ env "PROXY_PRIVATE_DOMAIN" }}/signin-oidc'
+        scopes:
+          - openid
+          - email
+          - profile
+          - groups
+          - offline_access
+        response_types:
+          - code
+        grant_types:
+          - authorization_code
+        access_token_signed_response_alg: none
+        userinfo_signed_response_alg: none
+        token_endpoint_auth_method: client_secret_post

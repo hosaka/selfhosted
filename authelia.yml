@@ -8,282 +8,47 @@ volumes:
   authelia-redis-data:
   lldap-data:
 
-configs:
-  authelia.configuration.yml:
-    content: |
-      theme: 'auto'
-
-      access_control:
-        default_policy: deny
-        rules:
-        - domain: '*.${PROXY_PRIVATE_DOMAIN}'
-          policy: one_factor
-        - domain: '*.${PROXY_PUBLIC_DOMAIN}'
-          policy: one_factor
-
-      authentication_backend:
-        # password reset through authelia works fine
-        password_reset:
-          disable: false
-
-        # how often to check if there is an user update in ldap
-        refresh_interval: 1m
-
-        ldap:
-          implementation: lldap
-          address: ldap://lldap:3890
-          base_dn: ${LLDAP_BASE_DN}
-
-          # "uid" should be the username you created for authentication with the "lldap_strict_readonly" permission
-          # if using Authelia to change user passwords, then this user needs the "lldap_password_manager" permission
-          user: uid=authelia,ou=people,${LLDAP_BASE_DN}
-          password: ${AUTHELIA_LDAP_PASSWORD}
-
-          # to allow sign in both with username and email, comment this filter to use defaults
-          # users_filter: "(&({username_attribute}={input})(objectClass=person))"
-
-      session:
-        secret: ${AUTHELIA_SESSION_SECRET}
-        cookies:
-          - domain: ${PROXY_PUBLIC_DOMAIN}
-            authelia_url: https://auth.${PROXY_PUBLIC_DOMAIN}
-            # default_redirection_url: https://home.${PROXY_PUBLIC_DOMAIN}
-        redis:
-          host: authelia-redis
-          port: 6379
-
-      storage:
-        encryption_key: ${AUTHELIA_STORAGE_ENCRYPTION_KEY}
-        postgres:
-          address: authelia-database
-          database: ${AUTHELIA_DB_DATABASE_NAME:-authelia}
-          username: ${AUTHELIA_DB_USERNAME}
-          password: ${AUTHELIA_DB_PASSWORD}
-
-      totp:
-        issuer: ${PROXY_PUBLIC_DOMAIN}
-
-      notifier:
-        smtp:
-          address: ${AUTHELIA_SMTP_ADDRESS}
-          username: ${AUTHELIA_SMTP_USERNAME}
-          password: ${AUTHELIA_SMTP_PASSWORD}
-          sender: ${AUTHELIA_SMTP_SENDER}
-
-      identity_validation:
-        reset_password:
-          jwt_secret: ${AUTHELIA_JWT_SECRET}
-
-      definitions:
-        user_attributes:
-          immich_role:
-            expression: '"immich_admin" in groups ? "admin" : "user"'
-
-      identity_providers:
-        oidc:
-          jwks:
-            # todo: get this from the env somehow so X_AUTHELIA_CONFIG_FILTERS can be removed
-            - key: {{ secret "/config/jwks/private.pem" | mindent 10 "|" | msquote }}
-
-          claims_policies:
-            grafana:
-              id_token: ['email', 'name', 'groups', 'preferred_username']
-            immich:
-              custom_claims:
-                immich_role:
-                  attribute: immich_role
-          scopes:
-            immich:
-              claims:
-                - immich_role
-
-          clients:
-            - client_name: grafana
-              client_id: ${AUTH_GRAFANA_CLIENT_ID}
-              client_secret: ${AUTH_GRAFANA_CLIENT_SECRET_HASH}
-              claims_policy: grafana
-              public: false
-              authorization_policy: two_factor
-              consent_mode: implicit
-              require_pkce: true
-              pkce_challenge_method: S256
-              redirect_uris:
-                - https://grafana.${PROXY_PUBLIC_DOMAIN}/login/generic_oauth
-                - https://grafana.${PROXY_PRIVATE_DOMAIN}/login/generic_oauth
-              scopes:
-                - openid
-                - email
-                - profile
-                - groups
-              response_types:
-                - code
-              grant_types:
-                - authorization_code
-              access_token_signed_response_alg: none
-              userinfo_signed_response_alg: none
-              token_endpoint_auth_method: client_secret_basic
-
-            - client_name: forgejo
-              client_id: ${AUTH_FORGEJO_CLIENT_ID}
-              client_secret: ${AUTH_FORGEJO_CLIENT_SECRET_HASH}
-              public: false
-              authorization_policy: two_factor
-              consent_mode: implicit
-              require_pkce: true
-              pkce_challenge_method: S256
-              redirect_uris:
-                - https://code.${PROXY_PUBLIC_DOMAIN}/user/oauth2/Authelia/callback
-                - https://code.${PROXY_PRIVATE_DOMAIN}/user/oauth2/Authelia/callback
-              scopes:
-                - openid
-                - email
-                - profile
-                - groups
-              response_types:
-                - code
-              grant_types:
-                - authorization_code
-              access_token_signed_response_alg: none
-              userinfo_signed_response_alg: none
-              token_endpoint_auth_method: client_secret_basic
-
-            - client_name: paperless
-              client_id: ${AUTH_PAPERLESS_CLIENT_ID}
-              client_secret: ${AUTH_PAPERLESS_CLIENT_SECRET_HASH}
-              public: false
-              authorization_policy: one_factor
-              consent_mode: implicit
-              require_pkce: true
-              pkce_challenge_method: S256
-              redirect_uris:
-                # note the trailing slash at the end, this is a bug in paperless
-                - https://paperless.${PROXY_PUBLIC_DOMAIN}/accounts/oidc/authelia/login/callback/
-                - https://paperless.${PROXY_PRIVATE_DOMAIN}/accounts/oidc/authelia/login/callback/
-              scopes:
-                - openid
-                - email
-                - profile
-                - groups
-              response_types:
-                - code
-              grant_types:
-                - authorization_code
-              access_token_signed_response_alg: none
-              userinfo_signed_response_alg: none
-              token_endpoint_auth_method: client_secret_basic
-
-            - client_name: immich
-              client_id: ${AUTH_IMMICH_CLIENT_ID}
-              client_secret: ${AUTH_IMMICH_CLIENT_SECRET_HASH}
-              claims_policy: immich
-              public: false
-              authorization_policy: one_factor
-              consent_mode: implicit
-              require_pkce: true
-              pkce_challenge_method: S256
-              redirect_uris:
-                - https://immich.${PROXY_PUBLIC_DOMAIN}/auth/login
-                - https://immich.${PROXY_PUBLIC_DOMAIN}/user-settings
-                - https://immich.${PROXY_PRIVATE_DOMAIN}/auth/login
-                - https://immich.${PROXY_PRIVATE_DOMAIN}/user-settings
-                - app.immich:///oauth-callback
-              scopes:
-                - openid
-                - email
-                - profile
-                - immich
-              response_types:
-                - code
-              grant_types:
-                - authorization_code
-              access_token_signed_response_alg: RS256
-              userinfo_signed_response_alg: RS256
-              token_endpoint_auth_method: client_secret_post
-
-            - client_name: jellyfin
-              client_id: ${AUTH_JELLYFIN_CLIENT_ID}
-              client_secret: ${AUTH_JELLYFIN_CLIENT_SECRET_HASH}
-              public: false
-              authorization_policy: one_factor
-              consent_mode: implicit
-              require_pkce: true
-              pkce_challenge_method: S256
-              redirect_uris:
-                - https://jellyfin.${PROXY_PUBLIC_DOMAIN}/sso/OID/redirect/authelia
-                - https://jellyfin.${PROXY_PRIVATE_DOMAIN}/sso/OID/redirect/authelia
-                - org.jellyfin.mobile://login-callback
-              scopes:
-                - openid
-                - email
-                - profile
-                - groups
-              response_types:
-                - code
-              grant_types:
-                - authorization_code
-              access_token_signed_response_alg: none
-              userinfo_signed_response_alg: none
-              token_endpoint_auth_method: client_secret_post
-
-            - client_name: wakapi
-              client_id: ${AUTH_WAKAPI_CLIENT_ID}
-              client_secret: ${AUTH_WAKAPI_CLIENT_SECRET_HASH}
-              public: false
-              authorization_policy: one_factor
-              consent_mode: implicit
-              require_pkce: false
-              redirect_uris:
-                - https://waka.${PROXY_PUBLIC_DOMAIN}/oidc/authelia/callback
-                - https://waka.${PROXY_PRIVATE_DOMAIN}/oidc/authelia/callback
-              scopes:
-                - openid
-                - email
-                - profile
-              response_types:
-                - code
-              grant_types:
-                - authorization_code
-              access_token_signed_response_alg: none
-              userinfo_signed_response_alg: none
-              token_endpoint_auth_method: client_secret_post
-
-            - client_name: kavita
-              client_id: ${AUTH_KAVITA_CLIENT_ID}
-              client_secret: ${AUTH_KAVITA_CLIENT_SECRET_HASH}
-              public: false
-              authorization_policy: one_factor
-              consent_mode: implicit
-              require_pkce: false
-              redirect_uris:
-                - https://kavita.${PROXY_PRIVATE_DOMAIN}/signin-oidc
-              scopes:
-                - openid
-                - email
-                - profile
-                - groups
-                - offline_access
-              response_types:
-                - code
-              grant_types:
-                - authorization_code
-              access_token_signed_response_alg: none
-              userinfo_signed_response_alg: none
-              token_endpoint_auth_method: client_secret_post
-
 services:
   authelia:
     image: docker.io/authelia/authelia:4.39.16
-    configs:
-      - source: authelia.configuration.yml
-        target: /config/configuration.yml
     depends_on:
       authelia-redis:
         condition: service_healthy
       authelia-database:
         condition: service_healthy
     environment:
-      - X_AUTHELIA_CONFIG_FILTERS=template
       - TZ=${TIMEZONE}
+      - PROXY_PUBLIC_DOMAIN=${PROXY_PUBLIC_DOMAIN}
+      - PROXY_PRIVATE_DOMAIN=${PROXY_PRIVATE_DOMAIN}
+      # enables template expansion in configuration.yml
+      - X_AUTHELIA_CONFIG_FILTERS=template
+      - LLDAP_BASE_DN=${LLDAP_BASE_DN}
+      - AUTH_LDAP_PASSWORD=${AUTH_LDAP_PASSWORD}
+      - AUTH_SESSION_SECRET=${AUTH_SESSION_SECRET}
+      - AUTH_STORAGE_ENCRYPTION_KEY=${AUTH_STORAGE_ENCRYPTION_KEY}
+      - AUTH_DB_DATABASE_NAME=${AUTH_DB_DATABASE_NAME:-authelia}
+      - AUTH_DB_USERNAME=${AUTH_DB_USERNAME}
+      - AUTH_DB_PASSWORD=${AUTH_DB_PASSWORD}
+      - AUTH_SMTP_ADDRESS=${AUTH_SMTP_ADDRESS}
+      - AUTH_SMTP_USERNAME=${AUTH_SMTP_USERNAME}
+      - AUTH_SMTP_PASSWORD=${AUTH_SMTP_PASSWORD}
+      - AUTH_SMTP_SENDER=${AUTH_SMTP_SENDER}
+      - AUTH_JWT_SECRET=${AUTH_JWT_SECRET}
+      # clients
+      - AUTH_GRAFANA_CLIENT_ID=${AUTH_GRAFANA_CLIENT_ID}
+      - AUTH_GRAFANA_CLIENT_SECRET_HASH=${AUTH_GRAFANA_CLIENT_SECRET_HASH}
+      - AUTH_FORGEJO_CLIENT_ID=${AUTH_FORGEJO_CLIENT_ID}
+      - AUTH_FORGEJO_CLIENT_SECRET_HASH=${AUTH_FORGEJO_CLIENT_SECRET_HASH}
+      - AUTH_PAPERLESS_CLIENT_ID=${AUTH_PAPERLESS_CLIENT_ID}
+      - AUTH_PAPERLESS_CLIENT_SECRET_HASH=${AUTH_PAPERLESS_CLIENT_SECRET_HASH}
+      - AUTH_IMMICH_CLIENT_ID=${AUTH_IMMICH_CLIENT_ID}
+      - AUTH_IMMICH_CLIENT_SECRET_HASH=${AUTH_IMMICH_CLIENT_SECRET_HASH}
+      - AUTH_JELLYFIN_CLIENT_ID=${AUTH_JELLYFIN_CLIENT_ID}
+      - AUTH_JELLYFIN_CLIENT_SECRET_HASH=${AUTH_JELLYFIN_CLIENT_SECRET_HASH}
+      - AUTH_WAKAPI_CLIENT_ID=${AUTH_WAKAPI_CLIENT_ID}
+      - AUTH_WAKAPI_CLIENT_SECRET_HASH=${AUTH_WAKAPI_CLIENT_SECRET_HASH}
+      - AUTH_KAVITA_CLIENT_ID=${AUTH_KAVITA_CLIENT_ID}
+      - AUTH_KAVITA_CLIENT_SECRET_HASH=${AUTH_KAVITA_CLIENT_SECRET_HASH}
     expose:
       - 9091 # api
     extends:
@@ -299,6 +64,7 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - ./authelia/jwks/private.pem:/config/jwks/private.pem:ro
+      - ./authelia/configuration.yml:/config/configuration.yml:ro
 
   authelia-redis:
     image: docker.io/valkey/valkey:8-alpine
@@ -325,16 +91,16 @@ services:
   authelia-database:
     image: docker.io/postgres:14-alpine
     environment:
-      - POSTGRES_USER=${AUTHELIA_DB_USERNAME}
-      - POSTGRES_PASSWORD=${AUTHELIA_DB_PASSWORD}
-      - POSTGRES_DB=${AUTHELIA_DB_DATABASE_NAME}
+      - POSTGRES_USER=${AUTH_DB_USERNAME}
+      - POSTGRES_PASSWORD=${AUTH_DB_PASSWORD}
+      - POSTGRES_DB=${AUTH_DB_DATABASE_NAME}
     expose:
       - 5432 # db
     extends:
       file: common.yml
       service: log-to-json
     healthcheck:
-      test: pg_isready --dbname='${AUTHELIA_DB_DATABASE_NAME}' --username='${AUTHELIA_DB_USERNAME}'
+      test: pg_isready --dbname='${AUTH_DB_DATABASE_NAME}' --username='${AUTH_DB_USERNAME}'
     networks:
       - authelia
     restart: unless-stopped
