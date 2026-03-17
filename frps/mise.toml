@@ -22,8 +22,8 @@ run = '''
 sops encrypt group_vars/all.yml > group_vars/all.yml.enc
 '''
 
-[tasks.frps]
-description = "Deploy frps with ansible"
+[tasks.deploy-proxy]
+description = "Deploy frp with ansible"
 run = '''
 ansible-playbook -i inventory.yml frps.yml
 '''

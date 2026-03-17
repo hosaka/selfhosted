@@ -1,9 +1,14 @@
-- name: enable fail2ban
+- name: restart frps
   ansible.builtin.service:
-    name: fail2ban
-    enabled: yes
+    name: frps
+    state: restarted
 
 - name: restart fail2ban
+  ansible.builtin.service:
+    name: fail2ban
+    state: restarted
+
+- name: restart caddy
   ansible.builtin.service:
     name: fail2ban
     state: restarted

@@ -1,0 +1,111 @@
+- name: create Caddy user
+  ansible.builtin.user:
+    name: "{{ caddy_user }}"
+    system: true
+    createhome: true
+    home: "{{ caddy_home }}"
+  register: caddy_user_details
+
+- name: check if Caddy releases file has already been created
+  ansible.builtin.stat:
+    path: "{{ caddy_home }}/releases.txt"
+  register: caddy_releases_file
+
+- name: get all Caddy releases
+  ansible.builtin.get_url:
+    url: https://api.github.com/repos/caddyserver/caddy/git/refs/tags
+    dest: "{{ caddy_home }}/releases.txt"
+    force: "{{ caddy_update }}"
+    owner: "{{ caddy_user }}"
+    group: "{{ caddy_user_details.group }}"
+    mode: 0640
+  retries: 3
+  delay: 2
+  when: (caddy_update or not caddy_releases_file.stat.exists)
+  register: caddy_releases_cache
+
+- name: set Caddy features
+  ansible.builtin.copy:
+    content: "{{ ','.join(caddy_packages) }}"
+    dest: "{{ caddy_home }}/features.txt"
+    mode: 0640
+    owner: "{{ caddy_user }}"
+    group: "{{ caddy_user_details.group }}"
+  when: caddy_update
+  register: caddy_features_cache
+
+- name: create Caddy config directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ caddy_user }}"
+    mode: 0770
+  with_items:
+    - "{{ caddy_config_dir }}"
+    - "{{ caddy_certs_dir }}"
+
+- name: create Caddy log directory
+  ansible.builtin.file:
+    path: "{{ caddy_log_dir }}"
+    state: directory
+    owner: "{{ caddy_user }}"
+    mode: 0775
+
+- name: get information about Caddy config file
+  ansible.builtin.stat:
+    path: "{{ caddy_config_path }}"
+  register: caddy_config_stat
+
+- name: download Caddy binary
+  ansible.builtin.get_url:
+    url: "{{ caddy_url }}"
+    checksum: "{{ caddy_checksum | default(omit) }}"
+    dest: "{{ caddy_home }}/caddy"
+    force: true
+    mode: 0644
+    owner: "{{ caddy_user }}"
+    group: "{{ caddy_user_details.group }}"
+  retries: 3
+  delay: 2
+  when: "caddy_releases_cache.changed or caddy_features_cache.changed"
+  register: caddy_binary_cache
+
+- name: copy Caddy binary
+  ansible.builtin.copy:
+    src: "{{ caddy_home }}/caddy"
+    dest: "{{ caddy_bin }}"
+    mode: 0755
+    remote_src: true
+  notify: restart caddy
+
+- name: create caddy config
+  ansible.builtin.copy:
+    content: "{{ caddy_config }}"
+    dest: "{{ caddy_config_path }}"
+    owner: "{{ caddy_user }}"
+    mode: 0640
+  when:
+    - caddy_config_update or not caddy_config_stat.stat.exists
+  notify: restart caddy
+
+- name: template Caddy systemd service
+  ansible.builtin.template:
+    src: caddy.service.j2
+    dest: "/etc/systemd/system/{{ caddy_service_name }}"
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart caddy
+
+- name: set capabilities on the Caddy binary file
+  community.general.capabilities:
+    path: "{{ caddy_bin }}"
+    capability: cap_net_bind_service+eip
+    state: present
+
+- name: start Caddy service
+  ansible.builtin.systemd:
+    name: caddy
+    state: started
+    enabled: true
+    daemon_reload: yes

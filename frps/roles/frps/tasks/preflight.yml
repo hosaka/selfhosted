@@ -1,4 +1,4 @@
 - name: assert usage of systemd as an init system
-  assert:
+  ansible.builtin.assert:
     that: ansible_service_mgr == 'systemd'
     msg: "This module only works with systemd"

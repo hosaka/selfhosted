@@ -4,48 +4,14 @@
 - name: install required packages
   include_tasks: "packages-{{ ansible_pkg_mgr }}.yml"
 
-- name: download frp
-  get_url:
-    url: "{{ frp_url }}"
-    checksum: "{{ frp_checksum | default(omit) }}"
-    dest: /tmp/frp.tar.gz
-  retries: 3
-  delay: 2
-
-- name: extract fprs
-  unarchive:
-    src: /tmp/frp.tar.gz
-    dest: "{{ frps_bin_dir }}"
-    creates: "{{ frps_bin }}"
-    remote_src: yes
-    extra_opts: ["--strip-components=1"]
-    # fixme: fails to extract for some reason
-    # include: ["*/frps", "*/LICENSE"]
-
-- name: create frp config directory
-  file:
-    path: "{{ frps_config_dir }}"
-    state: directory
-
-- name: render frps config
-  template:
-    src: frps.toml.j2
-    dest: "{{ frps_config }}"
-
-- name: install frps systemd service
-  template:
-    src: frps.service.j2
-    dest: /etc/systemd/system/frps.service
-
-- name: enable and start frps service
-  systemd:
-    name: frps
-    enabled: yes
-    state: started
-    daemon_reload: yes
+- name: configure frps
+  include_tasks: frps.yml
 
 - name: configure firewall
   include_tasks: firewall.yml
 
 - name: configure fail2ban
   include_tasks: fail2ban.yml
+
+- name: configure caddy
+  include_tasks: caddy.yml

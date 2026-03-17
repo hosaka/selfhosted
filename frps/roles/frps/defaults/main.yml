@@ -1,0 +1,27 @@
+frps_bin_dir: /usr/local/bin
+frps_config_dir: /etc/frp
+frps_config_filename: frps.toml
+
+fail2ban_default_bantime: 1h
+fail2ban_default_findtime: 10m
+fail2ban_default_maxretry: 3
+fail2ban_default_action: "%(action_mwl)s" # ban, email, log
+fail2ban_default_backend: auto
+fail2ban_mta: mail
+
+caddy_packages: []
+caddy_additional_args: ""
+caddy_bin_dir: /usr/local/bin
+caddy_config_dir: /etc/caddy
+caddy_config_filename: Caddyfile
+caddy_certs_dir: /etc/ssl/caddy
+caddy_log_dir: /var/log/caddy
+caddy_service_name: caddy.service
+caddy_update: true # always update to the latest version
+caddy_config_update: true # always create Caddyfile
+
+caddy_user: caddy
+caddy_home: /home/caddy
+caddy_environment_files: []
+caddy_environment_variables: {}
+caddy_url_base: "https://caddyserver.com/api/download"

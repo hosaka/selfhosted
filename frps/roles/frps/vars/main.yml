@@ -1,6 +1,28 @@
-frp_url: "https://github.com/fatedier/frp/releases/download/v{{ frp_version }}/frp_{{ frp_version }}_linux_amd64.tar.gz"
+go_arch_map:
+  i386: "386"
+  x86_64: "amd64"
+  aarch64: "arm64"
+  armv7l: "armv7"
+  armv6l: "armv6"
 
-frps_bin_dir: /usr/local/bin
+go_arch: "{{ go_arch_map[ansible_architecture] | default(ansible_architecture) }}"
+
 frps_bin: "{{ frps_bin_dir }}/frps"
-frps_config_dir: /etc/frp
-frps_config: "{{ frps_config_dir }}/frps.toml"
+frps_config_path: "{{ frps_config_dir }}/{{ frps_config_filename }}"
+frp_url: "https://github.com/fatedier/frp/releases/download/v{{ frp_version }}/frp_{{ frp_version }}_linux_{{ go_arch }}.tar.gz"
+
+caddy_bin: "{{ caddy_bin_dir }}/caddy"
+caddy_config_path: "{{ caddy_config_dir }}/{{ caddy_config_filename }}"
+
+caddy_arch_param_map:
+  armv7l: "arch=arm&arm=7"
+  armv6l: "arch=arm&arm=6"
+
+caddy_arch_param: "{{ caddy_arch_param_map[ansible_architecture] | default('arch=' + go_arch) }}"
+
+caddy_url: "{{ caddy_url_base }}?os=linux&{{ caddy_arch_param }}\
+  {% for pkg in caddy_packages %}\
+  &p={{ pkg | urlencode() }}\
+  {% endfor %}"
+
+caddy_config: "{{ lookup('template', 'template/Caddyfile.j2') }}"

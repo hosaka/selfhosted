@@ -5,7 +5,7 @@ Wants = network.target
 
 [Service]
 Type = simple
-ExecStart = {{ frps_bin }} -c {{ frps_config }}
+ExecStart = {{ frps_bin }} -c {{ frps_config_path }}
 
 [Install]
 WantedBy = multi-user.target
