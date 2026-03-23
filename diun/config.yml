@@ -7,7 +7,7 @@
   include_tags:
     - ^v\d+\.\d+\.\d+$
 
-- name: docker.io/authelia/authelia
+- name: ghcr.io/authelia/authelia
   watch_repo: true
   max_tags: 3
   sort_tags: semver
