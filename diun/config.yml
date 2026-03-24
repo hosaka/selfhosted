@@ -239,7 +239,7 @@
   include_tags:
     - ^\d+\.\d+\.\d+$
 
-- name: docker.io/creativeprojects/resticprofile
+- name: ghcr.io/creativeprojects/resticprofile
   watch_repo: true
   max_tags: 3
   sort_tags: semver
