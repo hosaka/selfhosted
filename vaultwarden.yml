@@ -21,6 +21,16 @@ services:
       - SMTP_PORT=${VAULTWARDEN_SMTP_PORT}
       - SMTP_SECURITY=${VAULTWARDEN_SMTP_SECURITY}
       - SMTP_USERNAME=${VAULTWARDEN_SMTP_USERNAME}
+      - SSO_ENABLED=true
+      - SSO_ONLY=false
+      # on SSO signup associate a user with a matching email that already exists
+      - SSO_SIGNUPS_MATCH_EMAIL=true
+      - SSO_AUTHORITY=https://auth.${PROXY_PUBLIC_DOMAIN}
+      # openid scope is implicit and does not need to be included here
+      - SSO_SCOPES=email profile offline_access vaultwarden
+      - SSO_PKCE=true
+      - SSO_CLIENT_ID=${AUTH_VAULTWARDEN_CLIENT_ID}
+      - SSO_CLIENT_SECRET=${AUTH_VAULTWARDEN_CLIENT_SECRET}
       - TZ=${TIMEZONE}
       - YUBICO_CLIENT_ID=${VAULTWARDEN_YUBICO_CLIENT_ID}
       - YUBICO_SECRET_KEY=${VAULTWARDEN_YUBICO_SECRET_KEY}

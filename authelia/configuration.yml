@@ -65,6 +65,8 @@ definitions:
   user_attributes:
     immich_role:
       expression: '"immich_admin" in groups ? "admin" : "user"'
+    vaultwarden_role:
+      expression: '"vaultwarden_admin" in groups ? ["admin"] : "vaultwarden_user" in groups ? ["user"] : [""]'
 
 identity_providers:
   oidc:
@@ -81,10 +83,18 @@ identity_providers:
         custom_claims:
           immich_role:
             attribute: immich_role
+      vaultwarden:
+        id_token: ["vaultwarden_role"]
+        custom_claims:
+          vaultwarden_role: {}
+
     scopes:
       immich:
         claims:
           - immich_role
+      vaultwarden:
+        claims:
+          - vaultwarden_role
 
     clients:
       - client_name: grafana
@@ -258,3 +268,30 @@ identity_providers:
         access_token_signed_response_alg: none
         userinfo_signed_response_alg: none
         token_endpoint_auth_method: client_secret_post
+
+      - client_name: vaultwarden
+        client_id: '{{ env "AUTH_VAULTWARDEN_CLIENT_ID" }}'
+        client_secret: '{{ env "AUTH_VAULTWARDEN_CLIENT_SECRET_HASH" }}'
+        claims_policy: vaultwarden
+        public: false
+        authorization_policy: one_factor
+        consent_mode: implicit
+        require_pkce: true
+        pkce_challenge_method: S256
+        redirect_uris:
+          - 'https://vaultwarden.{{ env "PROXY_PUBLIC_DOMAIN" }}/identity/connect/oidc-signin'
+          - 'https://vaultwarden.{{ env "PROXY_PRIVATE_DOMAIN" }}/identity/connect/oidc-signin'
+        scopes:
+          - openid
+          - email
+          - profile
+          - offline_access
+          - vaultwarden
+        response_types:
+          - code
+        grant_types:
+          - authorization_code
+          - refresh_token
+        access_token_signed_response_alg: none
+        userinfo_signed_response_alg: none
+        token_endpoint_auth_method: client_secret_basic
