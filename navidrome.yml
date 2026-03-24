@@ -16,6 +16,11 @@ services:
       - ND_LASTFM_ENABLED=true
       - ND_LASTFM_APIKEY=${NAVIDROME_LASTFM_APIKEY}
       - ND_LASTFM_SECRET=${NAVIDROME_LASTFM_SECRET}
+      # todo: enable external auth when it supports OIDC, ForwardAuth is a pain
+      # see https://www.navidrome.org/docs/usage/integration/authentication/
+      # - ND_EXTAUTH_TRUSTEDSOURCES=172.16.0.0/16
+      # - ND_EXTAUTH_USERHEADER=Remote-User
+      # - ND_ENABLEUSEREDITING=false
     expose:
       - 4533 # webui
     extends:
