@@ -72,7 +72,7 @@ services:
       - radarr-config:/config
 
   recyclarr:
-    image: ghcr.io/recyclarr/recyclarr:8.5.0
+    image: ghcr.io/recyclarr/recyclarr:8.5.1
     environment:
       - TZ=${TIMEZONE}
     extends:
@@ -87,7 +87,7 @@ services:
       - ./recyclarr/recyclarr.yml:/config/recyclarr.yml
 
   sonarr:
-    image: ghcr.io/hotio/sonarr:release-4.0.16.2944
+    image: ghcr.io/hotio/sonarr:release-4.0.17.2952
     expose:
       - 8989 # webui
     extends:

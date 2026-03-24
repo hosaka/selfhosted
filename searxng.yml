@@ -7,7 +7,7 @@ volumes:
 
 services:
   searxng:
-    image: ghcr.io/searxng/searxng:2025.11.14-1e200a110
+    image: ghcr.io/searxng/searxng:2026.3.23-2c1ce3bd3
     cap_drop:
       - ALL
     cap_add:
@@ -32,8 +32,6 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - ./searxng/settings.yml:/etc/searxng/settings.yml:ro
       - ./searxng/limiter.toml:/etc/searxng/limiter.toml:ro
-      # todo: change favicons
-      # https://github.com/searxng/searxng-docker/discussions/57#discussioncomment-2597013
 
   searxng-redis:
     image: docker.io/valkey/valkey:7-alpine
