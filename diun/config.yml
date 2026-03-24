@@ -16,7 +16,7 @@
   include_tags:
     - ^\d+\.\d+\.\d+$
 
-- name: docker.io/lldap/lldap
+- name: ghcr.io/lldap/lldap
   watch_repo: true
   max_tags: 3
   sort_tags: semver
