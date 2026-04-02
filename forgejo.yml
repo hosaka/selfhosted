@@ -37,8 +37,16 @@ services:
       - FORGEJO__database__USER=${FORGEJO_DB_USERNAME}
       - FORGEJO__git__PULL_REQUEST_PUSH_MESSAGE=false
       - FORGEJO__git__VERBOSE_PUSH=false
+      - FORGEJO__mailer__ENABLED=true
+      - FORGEJO__mailer__SMTP_ADDR=${FORGEJO_MAILER_SMTP_ADDR}
+      - FORGEJO__mailer__SMTP_PORT=${FROGEJO_MAILER_SMTP_PORT}
+      - FORGEJO__mailer__FROM=${FROGEJO_MAILER_FROM}
+      - FORGEJO__mailer__USER=${FROGEJO_MAILER_USER}
+      - FORGEJO__mailer__PASSWD=${FROGEJO_MAILER_PASSWD}
+      - FORGEJO__mailer__SEND_AS_PLAIN_TEXT=true
       - FORGEJO__openid__ENABLE_OPENID_SIGNUP=false
       - FORGEJO__openid__ENABLE_OPENID_SIGNIN=false
+      - FORGEJO__repository__DEFAULT_REPO_UNITS=repo.code,repo.releases,repo.issues,repo.pulls
       - FORGEJO__security__INSTALL_LOCK=true
       - FORGEJO__security__INTERNAL_TOKEN=${FORGEJO_INTERNAL_TOKEN}
       - FORGEJO__security__REVERSE_PROXY_TRUSTED_PROXIES=127.0.0.0/8,::1/128
@@ -55,6 +63,7 @@ services:
       - FORGEJO__service__ALLOW_ONLY_EXTERNAL_REGISTRATION=true
       - FORGEJO__service__ENABLE_INTERNAL_SIGNIN=false
       - FORGEJO__oauth2_client__UPDATE_AVATAR=true
+      - FORGEJO__other__SHOW_FOOTER_TEMPLATE_LOAD_TIME=false
     expose:
       - 3000 # webui
       - 2222 # ssh
