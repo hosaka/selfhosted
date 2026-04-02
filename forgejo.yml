@@ -7,7 +7,7 @@ volumes:
   forgejo-data:
   forgejo-database-data:
   forgejo-runner-data:
-  forgejo-docker-certs:
+  dind-certs:
 
 services:
   forgejo:
@@ -15,7 +15,7 @@ services:
     # forgejo admin user create --admin --username user --password password --email email@domain.tld
     image: codeberg.org/forgejo/forgejo:14.0.3-rootless
     command: >-
-      bash -ec '
+      /bin/sh -c '
       gitea --config /etc/gitea/app.ini &
       sleep 10 ;
       forgejo forgejo-cli actions register --secret ${FORGEJO_RUNNER_SECRET} --name box || true ;
@@ -97,50 +97,53 @@ services:
     volumes:
       - forgejo-database-data:/var/lib/postgresql/data
 
-  # note: enable when necessary
-  # forgejo-dind:
-  #   image: docker.io/docker:dind
-  #   hostname: docker # must set hostname as TLS certificates are only valid for docker or localhost
-  #   privileged: true
-  #   environment:
-  #     - DOCKER_TLS_CERTDIR=/certs
-  #     - DOCKER_HOST=forgejo-dind
-  #   expose:
-  #     - 2376 # tcp
-  #   extends:
-  #     file: common.yml
-  #     service: log-to-json
-  #   networks:
-  #     - forgejo
-  #   volumes:
-  #     - forgejo-docker-certs:/certs
-  #
-  # forgejo-runner:
-  #   image: code.forgejo.org/forgejo/runner:12.7.3
-  #   command: >-
-  #     bash -ec '
-  #     while : ; do
-  #       forgejo-runner create-runner-file --connect --instance http://forgejo:3000 --name box --secret $FORGEJO_RUNNER_SECRET && break ;
-  #       sleep 1 ;
-  #     done ;
-  #     chown -R 1000:1000 /data ;
-  #     while : ; do test -w .runner && forgejo-runner --config runner.yml daemon ; sleep 1 ; done
-  #     '
-  #   depends_on:
-  #     - forgejo
-  #     - forgejo-dind
-  #   environment:
-  #     - FORGEJO_RUNNER_SECRET=${FORGEJO_RUNNER_SECRET}
-  #     - DOCKER_HOST=tcp://docker:2376
-  #     - DOCKER_CERT_PATH=/certs/client
-  #     - DOCKER_TLS_VERIFY=1
-  #   extends:
-  #     file: common.yml
-  #     service: log-to-json
-  #   networks:
-  #     - forgejo
-  #   restart: unless-stopped
-  #   volumes:
-  #     - forgejo-runner-data:/data
-  #     - forgejo-docker-certs:/certs
-  #     - ./forgejo/runner.yml:/data/runner.yml
+  forgejo-dind:
+    image: docker.io/docker:29.3.1-dind
+    hostname: docker # must be `docker` or `localhost`, TLS certificates are only valid for these
+    privileged: true
+    environment:
+      - DOCKER_TLS_CERTDIR=/certs
+    expose:
+      - 2376 # tcp
+    extends:
+      file: common.yml
+      service: log-to-json
+    networks:
+      - forgejo
+    restart: unless-stopped
+    volumes:
+      - dind-certs:/certs
+
+  forgejo-runner:
+    image: code.forgejo.org/forgejo/runner:12.7.3
+    command: >-
+      /bin/sh -c '
+      while : ; do
+        forgejo-runner create-runner-file --connect --instance http://forgejo:3000 --name box --secret ${FORGEJO_RUNNER_SECRET} --config /runner.yml && break ;
+        sleep 5 ;
+      done ;
+      while : ;
+        do test -w .runner && forgejo-runner --config /runner.yml daemon ;
+        sleep 5 ;
+      done ;
+      '
+    depends_on:
+      forgejo:
+        condition: service_started
+      forgejo-dind:
+        condition: service_started
+    environment:
+      - DOCKER_HOST=tcp://docker:2376
+      - DOCKER_CERT_PATH=/certs/client
+      - DOCKER_TLS_VERIFY=1
+    extends:
+      file: common.yml
+      service: log-to-json
+    networks:
+      - forgejo
+    restart: unless-stopped
+    user: 1000:1000
+    volumes:
+      - forgejo-runner-data:/data
+      - dind-certs:/certs:ro
+      - ./forgejo/runner.yml:/runner.yml:ro
