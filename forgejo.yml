@@ -70,6 +70,12 @@ services:
     extends:
       file: common.yml
       service: log-to-json
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     restart: unless-stopped
     networks:
       - proxy
@@ -86,11 +92,11 @@ services:
       - POSTGRES_USER=${FORGEJO_DB_USERNAME}
       - POSTGRES_PASSWORD=${FORGEJO_DB_PASSWORD}
       - POSTGRES_DB=${FORGEJO_DB_DATABASE_NAME}
-    healthcheck:
-      test: pg_isready --dbname='${FORGEJO_DB_DATABASE_NAME}' --username='${FORGEJO_DB_USERNAME}'
     extends:
       file: common.yml
       service: log-to-json
+    healthcheck:
+      test: pg_isready --dbname='${FORGEJO_DB_DATABASE_NAME}' --username='${FORGEJO_DB_USERNAME}'
     networks:
       - forgejo
     restart: unless-stopped
@@ -108,6 +114,12 @@ services:
     extends:
       file: common.yml
       service: log-to-json
+    healthcheck:
+      test: ["CMD", "docker", "info"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
     networks:
       - forgejo
     restart: unless-stopped
@@ -129,9 +141,9 @@ services:
       '
     depends_on:
       forgejo:
-        condition: service_started
+        condition: service_healthy
       forgejo-dind:
-        condition: service_started
+        condition: service_healthy
     environment:
       - DOCKER_HOST=tcp://docker:2376
       - DOCKER_CERT_PATH=/certs/client
@@ -142,7 +154,6 @@ services:
     networks:
       - forgejo
     restart: unless-stopped
-    user: 1000:1000
     volumes:
       - forgejo-runner-data:/data
       - dind-certs:/certs:ro
