@@ -18,6 +18,10 @@
 		reverse_proxy forgejo:3000
 		rewrite * /hosaka/.dotfiles/raw/branch/main/.gnupg/public.pgp
 	}
+	handle_path /void/* {
+		reverse_proxy forgejo:3000
+		rewrite * /api/packages/hosaka/generic/vast-packages/{path}
+	}
 }
 
 auth.{$PROXY_PUBLIC_DOMAIN} {
