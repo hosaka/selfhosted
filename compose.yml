@@ -51,6 +51,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - caddy-config:/config
       - ./caddy/Caddyfile:/config/Caddyfile
+      - ${MEDIA_RCLONE_SERVE_PATH}:/srv/switch
 
   frpc:
     image: ghcr.io/fatedier/frpc:v0.67.0
@@ -73,21 +74,6 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - ./frpc/frpc.toml:/etc/frp/frpc.toml:ro
-
-  rclone:
-    image: ghcr.io/rclone/rclone:1.70
-    command: "serve http /data/media --addr :8000"
-    expose:
-      - 8000 # http
-    extends:
-      file: common.yml
-      service: log-to-json
-    networks:
-      - proxy
-    restart: unless-stopped
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - ${MEDIA_RCLONE_SERVE_PATH}:/data/media
 
   whoami:
     image: ghcr.io/traefik/whoami:v1.11.0
