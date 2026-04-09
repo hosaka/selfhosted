@@ -1,0 +1,19 @@
+networks:
+  proxy:
+
+services:
+  voidrepo:
+    build:
+      context: ./voidrepo
+      dockerfile: Containerfile
+    environment:
+      # - RSYNC_ARGS=--dry-run
+      - RSYNC_ARGS=
+    extends:
+      file: common.yml
+      service: log-to-json
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./voidrepo/crontab:/etc/crontabs/root:ro
+      - ${FILES_VOIDREPO_PATH}:/data/voidrepo
+    restart: unless-stopped

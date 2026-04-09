@@ -18,6 +18,7 @@ include:
   # - syncstorage.yml
   - slskd.yml
   - vaultwarden.yml
+  - voidrepo.yml
   - wakapi.yml
 
 networks:
@@ -51,7 +52,8 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - caddy-config:/config
       - ./caddy/Caddyfile:/config/Caddyfile
-      - ${MEDIA_RCLONE_SERVE_PATH}:/srv/switch
+      - ${FILES_SWITCH_PATH}:/srv/switch
+      - ${FILES_VOIDREPO_PATH}:/srv/voidrepo
 
   frpc:
     image: ghcr.io/fatedier/frpc:v0.67.0

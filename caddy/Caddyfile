@@ -25,6 +25,15 @@
 }
 
 # files
+mirror.{$PROXY_PUBLIC_DOMAIN} {
+	handle_path /voidlinux* {
+		root * /srv/voidrepo
+		file_server browse {
+			hide .partial
+		}
+	}
+	respond 404
+}
 http://switch.{$PROXY_PRIVATE_DOMAIN} {
 	file_server browse {
 		root /srv/switch
