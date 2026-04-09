@@ -53,3 +53,9 @@ Backups are done using `restic` and `resticprofile`. See the [restic/README.md](
 ### Hardware
 
 - [x] Replace the NIC with a TPU such as Coral PCIe Accelerator or a dGPU with a small form factor
+
+## Mirrors
+This repository is hosted on [Forgejo](https://code.hosaka.cc/hosaka/selfhosted) which mirrors to the following git forges:
+- https://codeberg.org/hosaka/selfhosted
+- https://github.com/hosaka/selfhosted
+
