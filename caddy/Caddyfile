@@ -25,7 +25,7 @@
 }
 
 # files
-mirror.{$PROXY_PUBLIC_DOMAIN} {
+mirror.{$PROXY_PRIVATE_DOMAIN}, mirror.{$PROXY_PUBLIC_DOMAIN} {
 	handle_path /voidlinux* {
 		root * /srv/voidrepo
 		file_server browse {
