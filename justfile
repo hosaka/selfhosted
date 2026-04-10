@@ -63,6 +63,12 @@ gensecret:
 sync:
     rsync -chavzP --no-perms --no-owner --no-group {{ cwd }} alex@box.hosaka.cc:box/
 
+[doc('manually trigger voidrepo sync script')]
+[no-cd]
+[no-exit-message]
+voidsync:
+    docker compose exec voidrepo sync.sh
+
 [doc('ssh into the server')]
 [no-exit-message]
 ssh:
