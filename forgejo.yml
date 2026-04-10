@@ -46,6 +46,8 @@ services:
       - FORGEJO__mailer__SEND_AS_PLAIN_TEXT=true
       - FORGEJO__openid__ENABLE_OPENID_SIGNUP=false
       - FORGEJO__openid__ENABLE_OPENID_SIGNIN=false
+      - FORGEJO__packages__STORAGE_TYPE=local
+      - FORGEJO__packages__PATH=/var/lib/gitea/packages
       - FORGEJO__repository__DEFAULT_REPO_UNITS=repo.code,repo.releases,repo.issues,repo.pulls
       - FORGEJO__security__INSTALL_LOCK=true
       - FORGEJO__security__INTERNAL_TOKEN=${FORGEJO_INTERNAL_TOKEN}
