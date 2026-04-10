@@ -87,6 +87,7 @@ services:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
       - forgejo-data:/var/lib/gitea
+      - ./forgejo/templates/:/var/lib/gitea/custom/templates:ro
 
   forgejo-database:
     image: docker.io/postgres:14-alpine
