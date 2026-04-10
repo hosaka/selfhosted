@@ -17,6 +17,8 @@ profiles:
         # we don't want to backup github mirrors, if desired
         # fork the mirror under your own username
         - /var/lib/docker/volumes/box_forgejo-data/_data/git/repositories/github
+        # we don't need to backup packages, they can be rebuilt
+        - /var/lib/docker/volumes/box_forgejo-data/_data/packages
 
       tag:
         - docker
