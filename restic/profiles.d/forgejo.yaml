@@ -14,9 +14,10 @@ profiles:
         - /var/lib/docker/volumes/box_forgejo-data
 
       exclude:
-        # we don't want to backup github mirrors, if desired
+        # we don't want to backup public mirrors, if desired
         # fork the mirror under your own username
         - /var/lib/docker/volumes/box_forgejo-data/_data/git/repositories/github
+        - /var/lib/docker/volumes/box_forgejo-data/_data/git/repositories/codeberg
         # we don't need to backup packages, they can be rebuilt
         - /var/lib/docker/volumes/box_forgejo-data/_data/packages
 
