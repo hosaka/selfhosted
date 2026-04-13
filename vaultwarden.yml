@@ -6,7 +6,7 @@ volumes:
 
 services:
   vaultwarden:
-    image: ghcr.io/dani-garcia/vaultwarden:1.35.4-alpine
+    image: ghcr.io/dani-garcia/vaultwarden:1.35.6-alpine
     environment:
       - ADMIN_TOKEN=${VAULTWARDEN_ADMIN_TOKEN}
       - DOMAIN=https://vaultwarden.${PROXY_PUBLIC_DOMAIN}
