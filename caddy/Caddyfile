@@ -12,11 +12,11 @@
 				# remote_host var will be set to a real user IP (X-Forwarded-For is set as well)
 				allow 192.168.0.0/16 172.16.0.0/12 10.0.0.0/8 127.0.0.1/8
 				fallback_policy reject
-				trusted_proxies_strict
 			}
 			tls
 		}
 		trusted_proxies static private_ranges
+		trusted_proxies_strict
 	}
 }
 
@@ -119,15 +119,17 @@ atuin.{$PROXY_PRIVATE_DOMAIN}, atuin.{$PROXY_PUBLIC_DOMAIN} {
 	reverse_proxy atuin:8888
 }
 vaultwarden.{$PROXY_PRIVATE_DOMAIN}, vaultwarden.{$PROXY_PUBLIC_DOMAIN} {
-	encode gzip
+	encode zstd gzip
 
 	header {
 		# enable HTTP Strict Transport Security (HSTS)
 		Strict-Transport-Security "max-age=31536000; preload"
-		# enable cross-site filter (XSS) and tell browser to block detected attacks
-		X-XSS-Protection "1; mode=block"
+		# disable enable cross-site filter (XSS)
+		X-XSS-Protection "0"
+		# disallow sniffing of X-Content-Type-Options
+		X-Content-Type-Options "nosniff"
 		# disallow the site to be rendered within a frame (clickjacking protection)
-		X-Frame-Options "DENY"
+		X-Frame-Options "SAMEORIGIN"
 		# prevent search engines from indexing
 		X-Robots-Tag "none"
 		# remove server name
@@ -190,8 +192,8 @@ search.{$PROXY_PRIVATE_DOMAIN}, search.{$PROXY_PUBLIC_DOMAIN} {
 	header {
 		# enable HTTP Strict Transport Security (HSTS)
 		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-		# enable cross-site filter (XSS) and tell browser to block detected attacks
-		X-XSS-Protection "1; mode=block"
+		# disable enable cross-site filter (XSS)
+		X-XSS-Protection "0"
 		# prevent some browsers from MIME-sniffing a response away from the declared Content-Type
 		X-Content-Type-Options "nosniff"
 		# disable some features
