@@ -3,6 +3,21 @@
 	acme_dns cloudflare {env.PROXY_CF_API_TOKEN}
 	# acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
 	skip_install_trust
+
+	servers {
+		listener_wrappers {
+			proxy_protocol {
+				timeout 5s
+				# PROXY protocol provided by FRP container (cannot use private_ranges here, only cidrs)
+				# remote_host var will be set to a real user IP (X-Forwarded-For is set as well)
+				allow 192.168.0.0/16 172.16.0.0/12 10.0.0.0/8 127.0.0.1/8
+				fallback_policy reject
+				trusted_proxies_strict
+			}
+			tls
+		}
+		trusted_proxies static private_ranges
+	}
 }
 
 # public
@@ -22,6 +37,14 @@
 		reverse_proxy forgejo:3000
 		rewrite * /api/packages/hosaka/generic/vast-packages/{path}
 	}
+}
+
+# tunnel
+frp.{$PROXY_PRIVATE_DOMAIN} {
+	reverse_proxy frpc:7400
+}
+frp.{$PROXY_PUBLIC_DOMAIN} {
+	reverse_proxy frp.{$PROXY_PUBLIC_DOMAIN}:7500
 }
 
 # files
@@ -90,7 +113,7 @@ paperless.{$PROXY_PRIVATE_DOMAIN}, paperless.{$PROXY_PUBLIC_DOMAIN} {
 		path /admin*
 		not remote_ip private_ranges
 	}
-	redir @admin /
+	respond @admin "401 - {remote_host} is not an allowed IP" 401
 }
 atuin.{$PROXY_PRIVATE_DOMAIN}, atuin.{$PROXY_PUBLIC_DOMAIN} {
 	reverse_proxy atuin:8888
@@ -116,13 +139,12 @@ vaultwarden.{$PROXY_PRIVATE_DOMAIN}, vaultwarden.{$PROXY_PUBLIC_DOMAIN} {
 		path /admin*
 		not remote_ip private_ranges
 	}
-	redir @admin /
+	respond @admin "401 - {remote_host} is not an allowed IP" 401
 
 	# proxy everything to Rocket
 	reverse_proxy vaultwarden:80 {
-		# send the true remote IP to Rocket, fail2ban can ban correct IP from the log
-		# use http.request.header.Cf-Connecting-Ip instead of remote_host if proxying with Cloudflare
-		header_up X-Real-IP {http.request.header.Cf-Connecting-Ip}
+		# send the true remote IP to Rocket, so fail2ban can ban correct IP from the log
+		header_up X-Real-IP {remote_host}
 	}
 }
 gotify.{$PROXY_PRIVATE_DOMAIN}, gotify.{$PROXY_PUBLIC_DOMAIN} {
@@ -234,10 +256,4 @@ whoami.{$PROXY_PRIVATE_DOMAIN}, whoami.{$PROXY_PUBLIC_DOMAIN} {
 }
 waka.{$PROXY_PRIVATE_DOMAIN}, waka.{$PROXY_PUBLIC_DOMAIN} {
 	reverse_proxy wakapi:3000
-}
-frp.{$PROXY_PRIVATE_DOMAIN} {
-	reverse_proxy frpc:7400
-}
-frp.{$PROXY_PUBLIC_DOMAIN} {
-	reverse_proxy frp.{$PROXY_PUBLIC_DOMAIN}:7500
 }

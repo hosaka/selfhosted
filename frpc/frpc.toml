@@ -11,6 +11,9 @@ type = "tcp"
 localIP = "caddy"
 localPort = 443
 remotePort = 443
+# get real user IP
+# see: https://gofrp.org/en/docs/features/common/realip/
+transport.proxyProtocolVersion = "v2"
 
 [[proxies]]
 name = "http"
@@ -18,6 +21,9 @@ type = "tcp"
 localIP = "caddy"
 localPort = 80
 remotePort = 80
+# get real user IP
+# see: https://gofrp.org/en/docs/features/common/realip/
+transport.proxyProtocolVersion = "v2"
 
 [[proxies]]
 name = "ssh-host"
