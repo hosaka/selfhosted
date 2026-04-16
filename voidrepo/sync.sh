@@ -50,3 +50,5 @@ rsync \
   ${RSYNC_ARGS} \
   "rsync://repo-sync.voidlinux.org/voidlinux" \
   "/data/voidrepo"
+
+echo "Last sync: $(date)"
