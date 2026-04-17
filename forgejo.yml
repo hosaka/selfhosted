@@ -12,14 +12,18 @@ volumes:
 services:
   forgejo:
     # note: to automatically create a new user, add to the executed command, before sleep infinity:
-    # forgejo admin user create --admin --username user --password password --email email@domain.tld
-    image: codeberg.org/forgejo/forgejo:14.0.4-rootless
+    # forgejo admin user create --admin --username user --password password --email email@domain.tld || true ;
+    image: codeberg.org/forgejo/forgejo:15.0.0-rootless
     command: >-
       /bin/sh -c '
-      gitea --config /etc/gitea/app.ini &
+      gitea --config /var/lib/gitea/custom/conf/app.ini &
       sleep 10 ;
       forgejo forgejo-cli actions register --secret ${FORGEJO_RUNNER_SECRET} --name box || true ;
-      forgejo admin auth add-oauth --provider=openidConnect --name=Authelia --key=${AUTH_FORGEJO_CLIENT_ID} --secret=${AUTH_FORGEJO_CLIENT_SECRET} --auto-discover-url=https://auth.${PROXY_PUBLIC_DOMAIN}/.well-known/openid-configuration --scopes=openid --scopes=email --scopes=profile --scopes=groups --group-claim-name=groups --admin-group=forgejo_admin --skip-local-2fa || true ;
+      forgejo admin auth add-oauth --provider=openidConnect --name=Authelia \
+        --key=${AUTH_FORGEJO_CLIENT_ID} --secret=${AUTH_FORGEJO_CLIENT_SECRET} \
+        --auto-discover-url=https://auth.${PROXY_PUBLIC_DOMAIN}/.well-known/openid-configuration \
+        --scopes=openid --scopes=email --scopes=profile --scopes=groups --group-claim-name=groups \
+        --admin-group=forgejo_admin --skip-local-2fa || true ;
       sleep infinity ;
       '
     depends_on:
@@ -29,7 +33,6 @@ services:
       - APP_NAME=Code
       - USER_UID=1000
       - USER_GID=1000
-      - GITEA_APP_INI=/etc/gitea/app.ini
       - FORGEJO__database__DB_TYPE=postgres
       - FORGEJO__database__HOST=forgejo-database
       - FORGEJO__database__NAME=${FORGEJO_DB_DATABASE_NAME}
@@ -48,7 +51,7 @@ services:
       - FORGEJO__openid__ENABLE_OPENID_SIGNIN=false
       - FORGEJO__packages__STORAGE_TYPE=local
       - FORGEJO__packages__PATH=/var/lib/gitea/packages
-      - FORGEJO__repository__DEFAULT_REPO_UNITS=repo.code,repo.releases,repo.issues,repo.pulls
+      - FORGEJO__repository__DEFAULT_REPO_UNITS=repo.code,repo.issues,repo.pulls
       - FORGEJO__security__INSTALL_LOCK=true
       - FORGEJO__security__INTERNAL_TOKEN=${FORGEJO_INTERNAL_TOKEN}
       - FORGEJO__security__REVERSE_PROXY_TRUSTED_PROXIES=127.0.0.0/8,::1/128
@@ -83,6 +86,7 @@ services:
       - proxy
       - forgejo
       - frp
+    user: 1000:1000
     volumes:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
