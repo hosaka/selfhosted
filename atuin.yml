@@ -7,7 +7,7 @@ volumes:
 
 services:
   atuin:
-    image: ghcr.io/atuinsh/atuin:18.13.6
+    image: ghcr.io/atuinsh/atuin:18.15.2
     command: start
     depends_on:
       atuin-database:
