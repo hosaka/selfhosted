@@ -1,5 +1,15 @@
 #!/bin/sh
 
+PIDFILE=/tmp/sync.pid
+
+if [ -f "$PIDFILE" ] && kill -0 "$(cat $PIDFILE)" 2>/dev/null; then
+  echo "sync already running (pid $(cat $PIDFILE)), skipping"
+  exit 0
+fi
+
+echo $$ >"$PIDFILE"
+trap 'rm -f "$PIDFILE"' EXIT
+
 rsync \
   --recursive \
   --links \
@@ -51,4 +61,4 @@ rsync \
   "rsync://repo-sync.voidlinux.org/voidlinux" \
   "/data/voidrepo"
 
-echo "Last sync: $(date)"
+echo "last sync $(date)"
