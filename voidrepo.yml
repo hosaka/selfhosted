@@ -9,6 +9,10 @@ services:
     extends:
       file: common.yml
       service: log-to-json
+    logging:
+      options:
+        mode: non-blocking
+        max-buffer-size: 16m
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - ./voidrepo/crontab:/etc/crontabs/root:ro
