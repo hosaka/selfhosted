@@ -31,8 +31,6 @@ services:
         condition: service_healthy
     environment:
       - APP_NAME=Code
-      - USER_UID=1000
-      - USER_GID=1000
       - FORGEJO__database__DB_TYPE=postgres
       - FORGEJO__database__HOST=forgejo-database
       - FORGEJO__database__NAME=${FORGEJO_DB_DATABASE_NAME}
@@ -52,6 +50,13 @@ services:
       - FORGEJO__packages__STORAGE_TYPE=local
       - FORGEJO__packages__PATH=/var/lib/gitea/packages
       - FORGEJO__repository__DEFAULT_REPO_UNITS=repo.code,repo.issues,repo.pulls
+      - FORGEJO__repository_0x2E_SIGNING__SIGNING_EMAIL=noreply@code.${PROXY_PUBLIC_DOMAIN}
+      - FORGEJO__repository_0x2E_SIGNING__SIGNING_KEY=31A01766256FED1F8E6DE35744D6E66B6C79E146
+      - FORGEJO__repository_0x2E_SIGNING__SIGNING_NAME=Forgejo
+      - FORGEJO__repository_0x2E_SIGNING__INITIAL_COMMIT=pubkey
+      - FORGEJO__repository_0x2E_SIGNING__WIKI=pubkey
+      - FORGEJO__repository_0x2E_SIGNING__CRUD_ACTIONS=pubkey
+      - FORGEJO__repository_0x2E_SIGNING__MERGES=pubkey
       - FORGEJO__security__INSTALL_LOCK=true
       - FORGEJO__security__INTERNAL_TOKEN=${FORGEJO_INTERNAL_TOKEN}
       - FORGEJO__security__REVERSE_PROXY_TRUSTED_PROXIES=127.0.0.0/8,::1/128
@@ -69,6 +74,9 @@ services:
       - FORGEJO__service__ENABLE_INTERNAL_SIGNIN=false
       - FORGEJO__oauth2_client__UPDATE_AVATAR=true
       - FORGEJO__other__SHOW_FOOTER_TEMPLATE_LOAD_TIME=false
+      - GNUPGHOME=/var/lib/gitea/.gnupg
+      - USER_UID=1000
+      - USER_GID=1000
     expose:
       - 3000 # webui
       - 2222 # ssh
