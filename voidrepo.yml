@@ -4,17 +4,14 @@ services:
       context: ./voidrepo
       dockerfile: Containerfile
     environment:
-      # - RSYNC_ARGS=--dry-run
+      # use --dry-run when testing or pass any additional args
       - RSYNC_ARGS=
+      # at minute 0 past every 3rd hour: 12:00, 15:00, 18:00
+      - CRON_SCHEDULE=0 */3 * * *
     extends:
       file: common.yml
       service: log-to-json
-    logging:
-      options:
-        mode: non-blocking
-        max-buffer-size: 16m
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - ./voidrepo/crontab:/etc/crontabs/root:ro
       - ${FILES_VOIDREPO_PATH}:/data/voidrepo
     restart: unless-stopped

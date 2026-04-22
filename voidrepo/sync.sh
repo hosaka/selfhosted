@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 PIDFILE=/tmp/sync.pid
 
 if [ -f "$PIDFILE" ] && kill -0 "$(cat $PIDFILE)" 2>/dev/null; then
