@@ -6,8 +6,8 @@ mixins:
     default-vars:
       container: none
 
-    run-before: docker compose -p box stop $container
-    run-finally: docker compose -p box start $container
+    run-before...: docker compose -p box stop $container
+    run-finally...: docker compose -p box start $container
 
   notify-on-success:
     send-after:
