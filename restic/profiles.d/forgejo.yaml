@@ -33,6 +33,8 @@ profiles:
       use:
         - name: stop-start-container
           container: forgejo
+        - name: stop-start-container
+          container: forgejo-runner
 
       stdin: true
       stdin-command: docker compose -p box exec forgejo-database pg_dumpall -c -U postgres | gzip -c
