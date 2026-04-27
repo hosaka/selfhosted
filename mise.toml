@@ -1,7 +1,23 @@
+[env]
+# Use the project name derived from the current directory
+PROJECT_NAME = "{{ config_root | basename }}"
+
 [tools]
 sops = "latest"
-# age = "latest"
-# age-plugin-yubikey = "latest"
-
 hadolint = "latest"
 marksman = "latest"
+prek = "latest"
+
+[tasks.info]
+description = "Print project information"
+run = '''
+echo "PROJECT_NAME: $PROJECT_NAME"
+'''
+
+[tasks.prep]
+description = "Prepare development environment"
+depends_post = ["info"]
+run = '''
+prek install
+git config remote.origin.prune true
+'''

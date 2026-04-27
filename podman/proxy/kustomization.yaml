@@ -6,7 +6,7 @@ resources:
 
 configMapGenerator:
   - name: proxy-config
-    envs: 
+    envs:
       - .env
 
 generatorOptions:

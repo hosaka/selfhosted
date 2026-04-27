@@ -6,7 +6,7 @@ resources:
 
 configMapGenerator:
   - name: media-config
-    envs: 
+    envs:
       - .env
 
 generatorOptions:

@@ -1,0 +1,19 @@
+[[repos]]
+repo = "builtin"
+hooks = [
+  { id = "check-yaml", args = [
+    "--multi",
+  ] },
+  { id = "check-toml" },
+  { id = "check-json" },
+  { id = "trailing-whitespace" },
+]
+
+[[repos]]
+repo = "local"
+[[repos.hooks]]
+id = "hadolint"
+name = "check containerfiles"
+language = "system"
+entry = "hadolint"
+files = "(Containerfile|Dockerfile)$"

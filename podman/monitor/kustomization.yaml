@@ -6,7 +6,7 @@ resources:
 
 configMapGenerator:
   - name: monitor-config
-    envs: 
+    envs:
       - .env
 
 generatorOptions:
