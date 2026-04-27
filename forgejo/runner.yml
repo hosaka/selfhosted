@@ -32,7 +32,8 @@ runner:
   # If it's empty when registering, it will ask for inputting labels.
   # If it's empty when executing the `daemon`, it will use labels in the `.runner` file.
   labels: [
-      "docker:docker://code.forgejo.org/oci/node:24-bookworm",
+      "docker:docker://code.forgejo.org/oci/node:24-bookworm@sha256:e9891237dfbb1de60ce19e9ff9fac5d73ad9c37da303ad72ff2a425ad1057e71",
+      "ubuntu-latest:docker://ghcr.io/catthehacker/ubuntu:act-24.04@sha256:15e550c0501533b336df62cd3c8ba530a77972b62180c3b4240a1222cb2cd1f3",
       # "self-hosted:host://-self-hosted",
     ]
 
