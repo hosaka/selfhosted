@@ -122,6 +122,29 @@ identity_providers:
         userinfo_signed_response_alg: none
         token_endpoint_auth_method: client_secret_basic
 
+      - client_name: gotify
+        client_id: '{{ env "AUTH_GOTIFY_CLIENT_ID" }}'
+        client_secret: '{{ env "AUTH_GOTIFY_CLIENT_SECRET_HASH" }}'
+        public: false
+        authorization_policy: one_factor
+        consent_mode: implicit
+        require_pkce: true
+        pkce_challenge_method: S256
+        redirect_uris:
+          - 'https://gotify.{{env "PROXY_PUBLIC_DOMAIN" }}/auth/oidc/callback'
+          - "gotify://oidc/callback"
+        scopes:
+          - openid
+          - email
+          - profile
+        response_types:
+          - code
+        grant_types:
+          - authorization_code
+        access_token_signed_response_alg: none
+        userinfo_signed_response_alg: none
+        token_endpoint_auth_method: client_secret_basic
+
       - client_name: forgejo
         client_id: '{{ env "AUTH_FORGEJO_CLIENT_ID" }}'
         client_secret: '{{ env "AUTH_FORGEJO_CLIENT_SECRET_HASH" }}'

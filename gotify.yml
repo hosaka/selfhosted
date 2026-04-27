@@ -9,9 +9,16 @@ volumes:
 
 services:
   gotify:
-    image: ghcr.io/gotify/server:2.9.1
+    image: ghcr.io/gotify/server:master
     environment:
       - TZ=${TIMEZONE}
+      - GOTIFY_OIDC_ENABLED=true
+      - GOTIFY_OIDC_ISSUER=https://auth.${PROXY_PUBLIC_DOMAIN}
+      - GOTIFY_OIDC_CLIENTID=${AUTH_GOTIFY_CLIENT_ID}
+      - GOTIFY_OIDC_CLIENTSECRET=${AUTH_GOTIFY_CLIENT_SECRET}
+      - GOTIFY_OIDC_REDIRECTURL=https://gotify.${PROXY_PUBLIC_DOMAIN}/auth/oidc/callback
+      - GOTIFY_OIDC_AUTOREGISTER=true
+      - GOTIFY_OIDC_USERNAMECLAIM=preferred_username
     expose:
       - 80 # webui
     extends:
