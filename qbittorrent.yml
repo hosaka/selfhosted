@@ -8,7 +8,7 @@ volumes:
 
 services:
   qbit:
-    image: ghcr.io/hotio/qbittorrent:release-5.2.0
+    image: ghcr.io/hotio/qbittorrent:release-5.2.1
     cap_add:
       - NET_ADMIN
     environment:
@@ -19,6 +19,8 @@ services:
       - VPN_LAN_LEAK_ENABLED=false
       - VPN_AUTO_PORT_FORWARD=true
       - VPN_HEALTHCHECK_ENABLED=true
+      - PRIVOXY_ENABLED=false
+      - UNBOUND_ENABLED=false
     expose:
       - 8080 # webui
     extends:
@@ -38,7 +40,7 @@ services:
       - ${MEDIA_DOWNLOADS_TORRENT_PATH}:/data/media/downloads/torrent
 
   qbitmanage:
-    image: ghcr.io/hotio/qbitmanage:release-4.7.0
+    image: ghcr.io/hotio/qbitmanage:release-4.7.1
     expose:
       - 8181 # api
     extends:
