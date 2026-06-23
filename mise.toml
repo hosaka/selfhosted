@@ -6,7 +6,6 @@ PROJECT_NAME = "{{ config_root | basename }}"
 sops = "latest"
 hadolint = "latest"
 marksman = "latest"
-prek = "latest"
 
 [tasks.info]
 description = "Print project information"
