@@ -42,7 +42,7 @@ services:
       - ${MEDIA_ROOT_PATH}:/data/media
 
   prowlarr:
-    image: ghcr.io/hotio/prowlarr:release-2.3.5.5327
+    image: ghcr.io/hotio/prowlarr:release-2.4.0.5397
     expose:
       - 9696 # webui
     extends:
@@ -57,7 +57,7 @@ services:
       - prowlarr-config:/config
 
   radarr:
-    image: ghcr.io/hotio/radarr:release-6.1.1.10360
+    image: ghcr.io/hotio/radarr:release-6.2.1.10461
     expose:
       - 7878 # webui
     extends:
