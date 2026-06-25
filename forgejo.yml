@@ -10,6 +10,15 @@ volumes:
   dind-certs:
 
 services:
+  forgejo-anubis:
+    image: ghcr.io/techarohq/anubis:v1.25.0
+    environment:
+      TARGET: http://forgejo:3000
+    expose:
+      - 8923 # proxy
+    networks:
+      - proxy
+
   forgejo:
     # note: to automatically create a new user, add to the executed command, before sleep infinity:
     # forgejo admin user create --admin --username user --password password --email email@domain.tld || true ;
@@ -59,6 +68,8 @@ services:
       - FORGEJO__repository_0x2E_SIGNING__MERGES=pubkey
       - FORGEJO__security__INSTALL_LOCK=true
       - FORGEJO__security__INTERNAL_TOKEN=${FORGEJO_INTERNAL_TOKEN}
+      # (Caddy -> Anubis) -> Forgejo, need to allow 2 proxies
+      - FORGEJO__security__REVERSE_PROXY_LIMIT=2
       - FORGEJO__security__REVERSE_PROXY_TRUSTED_PROXIES=127.0.0.0/8,::1/128
       - FORGEJO__security__SECRET_KEY=${FORGEJO_SECRET_KEY}
       - FORGEJO__server__DOMAIN=code.${PROXY_PUBLIC_DOMAIN}

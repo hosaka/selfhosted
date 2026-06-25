@@ -158,9 +158,18 @@ hass.{$PROXY_PRIVATE_DOMAIN} {
 frigate.{$PROXY_PRIVATE_DOMAIN} {
 	reverse_proxy frigate:5000
 }
-code.{$PROXY_PRIVATE_DOMAIN}, code.{$PROXY_PUBLIC_DOMAIN} {
+
+### Forgejo
+code.{$PROXY_PUBLIC_DOMAIN} {
+	reverse_proxy forgejo-anubis:8923 {
+		header_up X-Real-IP {remote_host}
+		header_up X-Http-Version {http.request.proto}
+	}
+}
+code.{$PROXY_PRIVATE_DOMAIN} {
 	reverse_proxy forgejo:3000
 }
+
 search.{$PROXY_PRIVATE_DOMAIN}, search.{$PROXY_PUBLIC_DOMAIN} {
 	log {
 		output discard
