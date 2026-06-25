@@ -14,6 +14,8 @@ services:
     image: ghcr.io/techarohq/anubis:v1.25.0
     environment:
       TARGET: http://forgejo:3000
+      COOKIE_DOMAIN: ${PROXY_PUBLIC_DOMAIN}
+      SERVE_ROBOTS_TXT: "true"
     expose:
       - 8923 # proxy
     networks:
