@@ -4,30 +4,28 @@ networks:
 
 volumes:
   syncstorage-database-data:
-  tokenserver-database-data:
 
 services:
   syncstorage:
-    image: ghcr.io/porelli/firefox-sync:syncstorage-rs-mysql-0.21.1
+    image: ghcr.io/mozilla-services/syncstorage-rs/syncserver-postgres:0.23.3
     depends_on:
       syncstorage-database:
-        condition: service_healthy
-      tokenserver-database:
         condition: service_healthy
     environment:
       - RUST_LOG=info
       - SYNC_HOST=0.0.0.0
-      - SYNC_HUMAN_LOGS=1
+      - SYNC_PORT=8000
+      - SYNC_HUMAN_LOGS=true
       - SYNC_MASTER_SECRET=${SYNCSTORAGE_MASTER_SECRET}
-      - SYNC_SYNCSTORAGE__DATABASE_URL=mysql://${SYNCSTORAGE_DB_USERNAME}:${SYNCSTORAGE_DB_PASSWORD}@syncstorage-database:3306/${SYNCSTORAGE_SYNCSTORAGE_DB_DATABASE_NAME}
+      - SYNC_SYNCSTORAGE__DATABASE_URL=postgres://${SYNCSTORAGE_DB_USERNAME}:${SYNCSTORAGE_DB_PASSWORD}@syncstorage-database:5432/${SYNCSTORAGE_DB_DATABASE_NAME}
+      - SYNC_TOKENSERVER__DATABASE_URL=postgres://${SYNCSTORAGE_DB_USERNAME}:${SYNCSTORAGE_DB_PASSWORD}@syncstorage-database:5432/${SYNCSTORAGE_DB_DATABASE_NAME}
       - SYNC_TOKENSERVER__ENABLED=true
       - SYNC_TOKENSERVER__RUN_MIGRATIONS=true
-      - SYNC_TOKENSERVER__NODE_TYPE=mysql
-      - SYNC_TOKENSERVER__DATABASE_URL=mysql://${SYNCSTORAGE_DB_USERNAME}:${SYNCSTORAGE_DB_PASSWORD}@tokenserver-database:3306/${SYNCSTORAGE_TOKENSERVER_DB_DATABASE_NAME}
+      - SYNC_TOKENSERVER__NODE_TYPE=postgres
       - SYNC_TOKENSERVER__FXA_EMAIL_DOMAIN=api.accounts.firefox.com
-      - SYNC_TOKENSERVER__FXA_OAUTH_SERVER_URL=https://oauth.accounts.firefox.com/v1
+      - SYNC_TOKENSERVER__FXA_OAUTH_SERVER_URL=https://oauth.accounts.firefox.com
       - SYNC_TOKENSERVER__FXA_METRICS_HASH_SECRET=${SYNCSTORAGE_METRICS_HASH_SECRET}
-      - SYNC_TOKENSERVER__ADDITIONAL_BLOCKING_THREADS_FOR_FXA_REQUESTS=2
+      - SYNC_TOKENSERVER__INIT_NODE_URL=http://localhost:8000
       - TZ=${TIMEZONE}
     expose:
       - 8000 # api
@@ -36,9 +34,10 @@ services:
       service: log-to-json
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/__heartbeat__"]
-      interval: 30s
+      interval: 300s
       timeout: 10s
-      retries: 5
+      retries: 3
+      start_period: 60s
     networks:
       - proxy
       - syncstorage
@@ -47,76 +46,24 @@ services:
       - /etc/localtime:/etc/localtime:ro
 
   syncstorage-database:
-    # lts-noble
-    image: docker.io/library/mariadb@sha256:ae6119716edac6998ae85508431b3d2e666530ddf4e94c61a10710caec9b0f71
+    image: docker.io/postgres:14-alpine
     environment:
-      - MARIADB_USER=${SYNCSTORAGE_DB_USERNAME}
-      - MARIADB_PASSWORD=${SYNCSTORAGE_DB_PASSWORD}
-      - MARIADB_DATABASE=${SYNCSTORAGE_SYNCSTORAGE_DB_DATABASE_NAME}
-      - MARIADB_RANDOM_ROOT_PASSWORD=true
-      - MARIADB_AUTO_UPGRADE=true
+      - POSTGRES_USER=${SYNCSTORAGE_DB_USERNAME}
+      - POSTGRES_PASSWORD=${SYNCSTORAGE_DB_PASSWORD}
+      - POSTGRES_DB=${SYNCSTORAGE_DB_DATABASE_NAME}
     expose:
-      - 3306 # db
+      - 5432 # db
     extends:
       file: common.yml
       service: log-to-json
     healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
-      start_period: 10s
+      test: pg_isready --dbname='${SYNCSTORAGE_DB_DATABASE_NAME}' --username='${SYNCSTORAGE_DB_USERNAME}'
       interval: 10s
       timeout: 5s
-      retries: 3
+      retries: 5
+      start_period: 30s
     networks:
       - syncstorage
     restart: unless-stopped
     volumes:
-      - syncstorage-database-data:/var/lib/mysql
-
-  tokenserver-database:
-    # lts-noble
-    image: docker.io/library/mariadb@sha256:ae6119716edac6998ae85508431b3d2e666530ddf4e94c61a10710caec9b0f71
-    environment:
-      - MARIADB_USER=${SYNCSTORAGE_DB_USERNAME}
-      - MARIADB_PASSWORD=${SYNCSTORAGE_DB_PASSWORD}
-      - MARIADB_DATABASE=${SYNCSTORAGE_TOKENSERVER_DB_DATABASE_NAME}
-      - MARIADB_RANDOM_ROOT_PASSWORD=true
-      - MARIADB_AUTO_UPGRADE=true
-    expose:
-      - 3306 # db
-    extends:
-      file: common.yml
-      service: log-to-json
-    healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
-      start_period: 10s
-      interval: 10s
-      timeout: 5s
-      retries: 3
-    networks:
-      - syncstorage
-    restart: unless-stopped
-    volumes:
-      - tokenserver-database-data:/var/lib/mysql
-
-  syncstorage-init:
-    image: ghcr.io/porelli/firefox-sync:syncstorage-rs-mysql-init-0.21.1
-    depends_on:
-      syncstorage:
-        condition: service_healthy
-      tokenserver-database:
-        condition: service_healthy
-    entrypoint: /db_init.sh
-    environment:
-      - MARIADB_SERVER=tokenserver-database
-      - MARIADB_SERVER_PORT=3306
-      - MARIADB_DATABASE=${SYNCSTORAGE_TOKENSERVER_DB_DATABASE_NAME}
-      - MARIADB_USER=${SYNCSTORAGE_DB_USERNAME}
-      - MARIADB_PASSWORD=${SYNCSTORAGE_DB_PASSWORD}
-      - MAX_USERS=${SYNCSTORAGE_MAX_USERS}
-      - DOMAIN=https://ffs.${PROXY_PUBLIC_DOMAIN}
-    extends:
-      file: common.yml
-      service: log-to-json
-    networks:
-      - syncstorage
-    restart: no
+      - syncstorage-database-data:/var/lib/postgresql/data

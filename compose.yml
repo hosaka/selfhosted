@@ -15,7 +15,7 @@ include:
   - sabnzbd.yml
   - searxng.yml
   - servarr.yml
-  # - syncstorage.yml
+  - syncstorage.yml
   - slskd.yml
   - vaultwarden.yml
   - voidrepo.yml
