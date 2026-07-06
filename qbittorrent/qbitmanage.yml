@@ -49,6 +49,15 @@ tracker:
   jptv.club:
     tag:
       - jptv
+  jptv4.us:
+    tag:
+      - jptv
+  eiga.moi:
+    tag:
+      - jptv
+  jptvts.us:
+    tag:
+      - jptv
   other:
     tag: other
     max_ratio: 1.0

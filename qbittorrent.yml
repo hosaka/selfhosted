@@ -40,7 +40,7 @@ services:
       - ${MEDIA_DOWNLOADS_TORRENT_PATH}:/data/media/downloads/torrent
 
   qbitmanage:
-    image: ghcr.io/hotio/qbitmanage:release-4.8.1
+    image: ghcr.io/hotio/qbitmanage:release-4.9.1
     expose:
       - 8181 # api
     extends:
