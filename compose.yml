@@ -31,7 +31,7 @@ volumes:
 
 services:
   caddy:
-    image: ghcr.io/hotio/caddy:release-2.11.3
+    image: ghcr.io/hotio/caddy:release-2.11.4
     environment:
       - PROXY_CF_API_EMAIL=${PROXY_CF_API_EMAIL}
       - PROXY_CF_API_TOKEN=${PROXY_CF_API_TOKEN}
@@ -56,7 +56,7 @@ services:
       - ${FILES_VOIDREPO_PATH}:/srv/voidrepo
 
   frpc:
-    image: ghcr.io/fatedier/frpc:v0.67.0
+    image: ghcr.io/fatedier/frpc:v0.69.1
     command: --config /etc/frp/frpc.toml
     environment:
       - PROXY_FRP_SERVER_ADDR=${PROXY_FRP_SERVER_ADDR}

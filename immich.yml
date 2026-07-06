@@ -9,7 +9,7 @@ volumes:
 
 services:
   immich:
-    image: ghcr.io/immich-app/immich-server:v2.7.5
+    image: ghcr.io/immich-app/immich-server:v3.0.1
     depends_on:
       immich-redis:
         condition: service_healthy
@@ -44,7 +44,7 @@ services:
       - ${IMMICH_UPLOAD_LOCATION}:/data
 
   immich-machine-learning:
-    image: ghcr.io/immich-app/immich-machine-learning:v2.7.5
+    image: ghcr.io/immich-app/immich-machine-learning:v3.0.1
     environment:
       - NODE_ENV=production
     extends:
@@ -75,7 +75,7 @@ services:
       - immich-redis-data:/data
 
   immich-database:
-    image: ghcr.io/immich-app/postgres:14-vectorchord0.4.1-pgvectors0.2.0
+    image: ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0
     environment:
       - POSTGRES_USER=${IMMICH_DB_USERNAME}
       - POSTGRES_PASSWORD=${IMMICH_DB_PASSWORD}
@@ -91,5 +91,6 @@ services:
     networks:
       - immich
     restart: unless-stopped
+    shm_size: 128mb
     volumes:
       - immich-database-data:/var/lib/postgresql/data
