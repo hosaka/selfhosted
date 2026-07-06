@@ -8,7 +8,7 @@ include:
   - immich.yml
   - jellyfin.yml
   - kavita.yml
-  - metrics.yml
+  # - metrics.yml
   - navidrome.yml
   - paperless.yml
   - qbittorrent.yml
