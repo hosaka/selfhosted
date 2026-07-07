@@ -1,0 +1,98 @@
+networks:
+  proxy:
+  snikket:
+
+volumes:
+  snikket-data:
+  snikket-acme-challenges:
+
+# see: https://github.com/snikket-im/snikket-server
+# see: https://snikket.org/service/help/advanced/reverse_proxy/
+# see: https://blog.jagedn.dev/blog/2026/gotosocial-snikket-caddy.html
+# see: https://github.com/snikket-im/snikket-server/issues/88#issuecomment-2873012839
+
+services:
+  snikket:
+    image: docker.io/snikket/snikket-server:stable.20260611
+    env_file: ./snikket/snikket.conf
+    extends:
+      file: common.yml
+      service: log-to-json
+    expose:
+      # external
+      - 5222/tcp # client to server connection (XMPP c2s)
+      - 5269/tcp # federation with other servers (XMPP s2s)
+      - 5000/tcp # file transfer proxy (proxy65)
+      - 3478/tcp # AV negotiation and discovery proxy (STUN/TURN)
+      - 3478/udp
+      - 3479/tcp
+      - 3479/udp
+      - 5349/tcp # AV negotiation and discovery proxy over TLS (STUNS/TURNS)
+      - 5349/udp
+      - 5350/tcp
+      - 5350/udp
+      - 60000/udp # AV data proxy (TURN data)
+      - 60001/udp
+      - 60002/udp
+      - 60003/udp
+      - 60004/udp
+      - 60005/udp
+      - 60006/udp
+      - 60007/udp
+      - 60008/udp
+      - 60009/udp
+      - 60010/udp # compose syntax does not support port ranges for expose
+      # internal
+      - 5280/tcp # api
+    # healthcheck:
+    #   test: ["CMD", "prosodyctl status || exit 1"]
+    #   interval: 30s
+    #   timeout: 15s
+    #   retries: 5
+    #   start_period: 90s
+    networks:
+      - snikket
+      - proxy
+      - frp
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - snikket-data:/snikket
+
+  snikket-certs:
+    image: snikket/snikket-cert-manager:stable.20260611
+    env_file: ./snikket/snikket.conf
+    extends:
+      file: common.yml
+      service: log-to-json
+    networks:
+      - snikket
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - snikket-data:/snikket
+      - snikket-acme-challenges:/var/www/.well-known/acme-challenge
+
+  snikket-web:
+    image: docker.io/snikket/snikket-web-portal:stable.20260611
+    # depends_on:
+    #   snikket:
+    #     condition: service_healthy
+    env_file: ./snikket/snikket.conf
+    extends:
+      file: common.yml
+      service: log-to-json
+    expose:
+      - 5765/tcp # webui
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:5765 || exit 1"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 5
+    #   start_period: 60s
+    networks:
+      - snikket
+      - proxy
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro

@@ -159,7 +159,7 @@ frigate.{$PROXY_PRIVATE_DOMAIN} {
 	reverse_proxy frigate:5000
 }
 
-### Forgejo
+## Forgejo
 code.{$PROXY_PUBLIC_DOMAIN} {
 	reverse_proxy forgejo-anubis:8923 {
 		header_up X-Real-IP {remote_host}
@@ -168,6 +168,25 @@ code.{$PROXY_PUBLIC_DOMAIN} {
 }
 code.{$PROXY_PRIVATE_DOMAIN} {
 	reverse_proxy forgejo:3000
+}
+
+## Snikket
+chat.{$PROXY_PUBLIC_DOMAIN}, groups.chat.{$PROXY_PUBLIC_DOMAIN}, share.chat.{$PROXY_PUBLIC_DOMAIN} {
+	handle_path /.well-known/acme-challenge/* {
+		root * /var/www/acme-challenge
+		file_server
+	}
+
+	# Prosody endpoints on the chat and share*/upload domain
+	@prosody path /upload* /admin_api* /invites_api* /invites_bootstrap* /http-bind* /xmpp-websocket* /.well-known/host-meta /.well-known/host-meta.json
+	handle @prosody {
+		reverse_proxy snikket:5280
+	}
+
+	# everything else goes to web portal
+	handle {
+		reverse_proxy snikket-web:5765
+	}
 }
 
 search.{$PROXY_PRIVATE_DOMAIN}, search.{$PROXY_PUBLIC_DOMAIN} {
