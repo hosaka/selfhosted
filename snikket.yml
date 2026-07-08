@@ -7,19 +7,30 @@ volumes:
   snikket-acme-challenges:
 
 # see: https://github.com/snikket-im/snikket-server
+# see: https://snikket.org/service/help/advanced/firewall/
 # see: https://snikket.org/service/help/advanced/reverse_proxy/
-# see: https://blog.jagedn.dev/blog/2026/gotosocial-snikket-caddy.html
-# see: https://github.com/snikket-im/snikket-server/issues/88#issuecomment-2873012839
 
 services:
   snikket:
     image: docker.io/snikket/snikket-server:stable.20260611
-    env_file: ./snikket/snikket.conf
+    environment:
+      - SNIKKET_DOMAIN=chat.${PROXY_PUBLIC_DOMAIN}
+      - SNIKKET_ADMIN_EMAIL=admin@${PROXY_PUBLIC_DOMAIN}
+      - SNIKKET_SITE_NAME=Sneaky Parakeet
+      - SNIKKET_TWEAK_INTERNAL_HTTP_INTERFACE=0.0.0.0
+      - SNIKKET_TWEAK_INTERNAL_HTTP_PORT=5280
+      - SNIKKET_TWEAK_STORAGE=sqlite
+      - SNIKKET_TWEAK_TURNSERVER_MIN_PORT=60000
+      - SNIKKET_TWEAK_TURNSERVER_MAX_PORT=60010
+      # disable support for legacy SASL, requiring all clients to support SASL2
+      # increases security and speed, but a lot of clients do not have SASL2 support
+      # - SNIKKET_TWEAK_REQUIRE_SASL2=1
+      - SNIKKET_UPDATE_CHECK=0
     extends:
       file: common.yml
       service: log-to-json
     expose:
-      # external
+      - 5280/tcp # internal apis where caddy should point to
       - 5222/tcp # client to server connection (XMPP c2s)
       - 5269/tcp # federation with other servers (XMPP s2s)
       - 5000/tcp # file transfer proxy (proxy65)
@@ -41,15 +52,10 @@ services:
       - 60007/udp
       - 60008/udp
       - 60009/udp
-      - 60010/udp # compose syntax does not support port ranges for expose
-      # internal
-      - 5280/tcp # api
-    # healthcheck:
-    #   test: ["CMD", "prosodyctl status || exit 1"]
-    #   interval: 30s
-    #   timeout: 15s
-    #   retries: 5
-    #   start_period: 90s
+      - 60010/udp # compose syntax does not support port ranges for expose :(
+    healthcheck:
+      test: prosodyctl status
+      start_period: 10s
     networks:
       - snikket
       - proxy
@@ -61,7 +67,9 @@ services:
 
   snikket-certs:
     image: snikket/snikket-cert-manager:stable.20260611
-    env_file: ./snikket/snikket.conf
+    environment:
+      - SNIKKET_DOMAIN=chat.${PROXY_PUBLIC_DOMAIN}
+      - SNIKKET_ADMIN_EMAIL=admin@${PROXY_PUBLIC_DOMAIN}
     extends:
       file: common.yml
       service: log-to-json
@@ -75,21 +83,30 @@ services:
 
   snikket-web:
     image: docker.io/snikket/snikket-web-portal:stable.20260611
-    # depends_on:
-    #   snikket:
-    #     condition: service_healthy
-    env_file: ./snikket/snikket.conf
+    depends_on:
+      snikket:
+        condition: service_healthy
+    environment:
+      - SNIKKET_DOMAIN=chat.${PROXY_PUBLIC_DOMAIN}
+      - SNIKKET_SITE_NAME=Sneaky Parakeet
+      - SNIKKET_TWEAK_PORTAL_INTERNAL_HTTP_INTERFACE=0.0.0.0
+      - SNIKKET_TWEAK_PORTAL_INTERNAL_HTTP_PORT=5765
+      # should point to the same port as SNIKKET_TWEAK_INTERNAL_HTTP_PORT
+      - SNIKKET_WEB_PROSODY_ENDPOINT=http://snikket:5280
     extends:
       file: common.yml
       service: log-to-json
     expose:
       - 5765/tcp # webui
-    # healthcheck:
-    #   test: ["CMD", "curl", "-f", "http://localhost:5765 || exit 1"]
-    #   interval: 30s
-    #   timeout: 10s
-    #   retries: 5
-    #   start_period: 60s
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python3",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:5765/_health')",
+        ]
+      start_period: 10s
     networks:
       - snikket
       - proxy
