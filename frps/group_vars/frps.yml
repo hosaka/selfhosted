@@ -6,6 +6,14 @@ frps_allowed_ports:
   - { port: 7000, proto: "any", comment: "frp" }
   - { port: 7500, proto: "tcp", comment: "frp webui" }
   - { port: 3912, proto: "tcp", comment: "frp tcpmux" }
+  - { port: 5222, proto: "tcp", comment: "xmpp-c2s" }
+  - { port: 5269, proto: "tcp", comment: "xmpp-s2s" }
+  - { port: 5000, proto: "tcp", comment: "proxy65" }
+  - { port: 3478, proto: "any", comment: "stun-turn" }
+  - { port: 3479, proto: "any", comment: "stun-turn" }
+  - { port: 5349, proto: "any", comment: "stuns-turns" }
+  - { port: 5350, proto: "any", comment: "stuns-turns" }
+  - { port: "60000:60010", proto: "udp", comment: "turn-data" }
 
 fail2ban_jails:
   - name: sshd

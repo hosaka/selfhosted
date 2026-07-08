@@ -5,6 +5,10 @@ auth.token = "{{ .Envs.PROXY_FRP_AUTH_TOKEN }}"
 webServer.addr = "0.0.0.0"
 webServer.port = 7400
 
+# we have a bunch of UDP proxies and need a bigger connection pool
+# the frps side also sets maxPoolCount for clients, this should be less than the max
+transport.poolCount = 10
+
 # to allow proxies to get real user IP
 # see: https://gofrp.org/en/docs/features/common/realip/
 # transport.proxyProtocolVersion = "v2"

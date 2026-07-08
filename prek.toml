@@ -1,3 +1,5 @@
+exclude = "frpc.toml"
+
 [[repos]]
 repo = "builtin"
 hooks = [

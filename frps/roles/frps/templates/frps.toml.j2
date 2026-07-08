@@ -2,12 +2,20 @@ bindPort = 7000
 tcpmuxHTTPConnectPort = 3912
 
 allowPorts = [
-  { single = 22 },
-  { single = 80 },
-  { single = 443 },
+  { single = 22 }, # SSH
+  { single = 80 }, # Caddy
+  { single = 443 }, # Caddy
+  { single = 5222 }, # XMPP Clients
+  { single = 5269 }, # XMPP Federation
+  { single = 5000 }, # File Transfers
+  { single = 3478 }, { single = 3479 }, # STUN/TURN
+  { single = 5349 }, { single = 5350 },  # STUNS/TURNS
+  { start = 60000, end = 60010 } # TURN Data
 ]
 
 auth.token = "{{ frps_auth_token }}"
+
+transport.maxPoolCount = 20
 
 webServer.addr = "0.0.0.0"
 webServer.port = 7500
