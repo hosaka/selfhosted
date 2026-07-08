@@ -13,12 +13,16 @@ services:
   forgejo-anubis:
     image: ghcr.io/techarohq/anubis:v1.25.0
     environment:
-      TARGET: http://forgejo:3000
-      SERVE_ROBOTS_TXT: "true"
+      - TARGET=http://forgejo:3000
+      - SERVE_ROBOTS_TXT=true
+      - DIFFICULTY=6
     expose:
       - 8923 # proxy
     networks:
       - proxy
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./forgejo/anubis.yml:/data/botPolicies.yaml
 
   forgejo:
     # note: to automatically create a new user, add to the executed command, before sleep infinity:
