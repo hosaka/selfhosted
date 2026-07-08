@@ -15,8 +15,9 @@ include:
   - sabnzbd.yml
   - searxng.yml
   - servarr.yml
-  - syncstorage.yml
   - slskd.yml
+  - snikket.yml
+  - syncstorage.yml
   - vaultwarden.yml
   - voidrepo.yml
   - wakapi.yml
@@ -28,6 +29,7 @@ networks:
 
 volumes:
   caddy-config:
+  snikket-acme-challenges:
 
 services:
   caddy:
@@ -54,6 +56,7 @@ services:
       - ./caddy/Caddyfile:/config/Caddyfile
       - ${FILES_SWITCH_PATH}:/srv/switch
       - ${FILES_VOIDREPO_PATH}:/srv/voidrepo
+      - snikket-acme-challenges:/var/www/acme-challenge
 
   frpc:
     image: ghcr.io/fatedier/frpc:v0.69.1
