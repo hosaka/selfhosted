@@ -73,7 +73,7 @@ users.{$PROXY_PRIVATE_DOMAIN} {
 jellyfin.{$PROXY_PRIVATE_DOMAIN} {
 	reverse_proxy jellyfin:8096
 }
-jellyseerr.{$PROXY_PRIVATE_DOMAIN} {
+seerr.{$PROXY_PRIVATE_DOMAIN} {
 	reverse_proxy jellyseerr:5055
 }
 radarr.{$PROXY_PRIVATE_DOMAIN} {

@@ -41,7 +41,7 @@
   include_tags:
     - ^release\-\d+\.\d+\.\d+$
 
-- name: ghcr.io/hotio/jellyseerr
+- name: ghcr.io/hotio/seerr
   watch_repo: true
   sort_tags: reverse
   notify_on:
