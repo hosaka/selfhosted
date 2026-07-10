@@ -22,6 +22,8 @@ services:
       - SNIKKET_TWEAK_STORAGE=sqlite
       - SNIKKET_TWEAK_TURNSERVER_MIN_PORT=60000
       - SNIKKET_TWEAK_TURNSERVER_MAX_PORT=60010
+      # currently defaults to `modern` which breaks iOS Snikket client login
+      - SNIKKET_TLS_PROFILE=intermediate
       # disable support for legacy SASL, requiring all clients to support SASL2
       # increases security and speed, but a lot of clients do not have SASL2 support
       # - SNIKKET_TWEAK_REQUIRE_SASL2=1
