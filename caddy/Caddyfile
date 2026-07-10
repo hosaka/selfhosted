@@ -25,6 +25,11 @@
 	handle {
 		respond 404
 	}
+	handle_path /web/* {
+		file_server browse {
+			root /srv/web
+		}
+	}
 	handle_path /sh/dotinstall {
 		reverse_proxy forgejo:3000
 		rewrite * /hosaka/.dotfiles/raw/branch/main/.local/bin/dotinstall

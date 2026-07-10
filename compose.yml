@@ -56,6 +56,7 @@ services:
       - ./caddy/Caddyfile:/config/Caddyfile
       - ${FILES_SWITCH_PATH}:/srv/switch
       - ${FILES_VOIDREPO_PATH}:/srv/voidrepo
+      - ${FILES_WEB_PATH}:/srv/web
       - snikket-acme-challenges:/var/www/acme-challenge
 
   frpc:
