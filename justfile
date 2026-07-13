@@ -26,16 +26,16 @@ prune:
     docker image prune -a
 
 [doc('follow logs of a service')]
-logs service:
-    docker compose logs --tail 100 --follow {{ service }}
+logs +services:
+    docker compose logs --tail 100 --follow {{ services }}
 
 [doc('bring services down')]
-stop service:
-    docker compose stop {{ service }}
+stop +services:
+    docker compose stop {{ services }}
 
 [doc('restart a service')]
-restart service:
-    docker compose restart {{ service }}
+restart +services:
+    docker compose restart {{ services }}
 
 [doc('encrypt files for storing them in git repository')]
 encrypt:
