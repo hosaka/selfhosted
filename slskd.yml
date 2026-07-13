@@ -1,9 +1,9 @@
 networks:
   proxy:
+  frp:
 
 volumes:
   slskd-data:
-  slskd-gluetun:
 
 services:
   slskd:
@@ -12,6 +12,8 @@ services:
       - SLSKD_NO_AUTH=true
       - SLSKD_NO_HTTPS=true
       - SLSKD_REMOTE_CONFIGURATION=false
+      - SLSKD_HTTP_PORT=5030
+      - SLSKD_SLSK_LISTEN_PORT=50300
       - SLSKD_SLSK_USERNAME=${MEDIA_SLSKD_USERNAME}
       - SLSKD_SLSK_PASSWORD=${MEDIA_SLSKD_PASSWORD}
       # these subdirectories must exists under MEDIA_DOWNLOADS_SOULSEEK_PATH/
@@ -21,10 +23,15 @@ services:
       - SLSKD_SHARED_DIR=/data/media/collection
       - SLSKD_UMASK=${MEDIA_UMASK}
       - TZ=${TIMEZONE}
+    expose:
+      - 5030 # slskd webui
+      - 50300 # incoming connections
     extends:
       file: common.yml
       service: log-to-json
-    network_mode: "service:slskd-gluetun"
+    networks:
+      - proxy
+      - frp
     restart: unless-stopped
     user: ${MEDIA_PUID}:${MEDIA_PGID}
     volumes:
@@ -32,31 +39,3 @@ services:
       - ${MEDIA_COLLECTION_MUSIC_PATH}:/data/media/collection/music
       - ${MEDIA_DOWNLOADS_SOULSEEK_PATH}:/data/media/downloads/soulseek
       - slskd-data:/app
-
-  slskd-gluetun:
-    image: docker.io/qmcgaw/gluetun:v3.41.1
-    cap_add:
-      - NET_ADMIN
-    environment:
-      - VPN_TYPE=wireguard
-      - VPN_SERVICE_PROVIDER=${GLUETUN_VPN_SERVICE_PROVIDER}
-      - VPN_PORT_FORWARDING=on
-      # automatically update listen port in slskd, changes are picked up immediately
-      - VPN_PORT_FORWARDING_UP_COMMAND="sed -i 's/listen_port:.*/listen_port\:\ {{PORTS}}/' /app/slskd.yml"
-      - HTTP_CONTROL_SERVER=on
-      - SERVER_HOSTNAMES=${GLUETUN_SERVER_HOSTNAMES}
-      - WIREGUARD_PRIVATE_KEY=${GLUETUN_WIREGUARD_PRIVATE_KEY}
-      - BORINGPOLL_GLUETUNCOM=on
-      - TZ=${TIMEZONE}
-    expose:
-      - 5030 # slskd webui
-      - 8000 # gluetun control server
-    extends:
-      file: common.yml
-      service: log-to-json
-    networks:
-      - proxy
-    restart: unless-stopped
-    volumes:
-      - slskd-data:/app
-      - slskd-gluetun:/gluetun

@@ -116,6 +116,13 @@ remotePort = {{ $v.Second }}
 {{- end }}
 
 [[proxies]]
+name = "slskd-xfer"
+type = "tcp"
+localIP = "slskd"
+localPort = 50300
+remotePort = 50300
+
+[[proxies]]
 name = "ssh-host"
 type = "tcpmux"
 multiplexer = "httpconnect"
