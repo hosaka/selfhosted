@@ -1,5 +1,4 @@
-frps_allowed_ports:
-  - { port: 22, proto: "tcp", comment: "ssh" }
+ufw_allowed_ports:
   - { port: 80, proto: "tcp", comment: "http" }
   - { port: 443, proto: "tcp", comment: "https" }
   - { port: 5638, proto: "tcp", comment: "ssh" }
@@ -13,6 +12,7 @@ frps_allowed_ports:
   - { port: 3479, proto: "any", comment: "stun-turn" }
   - { port: 5349, proto: "any", comment: "stuns-turns" }
   - { port: 5350, proto: "any", comment: "stuns-turns" }
+  - { port: 41080, proto: "tcp", comment: "slskd-socks5" }
   - { port: 50300, proto: "tcp", comment: "slskd-xfer" }
   - { port: "60000:60010", proto: "udp", comment: "turn-data" }
 

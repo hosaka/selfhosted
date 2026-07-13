@@ -16,7 +16,7 @@
     port: "{{ item.port }}"
     proto: "{{ item.proto }}"
     comment: "{{ item.comment }}"
-  loop: "{{ frps_allowed_ports }}"
+  loop: "{{ ufw_allowed_ports }}"
 
 - name: enable ufw
   community.general.ufw:
