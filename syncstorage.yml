@@ -25,7 +25,7 @@ services:
       - SYNC_TOKENSERVER__FXA_EMAIL_DOMAIN=api.accounts.firefox.com
       - SYNC_TOKENSERVER__FXA_OAUTH_SERVER_URL=https://oauth.accounts.firefox.com
       - SYNC_TOKENSERVER__FXA_METRICS_HASH_SECRET=${SYNCSTORAGE_METRICS_HASH_SECRET}
-      - SYNC_TOKENSERVER__INIT_NODE_URL=http://localhost:8000
+      - SYNC_TOKENSERVER__INIT_NODE_URL=https://ffs.${PROXY_PUBLIC_DOMAIN}
       - TZ=${TIMEZONE}
     expose:
       - 8000 # api
@@ -46,7 +46,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
 
   syncstorage-database:
-    image: docker.io/postgres:14-alpine
+    image: docker.io/postgres:18-alpine
     environment:
       - POSTGRES_USER=${SYNCSTORAGE_DB_USERNAME}
       - POSTGRES_PASSWORD=${SYNCSTORAGE_DB_PASSWORD}
@@ -66,4 +66,4 @@ services:
       - syncstorage
     restart: unless-stopped
     volumes:
-      - syncstorage-database-data:/var/lib/postgresql/data
+      - syncstorage-database-data:/var/lib/postgresql
