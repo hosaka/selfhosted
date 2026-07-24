@@ -1,6 +1,11 @@
 # ansible
 *.retry
 
+# terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+
 # env
 .env
 
