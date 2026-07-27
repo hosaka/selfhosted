@@ -14,7 +14,7 @@ resource "incus_instance" "wakapi" {
   type     = "container"
   image    = "ghcr:muety/wakapi:${var.wakapi_version}"
   target = "incus-1"
-  profiles = ["default", incus_profile.base.name]
+  profiles = ["default"]
 
   config = {
     "environment.TZ" = "Asia/Tokyo"
@@ -24,7 +24,10 @@ resource "incus_instance" "wakapi" {
     name = "wakapi-data"
     type = "disk"
     properties = {
-      path = "/data"
+      # attempting to mount on /data fails in OCI because it doesn't exist
+      # wakapi does provide an env var to control the DB placement, but the data dir
+      # also containes the config.yml, need to investigate further
+      path = "/tmp/data"
       pool = "local"
       source = incus_storage_volume.wakapi-data.name
     }

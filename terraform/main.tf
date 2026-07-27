@@ -35,15 +35,15 @@ resource "incus_profile" "base" {
     # "snapshots.expiry"   = "7d"
   }
 
-  # device {
-  #   name = "eth0"
-  #   type = "nic"
-  #   properties = {
-  #     name    = "eth0"
-  #     network = incus_network.lan.name
-  #   }
-  # }
-  #
+  device {
+    name = "eth0"
+    type = "nic"
+    properties = {
+      name    = "eth0"
+      network = incus_network.lan.name
+    }
+  }
+
   # device {
   #   name = "root"
   #   type = "disk"
@@ -52,6 +52,20 @@ resource "incus_profile" "base" {
   #     path = "/"
   #   }
   # }
+}
+
+resource "incus_instance" "linstor" {
+  name     = "linstor"
+  type     = "container"
+  target   = "incus-1"
+  image    = "images:ubuntu/noble/cloud"
+  profiles = ["default", incus_profile.base.name]
+
+  config = {
+    "cloud-init.user-data" = templatefile("${path.module}/cloud-init/linstor.yml", {
+      ssh_key = trimspace(file("~/.ssh/id_ed25519.pub"))
+    })
+  }
 }
 
 # resource "incus_instance" "ingress" {
