@@ -58,7 +58,7 @@ resource "incus_instance" "linstor" {
   name     = "linstor"
   type     = "container"
   target   = "incus-1"
-  image    = "images:ubuntu/noble/cloud"
+  image    = "images:debian/trixie/cloud"
   profiles = ["default", incus_profile.base.name]
 
   config = {

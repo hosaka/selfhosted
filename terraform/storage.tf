@@ -1,6 +1,6 @@
 resource "incus_server" "linstor_controller" {
   config = {
-    "storage.linstor.controller_connection" = "http://10.10.0.242:3370"
+    "storage.linstor.controller_connection" = "http://10.10.0.28:3370"
   }
 }
 

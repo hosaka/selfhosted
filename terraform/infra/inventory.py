@@ -1,1 +1,1 @@
-linstor = [("10.10.0.242", {"ssh_user": "root"})]
+linstor = [("10.10.0.28", {"ssh_user": "root"})]

@@ -1,8 +1,15 @@
 from pyinfra.operations import apt, server, files
 
-apt.ppa(
-    name="Add LINBIT DRBD9 stack PPA",
-    src="ppa:linbit/linbit-drbd9-stack",
+files.download(
+    name="Fetch LINBIT signing key",
+    src="https://packages.linbit.com/package-signing-pubkey.asc",
+    dest="/etc/apt/keyrings/linbit.asc",
+)
+
+files.put(
+    name="Add LINBIT repo",
+    src="files/linbit.sources",
+    dest="/etc/apt/sources.list.d/linbit.sources",
 )
 
 apt.packages(
