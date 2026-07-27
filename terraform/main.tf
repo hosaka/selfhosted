@@ -1,20 +1,12 @@
-locals {
-  members = {
-    "incus-1" = "ens18"
-    "incus-2" = "ens18"
-    "incus-3" = "ens18"
-  }
-}
-
 resource "incus_network" "lan_pending" {
-  for_each = local.members
+  for_each = var.nodes
 
   name   = "lan"
   type   = "physical"
   target = each.key
 
   config = {
-    parent = each.value
+    parent = each.value.nic
   }
 }
 

@@ -5,7 +5,7 @@ resource "incus_server" "linstor_controller" {
 }
 
 resource "incus_storage_pool" "remote_pending" {
-  for_each = toset(["incus-1", "incus-2", "incus-3"])
+  for_each = var.nodes
   name     = "remote"
   driver   = "linstor"
   target   = each.key
