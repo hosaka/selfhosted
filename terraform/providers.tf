@@ -10,10 +10,10 @@ terraform {
 provider "incus" {
   accept_remote_certificate = true
 
-  default_remote = "incus-cluster"
+  default_remote = var.cluster.name
 
   remote {
-    name    = "incus-cluster"
+    name    = var.cluster.name
   }
 
   remote {

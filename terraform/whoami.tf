@@ -16,7 +16,7 @@ resource "incus_image" "whoami" {
 resource "incus_instance" "whoami" {
   name     = "whoami"
   image    = incus_image.whoami.fingerprint
-  profiles = ["default", incus_profile.base.name]
+  profiles = ["default", incus_profile.lan.name]
 
   config = {
     "environment.TZ" = "Asia/Tokyo"

@@ -26,9 +26,9 @@ server.service(
 )
 
 for node, ip in {
-    "incus-1": "10.10.0.79",
-    "incus-2": "10.10.0.71",
-    "incus-3": "10.10.0.154",
+    "node-1": "10.10.0.101",
+    "node-2": "10.10.0.102",
+    "node-3": "10.10.0.103",
 }.items():
     server.shell(
         name=f"Register satellite {node}",
@@ -38,12 +38,12 @@ for node, ip in {
         ],
     )
 
-for node in ["incus-1", "incus-2", "incus-3"]:
-    server.shell(
-        name=f"Create nvme_pool on {node}",
-        commands=[
-            f"linstor storage-pool list | grep -q {node}.*nvme_pool || "
-            f"linstor physical-storage create-device-pool --storage-pool nvme_pool "
-            f"--pool-name nvme_pool zfsthin {node} /dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi1"
-        ],
-    )
+# for node in ["node-1", "node-2", "node-3"]:
+#     server.shell(
+#         name=f"Create nvme_pool on {node}",
+#         commands=[
+#             f"linstor storage-pool list | grep -q {node}.*nvme_pool || "
+#             f"linstor physical-storage create-device-pool --storage-pool nvme_pool "
+#             f"--pool-name nvme_pool zfsthin {node} /dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi1"
+#         ],
+#     )

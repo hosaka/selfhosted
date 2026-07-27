@@ -1,6 +1,9 @@
 # ansible
 *.retry
 
+# pyinfra
+*-debug.log
+
 # terraform
 .terraform/
 *.tfstate

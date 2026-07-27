@@ -1,5 +1,13 @@
-nodes = {
-  "incus-1" = { nic = "ens18" }
-  "incus-2" = { nic = "ens18" }
-  "incus-3" = { nic = "ens18" }
+public_domain = ""
+private_domain = ""
+
+cluster = {
+  name = "cluster"
+  nic1 = "eno1"
+  nic2 = "enp5s0"
+
+  node-1 = "node-1"
+  node-2 = "node-2"
+  node-3 = "node-3"
 }
+
