@@ -7,7 +7,7 @@ sops = "latest"
 hadolint = "latest"
 marksman = "latest"
 prek = "latest"
-uv = "latest"
+uv = "0.11.29"
 
 [tasks.info]
 description = "Print project information"

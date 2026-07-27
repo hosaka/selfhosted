@@ -27,6 +27,27 @@ My selfhosted config.
 
 ## Software
 
+### Setup
+
+Create an Incus cluster with 3 nodes. This is detailed in the [IncusOs Docs](https://linuxcontainers.org/incus-os/docs/main/tutorials/incus-cluster/). Make sure that `incus remote ls` contains the cluster endpoint and set it as default:
+```bash 
+incus remote switch cluster
+```
+
+Add `instances` role to IncusOS in order be able to attach a container or a virtual machine directly to the host's network. Run `incus admin os system network edit --target node-n` for each node and add to the interface config:
+
+```yaml
+roles:
+  - instances
+```
+
+Install `incus-linstor` application and set `enabled` to true for `linstor` service on each node:
+
+```bash
+incus admin os application add -d '{"name":"incus-linstor"} --target node-n'
+incus admin os service edit linstor --target node-n
+```
+
 ### Orchestration
 
 M920q PCs are clustered together using [Incus OS](https://linuxcontainers.org/incus-os/) responsible for OCI and VM instances than run individual services while the mITX machine takes on the NAS responsibilities.
