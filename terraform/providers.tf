@@ -1,19 +1,10 @@
-terraform {
-  required_providers {
-    incus = {
-      source  = "lxc/incus"
-      version = "1.1.1"
-    }
-  }
-}
-
 provider "incus" {
   accept_remote_certificate = true
 
   default_remote = var.cluster.name
 
   remote {
-    name    = var.cluster.name
+    name = var.cluster.name
   }
 
   remote {

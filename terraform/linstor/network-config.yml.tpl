@@ -9,4 +9,4 @@ ethernets:
       - to: 0.0.0.0/0
         via: ${gateway}
     nameservers:
-      addresses: [10.10.1.1]
+      addresses: [${gateway}]

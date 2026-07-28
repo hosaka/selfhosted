@@ -1,5 +1,5 @@
 variable "whoami_version" {
-  type = string
+  type    = string
   default = "1.11.0"
 }
 
