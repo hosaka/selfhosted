@@ -4,20 +4,18 @@ variable "wakapi_version" {
 }
 
 resource "incus_storage_volume" "wakapi_data" {
-  name = "wakapi_data"
+  name = "wakapi-data"
   pool = incus_storage_pool.remote.name
 }
 
 resource "incus_instance" "wakapi" {
-  depends_on = [incus_storage_volume.wakapi_data]
-
   name     = "wakapi"
   type     = "container"
   profiles = [incus_profile.default.name]
   image    = "ghcr:muety/wakapi:${var.wakapi_version}"
 
   device {
-    name = "wakapi_data"
+    name = "data"
     type = "disk"
     properties = {
       # todo: attempting to mount on /data fails in OCI because it doesn't exist

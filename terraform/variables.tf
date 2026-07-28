@@ -61,3 +61,19 @@ variable "caddy_cf_api_token" {
   type      = string
   sensitive = true
 }
+
+# Atuin
+variable "atuin_db_name" {
+  type    = string
+  default = "atuin"
+}
+
+variable "atuin_db_username" {
+  type    = string
+  default = "postgres"
+}
+
+variable "atuin_db_password" {
+  type      = string
+  sensitive = true
+}

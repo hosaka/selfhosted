@@ -1,3 +1,4 @@
+# External
 resource "incus_network" "lan_pending" {
   for_each = data.incus_cluster.this.members
 

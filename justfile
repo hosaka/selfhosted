@@ -18,12 +18,12 @@ cwd := quote(invocation_directory() + "/")
     just --edit
 
 [doc('plan infrastructure changes')]
-plan:
-    tofu -chdir=terraform/ plan -var-file=env-test.tfvars
+plan *args:
+    tofu -chdir=terraform/ plan -var-file=env-prod.tfvars {{ args }}
 
 [doc('apply infrastructure changes')]
-apply:
-    tofu -chdir=terraform/ apply -var-file=env-test.tfvars
+apply *args:
+    tofu -chdir=terraform/ apply -var-file=env-prod.tfvars {{ args }}
 
 [doc('bring services up')]
 up:
