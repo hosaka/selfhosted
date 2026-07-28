@@ -20,7 +20,7 @@ cluster = {
 services = {
   gateway = "10.10.1.1"
   linstor = {
-    ipv4 = "10.10.1.50"
+    ipv4 = "10.10.1.10"
   }
 }
 

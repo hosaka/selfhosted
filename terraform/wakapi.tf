@@ -16,10 +16,6 @@ resource "incus_instance" "wakapi" {
   profiles = [incus_profile.default.name]
   image    = "ghcr:muety/wakapi:${var.wakapi_version}"
 
-  config = {
-    "environment.TZ" = "Asia/Tokyo"
-  }
-
   device {
     name = "wakapi_data"
     type = "disk"
