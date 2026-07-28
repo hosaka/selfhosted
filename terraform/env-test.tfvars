@@ -1,6 +1,3 @@
-public_domain = ""
-private_domain = ""
-
 cluster = {
   name = "incus-cluster"
 

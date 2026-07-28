@@ -13,8 +13,8 @@ resource "incus_instance" "wakapi" {
 
   name     = "wakapi"
   type     = "container"
-  image    = "ghcr:muety/wakapi:${var.wakapi_version}"
   profiles = [incus_profile.default.name]
+  image    = "ghcr:muety/wakapi:${var.wakapi_version}"
 
   config = {
     "environment.TZ" = "Asia/Tokyo"

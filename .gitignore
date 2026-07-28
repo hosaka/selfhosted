@@ -8,6 +8,7 @@
 .terraform/
 *.tfstate
 *.tfstate.*
+secrets.auto.tfvars
 
 # env
 .env

@@ -17,6 +17,14 @@ cwd := quote(invocation_directory() + "/")
 @edit:
     just --edit
 
+[doc('plan infrastructure changes')]
+plan:
+    tofu -chdir=terraform/ plan -var-file=env-test.tfvars
+
+[doc('apply infrastructure changes')]
+apply:
+    tofu -chdir=terraform/ apply -var-file=env-test.tfvars
+
 [doc('bring services up')]
 up:
     docker compose up -d

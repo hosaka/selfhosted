@@ -90,3 +90,18 @@ resource "incus_storage_pool" "remote" {
   }
 }
 
+# Use this profile for instances that need to be stored in a replicated LINSTOR pool.
+resource "incus_profile" "replicated" {
+  name        = "replicated"
+  description = "Instances that use replicated storage"
+
+  device {
+    name = "root"
+    properties = {
+      path = "/"
+      pool = incus_storage_pool.remote.name
+    }
+    type = "disk"
+  }
+}
+

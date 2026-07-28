@@ -13,13 +13,14 @@ resource "incus_network" "lan_pending" {
 resource "incus_network" "lan" {
   name        = "lan"
   type        = "physical"
-  description = "Services accessible on LAN"
+  description = "Direct local network access (without NAT)"
 
   depends_on = [incus_network.lan_pending]
 }
 
 resource "incus_profile" "lan" {
-  name = "lan"
+  name        = "lan"
+  description = "Instances that need direct LAN access"
 
   device {
     name = "eth1"

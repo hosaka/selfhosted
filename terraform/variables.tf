@@ -1,11 +1,3 @@
-variable "public_domain" {
-  type = string
-}
-
-variable "private_domain" {
-  type = string
-}
-
 variable "cluster" {
   type = object({
     name = string
@@ -34,4 +26,38 @@ variable "services" {
       ipv4 = string
     })
   })
+}
+
+# Shared
+variable "timezone" {
+  type = string
+}
+
+variable "public_domain" {
+  type = string
+}
+
+variable "private_domain" {
+  type = string
+}
+
+# FRP
+variable "frp_server_addr" {
+  type = string
+}
+
+variable "frp_auth_token" {
+  type      = string
+  sensitive = true
+}
+
+# Caddy
+variable "caddy_cf_api_email" {
+  type      = string
+  sensitive = true
+}
+
+variable "caddy_cf_api_token" {
+  type      = string
+  sensitive = true
 }

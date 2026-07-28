@@ -17,6 +17,7 @@ resource "incus_profile" "default" {
     "limits.memory" = "512MiB"
     # "snapshots.schedule" = "@daily"
     # "snapshots.expiry"   = "7d"
+    "environment.TZ" = var.timezone
   }
 
   device {
@@ -37,11 +38,4 @@ resource "incus_profile" "default" {
     type = "disk"
   }
 }
-
-# resource "incus_instance" "ingress" {
-#   name     = "ingress"
-#   type     = "container"
-#   image    = "images:debian/trixie/cloud"
-#   profiles = ["default", incus_profile.base.name]
-# }
 
