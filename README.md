@@ -30,7 +30,7 @@ My selfhosted config.
 ### Setup
 
 Create an Incus cluster with 3 nodes. This is detailed in the [IncusOs Docs](https://linuxcontainers.org/incus-os/docs/main/tutorials/incus-cluster/). Make sure that `incus remote ls` contains the cluster endpoint and set it as default:
-```bash 
+```bash
 incus remote switch cluster
 ```
 
@@ -44,8 +44,13 @@ roles:
 Install `incus-linstor` application and set `enabled` to true for `linstor` service on each node:
 
 ```bash
-incus admin os application add -d '{"name":"incus-linstor"} --target node-n'
+incus admin os application add -d '{"name":"incus-linstor"}' --target node-n
 incus admin os service edit linstor --target node-n
+```
+
+Deploy the LINSTOR controller, it is pinned to a single node and orchestrates shared cluster storage:
+```bash
+tofu apply -var-file=env-test.tfvars -target=incus_instance.linstor
 ```
 
 ### Orchestration
