@@ -9,7 +9,7 @@ volumes:
 
 services:
   gotify:
-    image: ghcr.io/gotify/server:master
+    image: ghcr.io/gotify/server:3.0.0
     environment:
       - TZ=${TIMEZONE}
       - GOTIFY_OIDC_ENABLED=true

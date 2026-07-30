@@ -10,7 +10,7 @@ volumes:
 
 services:
   paperless:
-    image: ghcr.io/paperless-ngx/paperless-ngx:2.20.15
+    image: ghcr.io/paperless-ngx/paperless-ngx:3.0.4
     depends_on:
       paperless-redis:
         condition: service_healthy

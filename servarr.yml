@@ -12,7 +12,7 @@ volumes:
 
 services:
   jellyseerr:
-    image: ghcr.io/hotio/seerr:release-3.3.0
+    image: ghcr.io/hotio/seerr:release-3.4.0
     expose:
       - 5055 # webui
     extends:
@@ -48,7 +48,7 @@ services:
       - ${MEDIA_ROOT_PATH}:/data/media
 
   prowlarr:
-    image: ghcr.io/hotio/prowlarr:release-2.4.0.5397
+    image: ghcr.io/hotio/prowlarr:release-2.5.2.5491
     expose:
       - 9696 # webui
     extends:
@@ -63,7 +63,7 @@ services:
       - prowlarr-config:/config
 
   radarr:
-    image: ghcr.io/hotio/radarr:release-6.2.1.10461
+    image: ghcr.io/hotio/radarr:release-6.3.0.10514
     expose:
       - 7878 # webui
     extends:
@@ -78,7 +78,7 @@ services:
       - radarr-config:/config
 
   recyclarr:
-    image: ghcr.io/recyclarr/recyclarr:8.6.0
+    image: ghcr.io/recyclarr/recyclarr:8.7.0
     environment:
       - TZ=${TIMEZONE}
     extends:
