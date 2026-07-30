@@ -61,7 +61,9 @@ gensecret:
 [no-cd]
 [no-exit-message]
 sync:
-    rsync -chavzP --no-perms --no-owner --no-group {{ cwd }} alex@box.hosaka.cc:box/
+    rsync -chavzP --no-perms --no-owner --no-group \
+      --include='**.gitignore' --exclude='/.git' --filter=':- .gitignore' --delete-after \
+      {{ cwd }} alex@box.hosaka.cc:box/
 
 [doc('manually trigger voidrepo sync script')]
 [no-cd]
