@@ -77,3 +77,41 @@ variable "atuin_db_password" {
   type      = string
   sensitive = true
 }
+
+# Diun
+variable "diun_gotify_token" {
+  type      = string
+  sensitive = true
+}
+
+variable "diun_dockerhub_username" {
+  type = string
+}
+
+variable "diun_dockerhub_password" {
+  type      = string
+  sensitive = true
+}
+
+variable "diun_ghcr_username" {
+  type = string
+}
+
+variable "diun_ghcr_password" {
+  type      = string
+  sensitive = true
+}
+
+# Authelia
+variable "auth_gotify_client_id" {
+  type = string
+}
+
+variable "auth_gotify_client_secret" {
+  type      = string
+  sensitive = true
+}
+
+variable "auth_gotify_client_secret_hash" {
+  type = string
+}

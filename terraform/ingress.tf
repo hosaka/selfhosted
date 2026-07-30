@@ -26,8 +26,6 @@ resource "incus_instance" "frpc" {
       frp_auth_token  = var.frp_auth_token
     })
     target_path = "/etc/frp/frpc.toml"
-    uid         = 0
-    gid         = 0
     mode        = "0600"
   }
 
@@ -65,8 +63,6 @@ resource "incus_instance" "caddy" {
       caddy_cf_api_token = var.caddy_cf_api_token
     })
     target_path = "/config/Caddyfile"
-    uid         = 0
-    gid         = 0
     mode        = "0600"
   }
 }
