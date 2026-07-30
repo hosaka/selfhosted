@@ -1,4 +1,6 @@
 locals {
+  target = var.cluster.node-1.target
+
   satellite_execs = merge([
     for name, member in data.incus_cluster.this.members : {
 
@@ -31,18 +33,19 @@ locals {
 # A LINSTOR controller instance that is pinned to the first node in the cluster and
 # uses local storage. It is responsible for orchestrating the sattelite nodes.
 resource "incus_instance" "linstor" {
-  name     = "linstor"
-  type     = "container"
-  target   = var.cluster.node-1.target
+  name = "linstor"
+  type = "container"
+
+  target   = locals.target
   image    = "images:debian/trixie/cloud"
   profiles = [incus_profile.default.name, incus_profile.lan.name]
 
   config = {
-    "cloud-init.user-data" = templatefile("${path.module}/linstor/user-data.yml.tpl", {
+    "cloud-init.user-data" = templatefile("${path.module}/user-data.yml.tpl", {
       ssh_key    = trimspace(file("~/.ssh/id_ed25519.pub"))
-      linbit_key = indent(10, "\n${file("${path.module}/linstor/package-signing-pubkey.asc")}")
+      linbit_key = indent(10, "\n${file("${path.module}/package-signing-pubkey.asc")}")
     })
-    "cloud-init.network-config" = templatefile("${path.module}/linstor/network-config.yml.tpl", {
+    "cloud-init.network-config" = templatefile("${path.module}/network-config.yml.tpl", {
       ipv4    = "${var.services.linstor.ipv4}/24"
       gateway = var.services.gateway
     })

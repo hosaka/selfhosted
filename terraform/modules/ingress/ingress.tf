@@ -14,16 +14,18 @@ variable "whoami_version" {
 }
 
 resource "incus_instance" "frpc" {
-  name     = "frpc"
-  type     = "container"
-  profiles = [incus_profile.default.name, incus_profile.replicated.name]
+  name = "frpc"
+  type = "container"
+
+  target   = var.target
+  profiles = var.profiles
   image    = "ghcr:fatedier/frpc:v${var.frpc_version}"
 
   file {
-    content = templatefile("${path.module}/config/frpc.toml.tpl", {
+    content = templatefile("${path.module}/frpc.toml.tpl", {
       public_domain   = var.public_domain
-      frp_server_addr = var.frp_server_addr
-      frp_auth_token  = var.frp_auth_token
+      frp_server_addr = var.config.frp_server_addr
+      frp_auth_token  = sensitive(var.config.frp_auth_token)
     })
     target_path = "/etc/frp/frpc.toml"
     mode        = "0600"
@@ -36,13 +38,15 @@ resource "incus_instance" "frpc" {
 
 resource "incus_storage_volume" "caddy_config" {
   name = "caddy-config"
-  pool = incus_storage_pool.remote.name
+  pool = var.storage
 }
 
 resource "incus_instance" "caddy" {
-  name     = "caddy"
-  type     = "container"
-  profiles = [incus_profile.default.name, incus_profile.replicated.name]
+  name = "caddy"
+  type = "container"
+
+  target   = var.target
+  profiles = var.profiles
   image    = "ghcr:hotio/caddy:release-${var.caddy_version}"
 
   device {
@@ -50,17 +54,17 @@ resource "incus_instance" "caddy" {
     type = "disk"
     properties = {
       path   = "/config"
-      pool   = incus_storage_pool.remote.name
+      pool   = var.storage
       source = incus_storage_volume.caddy_config.name
     }
   }
 
   file {
-    content = templatefile("${path.module}/config/Caddyfile.tpl", {
-      public_domain      = var.public_domain
-      private_domain     = var.private_domain
-      caddy_cf_api_email = var.caddy_cf_api_email
-      caddy_cf_api_token = var.caddy_cf_api_token
+    content = templatefile("${path.module}/Caddyfile.tpl", {
+      public_domain  = var.public_domain
+      private_domain = var.private_domain
+      cf_api_email   = sensitive(var.config.caddy_cf_api_email)
+      cf_api_token   = sensitive(var.config.caddy_cf_api_token)
     })
     target_path = "/config/Caddyfile"
     mode        = "0600"
@@ -68,8 +72,11 @@ resource "incus_instance" "caddy" {
 }
 
 resource "incus_instance" "whoami" {
-  name     = "whoami"
+  name = "whoami"
+  type = "container"
+
+  target   = var.target
+  profiles = var.profiles
   image    = "ghcr:traefik/whoami:v${var.whoami_version}"
-  profiles = [incus_profile.default.name]
 }
 

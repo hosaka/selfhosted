@@ -1,3 +1,7 @@
+locals {
+  target = var.cluster.node-2.target
+}
+
 variable "wakapi_version" {
   type    = string
   default = "2.17.4"
@@ -9,8 +13,10 @@ resource "incus_storage_volume" "wakapi_data" {
 }
 
 resource "incus_instance" "wakapi" {
-  name     = "wakapi"
-  type     = "container"
+  name = "wakapi"
+  type = "container"
+
+  target   = local.target
   profiles = [incus_profile.default.name]
   image    = "ghcr:muety/wakapi:${var.wakapi_version}"
 

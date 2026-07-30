@@ -17,33 +17,33 @@ cwd := quote(invocation_directory() + "/")
 @edit:
     just --edit
 
+[doc('apply all infrastructure')]
+apply *args:
+    tofu -chdir=terraform/ apply -var-file=env-prod.tfvars {{ args }}
+
 [doc('plan infrastructure changes')]
 plan *args:
     tofu -chdir=terraform/ plan -var-file=env-prod.tfvars {{ args }}
 
-[doc('apply infrastructure changes')]
-apply *args:
-    tofu -chdir=terraform/ apply -var-file=env-prod.tfvars {{ args }}
+[doc('apply module changes')]
+up module *args:
+    tofu -chdir=terraform/ apply -var-file=env-prod.tfvars -target=module.{{ module }} {{ args }}
 
-[doc('bring services up')]
-up:
-    docker compose up -d
+[doc('plan module changes')]
+check module *args:
+    tofu -chdir=terraform/ plan -var-file=env-prod.tfvars -target=module.{{ module }} {{ args }}
 
-[doc('prune images no longer used by any services')]
-prune:
-    docker image prune -a
+[doc('follow logs of an instance')]
+logs instance:
+    incus console --show-log {{ instance }}
 
-[doc('follow logs of a service')]
-logs +services:
-    docker compose logs --tail 100 --follow {{ services }}
+[doc('bring an instance down')]
+stop instance:
+    incust stop {{ instance }}
 
-[doc('bring services down')]
-stop +services:
-    docker compose stop {{ services }}
-
-[doc('restart a service')]
-restart +services:
-    docker compose restart {{ services }}
+[doc('restart an instance')]
+restart instance:
+    incus restart {{ instance }}
 
 [doc('encrypt files for storing them in git repository')]
 encrypt:

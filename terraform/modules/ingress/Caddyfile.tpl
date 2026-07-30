@@ -1,6 +1,6 @@
 {
-	email ${caddy_cf_api_email}
-	acme_dns cloudflare ${caddy_cf_api_token}
+	email ${cf_api_email}
+	acme_dns cloudflare ${cf_api_token}
 	# acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
 	skip_install_trust
 
