@@ -53,8 +53,14 @@ resource "incus_instance" "authelia" {
       wakapi_client_id               = var.config.wakapi_client_id
       wakapi_client_secret_hash      = var.config.wakapi_client_secret_hash
     })
-    target_path = "/config/configuration.yml"
-    mode        = "0600"
+
+    target_path        = "/config/configuration.yml"
+    mode               = "0600"
+    create_directories = true
+  }
+
+  config = {
+    "oci.entrypoint" = "/bin/sh -c 'while [ ! -f /config/configuration.yml ]; do sleep 1; done; exec /app/entrypoint.sh'"
   }
 }
 
@@ -111,7 +117,7 @@ resource "incus_instance" "lldap" {
 
   target   = var.target
   profiles = var.profiles
-  image    = "ghcr:lldap/lldap:${var.lldap_version}-alpine"
+  image    = "ghcr:lldap/lldap:v${var.lldap_version}-alpine"
 
   device {
     name = "data"
