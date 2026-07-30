@@ -20,7 +20,7 @@ resource "incus_instance" "frpc" {
   image    = "ghcr:fatedier/frpc:v${var.frpc_version}"
 
   file {
-    content = templatefile("${path.module}/frpc/frpc.toml.tpl", {
+    content = templatefile("${path.module}/config/frpc.toml.tpl", {
       public_domain   = var.public_domain
       frp_server_addr = var.frp_server_addr
       frp_auth_token  = var.frp_auth_token
@@ -56,7 +56,7 @@ resource "incus_instance" "caddy" {
   }
 
   file {
-    content = templatefile("${path.module}/caddy/Caddyfile.tpl", {
+    content = templatefile("${path.module}/config/Caddyfile.tpl", {
       public_domain      = var.public_domain
       private_domain     = var.private_domain
       caddy_cf_api_email = var.caddy_cf_api_email
