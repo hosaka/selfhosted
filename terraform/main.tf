@@ -53,6 +53,17 @@ module "notify" {
   timezone      = var.timezone
 }
 
+module "syncstorage" {
+  source   = "./modules/syncstorage"
+  config   = var.config.syncstorage
+  target   = var.cluster.node-1.target
+  storage  = incus_storage_pool.remote.name
+  profiles = [incus_profile.default.name, incus_profile.replicated.name]
+
+  public_domain = var.public_domain
+  timezone      = var.timezone
+}
+
 module "vault" {
   source   = "./modules/vault"
   config   = var.config.vault
