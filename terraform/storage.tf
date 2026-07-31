@@ -36,16 +36,16 @@ resource "incus_instance" "linstor" {
   name = "linstor"
   type = "container"
 
-  target   = locals.target
+  target   = local.target
   image    = "images:debian/trixie/cloud"
   profiles = [incus_profile.default.name, incus_profile.lan.name]
 
   config = {
-    "cloud-init.user-data" = templatefile("${path.module}/user-data.yml.tpl", {
+    "cloud-init.user-data" = templatefile("${path.module}/linstor/user-data.yml.tpl", {
       ssh_key    = trimspace(file("~/.ssh/id_ed25519.pub"))
-      linbit_key = indent(10, "\n${file("${path.module}/package-signing-pubkey.asc")}")
+      linbit_key = indent(10, "\n${file("${path.module}/linstor/package-signing-pubkey.asc")}")
     })
-    "cloud-init.network-config" = templatefile("${path.module}/network-config.yml.tpl", {
+    "cloud-init.network-config" = templatefile("${path.module}/linstor/network-config.yml.tpl", {
       ipv4    = "${var.services.linstor.ipv4}/24"
       gateway = var.services.gateway
     })

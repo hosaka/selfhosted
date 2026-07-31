@@ -39,6 +39,7 @@ variable "cluster" {
 variable "services" {
   type = object({
     gateway = string
+
     linstor = object({
       ipv4 = string
     })
