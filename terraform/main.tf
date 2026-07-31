@@ -50,6 +50,16 @@ module "homeassistant" {
   timezone = var.timezone
 }
 
+module "metrics" {
+  source        = "./modules/metrics"
+  config        = var.config.metrics
+  target        = var.cluster.node-1.target
+  storage       = incus_storage_pool.remote.name
+  profiles      = [incus_profile.default.name, incus_profile.replicated.name]
+  public_domain = var.public_domain
+  timezone      = var.timezone
+}
+
 module "notify" {
   source        = "./modules/notify"
   config        = var.config.notify

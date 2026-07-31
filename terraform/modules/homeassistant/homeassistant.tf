@@ -53,7 +53,7 @@ resource "incus_instance" "mosquitto" {
   }
 
   device {
-    name = "config"
+    name = "data"
     type = "disk"
     properties = {
       path   = "/mosquitto/data"

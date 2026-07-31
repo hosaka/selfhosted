@@ -1,0 +1,24 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - "/etc/prometheus/rules/node_rules.yaml"
+
+scrape_configs:
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["prometheus:9090"]
+
+  - job_name: "node"
+    static_configs:
+      - targets: ["10.10.0.10:9100"]
+      # - targets: ["host.docker.internal:9100"]
+
+  - job_name: "smartctl"
+    static_configs:
+      - targets: ["smartctl-exporter:9633"]
+
+  - job_name: "cadvisor"
+    static_configs:
+      - targets: ["cadvisor:9250"]
