@@ -29,6 +29,7 @@ module "atuin" {
   timezone = var.timezone
 }
 
+# todo: configure lldap user and set the password
 module "auth" {
   source         = "./modules/auth"
   config         = var.config.auth
@@ -43,6 +44,16 @@ module "auth" {
 module "notify" {
   source        = "./modules/notify"
   config        = var.config.notify
+  target        = var.cluster.node-1.target
+  storage       = incus_storage_pool.remote.name
+  profiles      = [incus_profile.default.name, incus_profile.replicated.name]
+  public_domain = var.public_domain
+  timezone      = var.timezone
+}
+
+module "searxng" {
+  source        = "./modules/searxng"
+  config        = var.config.searxng
   target        = var.cluster.node-1.target
   storage       = incus_storage_pool.remote.name
   profiles      = [incus_profile.default.name, incus_profile.replicated.name]
