@@ -24,13 +24,14 @@ resource "incus_instance" "authelia" {
       db_name                = var.config.db_name
       db_password            = sensitive(var.config.db_password)
       db_username            = var.config.db_username
-      jwt_secret             = var.config.jwt_secret
+      jwt_secret             = sensitive(var.config.jwt_secret)
+      jwks_key               = sensitive(indent(10, trimspace(file("${path.module}/private.pem"))))
       ldap_password          = sensitive(var.config.ldap_password)
       session_secret         = sensitive(var.config.session_secret)
       smtp_address           = var.config.smtp_address
       smtp_password          = sensitive(var.config.smtp_password)
       smtp_sender            = var.config.smtp_sender
-      smtp_username          = var.config.smtp_username
+      smtp_username          = sensitive(var.config.smtp_username)
       storage_encryption_key = sensitive(var.config.storage_encryption_key)
 
       # clients
@@ -66,7 +67,7 @@ resource "incus_instance" "authelia" {
 
 resource "incus_storage_volume" "authelia_database" {
   name = "authelia-database"
-  pool = "local"
+  pool = var.storage
 }
 
 resource "incus_instance" "authelia_database" {
@@ -106,7 +107,7 @@ resource "incus_instance" "authelia_redis" {
 
 resource "incus_storage_volume" "lldap_data" {
   name = "lldap-data"
-  pool = "local"
+  pool = var.storage
 }
 
 # todo: figure out how to create default authelia user/pwd with lldap_password_manager gruop

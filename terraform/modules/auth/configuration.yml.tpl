@@ -71,11 +71,9 @@ definitions:
 identity_providers:
   oidc:
     jwks:
-      # note the multiline prefix | and lack of single quotes here is important
-      # see www.authelia.com/configuration/prologue/security-sensitive-values/#multi-line-value
+      # note variable being on a single line and missing quotation marks here is important
       - key: |
-          {{ secret "/config/jwks/private.pem" | mindent 10 "|" | msquote }}
-
+          ${jwks_key}
     claims_policies:
       grafana:
         id_token: ["email", "name", "groups", "preferred_username"]
