@@ -96,13 +96,28 @@ resource "incus_instance" "authelia_database" {
   }
 }
 
-resource "incus_instance" "authelia_redis" {
-  name = "authelia-redis"
+resource "incus_storage_volume" "authelia_valkey" {
+  name = "authelia-valkey"
+  pool = var.storage
+}
+
+resource "incus_instance" "authelia_valkey" {
+  name = "authelia-valkey"
   type = "container"
 
   target   = var.target
   profiles = var.profiles
   image    = "docker:valkey/valkey:8-alpine"
+
+  device {
+    name = "data"
+    type = "disk"
+    properties = {
+      path   = "/data"
+      pool   = var.storage
+      source = incus_storage_volume.authelia_valkey.name
+    }
+  }
 }
 
 resource "incus_storage_volume" "lldap_data" {

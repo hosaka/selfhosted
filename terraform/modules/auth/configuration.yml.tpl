@@ -36,7 +36,7 @@ session:
       authelia_url: "https://auth.${public_domain}"
       # default_redirection_url: "https://home.${public_domain}"
   redis:
-    host: authelia-redis
+    host: authelia-valkey
     port: 6379
 
 storage:
