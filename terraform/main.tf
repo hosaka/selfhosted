@@ -41,6 +41,15 @@ module "auth" {
   timezone       = var.timezone
 }
 
+module "homeassistant" {
+  source   = "./modules/homeassistant"
+  config   = var.config.homeassistant
+  target   = var.cluster.node-1.target
+  storage  = incus_storage_pool.remote.name
+  profiles = [incus_profile.default.name, incus_profile.replicated.name]
+  timezone = var.timezone
+}
+
 module "notify" {
   source        = "./modules/notify"
   config        = var.config.notify
