@@ -1,6 +1,6 @@
 variable "atuin_version" {
   type    = string
-  default = "18.16.1"
+  default = "18.18.0"
 }
 
 resource "incus_instance" "atuin" {

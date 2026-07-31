@@ -27,8 +27,9 @@ resource "incus_instance" "frpc" {
       frp_server_addr = var.config.frp_server_addr
       frp_auth_token  = sensitive(var.config.frp_auth_token)
     })
-    target_path = "/etc/frp/frpc.toml"
-    mode        = "0600"
+    target_path        = "/etc/frp/frpc.toml"
+    mode               = "0600"
+    create_directories = true
   }
 
   config = {
