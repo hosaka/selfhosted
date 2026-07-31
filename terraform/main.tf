@@ -13,8 +13,8 @@ module "ingress" {
   source   = "./modules/ingress"
   config   = var.config.ingress
   target   = var.cluster.node-1.target
-  storage  = "local"
-  profiles = [incus_profile.default.name]
+  storage  = incus_storage_pool.remote.name
+  profiles = [incus_profile.default.name, incus_profile.replicated.name]
 
   public_domain  = var.public_domain
   private_domain = var.private_domain
@@ -24,18 +24,18 @@ module "atuin" {
   source   = "./modules/atuin"
   config   = var.config.atuin
   target   = var.cluster.node-1.target
-  storage  = "local"
-  profiles = [incus_profile.default.name]
+  storage  = incus_storage_pool.remote.name
+  profiles = [incus_profile.default.name, incus_profile.replicated.name]
 
   timezone = var.timezone
 }
 
-module "authelia" {
-  source   = "./modules/authelia"
-  config   = var.config.authelia
+module "auth" {
+  source   = "./modules/auth"
+  config   = var.config.auth
   target   = var.cluster.node-1.target
-  storage  = "local"
-  profiles = [incus_profile.default.name]
+  storage  = incus_storage_pool.remote.name
+  profiles = [incus_profile.default.name, incus_profile.replicated.name]
 
   public_domain  = var.public_domain
   private_domain = var.private_domain
@@ -46,8 +46,19 @@ module "notify" {
   source   = "./modules/notify"
   config   = var.config.notify
   target   = var.cluster.node-1.target
-  storage  = "local"
-  profiles = [incus_profile.default.name]
+  storage  = incus_storage_pool.remote.name
+  profiles = [incus_profile.default.name, incus_profile.replicated.name]
+
+  public_domain = var.public_domain
+  timezone      = var.timezone
+}
+
+module "wakapi" {
+  source   = "./modules/wakapi"
+  config   = var.config.wakapi
+  target   = var.cluster.node-1.target
+  storage  = incus_storage_pool.remote.name
+  profiles = [incus_profile.default.name, incus_profile.replicated.name]
 
   public_domain = var.public_domain
   timezone      = var.timezone

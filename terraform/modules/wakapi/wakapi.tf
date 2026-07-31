@@ -1,36 +1,49 @@
-locals {
-  target = var.cluster.node-2.target
-}
-
 variable "wakapi_version" {
   type    = string
-  default = "2.17.4"
+  default = "2.17.5"
 }
 
 resource "incus_storage_volume" "wakapi_data" {
   name = "wakapi-data"
-  pool = incus_storage_pool.remote.name
+  pool = var.storage
+
+  config = {
+    "initial.uid" = "65532"
+    "initial.gid" = "65532"
+  }
 }
 
 resource "incus_instance" "wakapi" {
   name = "wakapi"
   type = "container"
 
-  target   = local.target
-  profiles = [incus_profile.default.name]
+  target   = var.target
+  profiles = var.profiles
   image    = "ghcr:muety/wakapi:${var.wakapi_version}"
 
   device {
     name = "data"
     type = "disk"
     properties = {
-      # todo: attempting to mount on /data fails in OCI because it doesn't exist
-      # wakapi does provide an env var to control the DB placement, but the data dir
-      # also containes the config.yml, need to investigate further
-      path   = "/tmp/data"
-      pool   = incus_storage_pool.remote.name
+      path   = "/app/data"
+      pool   = var.storage
       source = incus_storage_volume.wakapi_data.name
     }
+  }
+
+  config = {
+    "environment.WAKAPI_PUBLIC_URL"                     = "https://waka.${var.public_domain}"
+    "environment.WAKAPI_DB_NAME"                        = "/app/data/wakapi_db.db"
+    "environment.WAKAPI_PASSWORD_SALT"                  = "${sensitive(var.config.password_salt)}"
+    "environment.WAKAPI_INSECURE_COOKIES"               = "false"
+    "environment.WAKAPI_ALLOW_SIGNUP"                   = "false"
+    "environment.WAKAPI_DISABLE_FRONTPAGE"              = "true"
+    "environment.WAKAPI_OIDC_ALLOW_SIGNUP"              = "false"
+    "environment.WAKAPI_OIDC_PROVIDERS_0_NAME"          = "authelia"
+    "environment.WAKAPI_OIDC_PROVIDERS_0_DISPLAY_NAME"  = "Authelia"
+    "environment.WAKAPI_OIDC_PROVIDERS_0_CLIENT_ID"     = "${var.config.oidc_client_id}"
+    "environment.WAKAPI_OIDC_PROVIDERS_0_CLIENT_SECRET" = "${sensitive(var.config.oidc_client_secret)}"
+    "environment.WAKAPI_OIDC_PROVIDERS_0_ENDPOINT"      = "https://auth.${var.public_domain}"
   }
 }
 
