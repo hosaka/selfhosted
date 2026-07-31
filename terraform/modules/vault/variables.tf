@@ -4,8 +4,8 @@ variable "config" {
     smtp_from          = string
     smtp_host          = string
     smtp_password      = string
-    smtp_port          = number
-    smtp_security      = string
+    smtp_port          = optional(number, 465)
+    smtp_security      = optional(string, "force_tls")
     smtp_username      = string
     oidc_client_id     = string
     oidc_client_secret = string
