@@ -53,6 +53,11 @@ Deploy the LINSTOR controller, it is pinned to a single node and orchestrates sh
 just apply -target=incus_instance.linstor
 ```
 
+Trust `metrics.crt` in order to allow metrics monitoring services to scrape the data from Incus:
+```bash
+incus config trust add-certificate metrics.crt --type=metrics
+```
+
 ### Orchestration
 
 M920q PCs are clustered together using [Incus OS](https://linuxcontainers.org/incus-os/) responsible for OCI and VM instances than run individual services while the mITX machine takes on the NAS responsibilities.

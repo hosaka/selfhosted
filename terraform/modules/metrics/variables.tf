@@ -1,5 +1,9 @@
 variable "config" {
   type = object({
+    security_admin_user     = optional(string, "admin")
+    security_admin_password = string
+    oidc_client_id          = string
+    oidc_client_secret      = string
   })
 }
 
