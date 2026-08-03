@@ -10,6 +10,7 @@ variable "lldap_version" {
 
 resource "incus_instance" "authelia" {
   name = "authelia"
+  type = "container"
 
   target   = var.target
   profiles = var.profiles

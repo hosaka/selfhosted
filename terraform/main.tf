@@ -10,12 +10,11 @@ data "incus_cluster" "this" {
 
 # This is the entrypoint for all server traffic.
 module "ingress" {
-  source   = "./modules/ingress"
-  config   = var.config.ingress
-  target   = var.cluster.node-1.target
-  storage  = incus_storage_pool.remote.name
-  profiles = [incus_profile.default.name, incus_profile.replicated.name]
-
+  source         = "./modules/ingress"
+  config         = var.config.ingress
+  target         = var.cluster.node-1.target
+  storage        = incus_storage_pool.remote.name
+  profiles       = [incus_profile.default.name, incus_profile.replicated.name]
   public_domain  = var.public_domain
   private_domain = var.private_domain
 }
@@ -89,6 +88,16 @@ module "slskd" {
   public_domain = var.public_domain
   timezone      = var.timezone
 }
+
+# module "snikket" {
+#   source        = "./modules/snikket"
+#   config        = var.config.snikket
+#   target        = var.cluster.node-2.target
+#   storage       = incus_storage_pool.remote.name
+#   profiles      = [incus_profile.default.name, incus_profile.replicated.name]
+#   public_domain = var.public_domain
+#   timezone      = var.timezone
+# }
 
 module "syncstorage" {
   source        = "./modules/syncstorage"
