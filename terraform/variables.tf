@@ -17,22 +17,24 @@ variable "config" {
 
 variable "cluster" {
   type = object({
-    name = string
+    name = optional(string, "cluster")
 
     nic-1  = string
     nic-2  = string
     nvme-1 = string
     nvme-2 = string
 
-    node-1 = object({
-      target = string
-    })
-    node-2 = object({
-      target = string
-    })
-    node-3 = object({
-      target = string
-    })
+    bootstrap = optional(string, "node-1")
+
+    node-1 = optional(object({
+      target = optional(string, "node-1")
+    }), {})
+    node-2 = optional(object({
+      target = optional(string, "node-2")
+    }), {})
+    node-3 = optional(object({
+      target = optional(string, "node-3")
+    }), {})
   })
 }
 
