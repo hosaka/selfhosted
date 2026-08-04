@@ -50,7 +50,7 @@ incus admin os service edit linstor --target node-n
 
 Deploy the LINSTOR controller, it is pinned to a single node and orchestrates shared cluster storage:
 ```bash
-just apply -target=incus_instance.linstor
+just apply -target=incus_storage_pool.remote
 ```
 
 Trust `metrics.crt` in order to allow metrics monitoring services to scrape the data from Incus:
