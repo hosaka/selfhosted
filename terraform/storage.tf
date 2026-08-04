@@ -1,6 +1,11 @@
 locals {
   target = var.cluster.node-1.target
 
+  cache_nodes = {
+    for k, v in data.incus_cluster.this.members : k => v
+    if k != var.cluster.bootstrap
+  }
+
   satellite_execs = merge([
     for name, member in data.incus_cluster.this.members : {
 
@@ -28,6 +33,46 @@ locals {
 
     }
   ]...)
+}
+
+# Each node should have it's own cache storage but only the bootstrap node gets this
+# by default because the IncusOS image is created with "Apply default configuration".
+# The other nodes in the cluster need manual configuration.
+resource "incus_storage_volume" "images" {
+  for_each    = local.cache_nodes
+  name        = "images"
+  description = "Volume holding system images"
+  pool        = "local"
+  target      = each.key
+}
+
+resource "incus_storage_volume" "backups" {
+  for_each    = local.cache_nodes
+  name        = "backups"
+  description = "Volume holding system backups"
+  pool        = "local"
+  target      = each.key
+}
+
+resource "incus_storage_volume" "logs" {
+  for_each = local.cache_nodes
+  name     = "logs"
+  pool     = "local"
+  target   = each.key
+}
+
+resource "incus_server" "storage_volumes" {
+  for_each = data.incus_cluster.this.members
+
+  target = data.incus_cluster.this.is_clustered ? each.key : null
+
+  config = {
+    "storage.images_volume"  = "local/images"
+    "storage.backups_volume" = "local/backups"
+    "storage.logs_volume"    = "local/logs"
+  }
+
+  depends_on = [incus_storage_volume.images, incus_storage_volume.backups, incus_storage_volume.logs]
 }
 
 # A LINSTOR controller instance that is pinned to the first node in the cluster and
