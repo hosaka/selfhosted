@@ -1,5 +1,11 @@
 locals {
-  target = var.cluster.node-1.target
+  target = var.cluster.node-3.target
+
+  nodes = {
+    (var.cluster.node-1.target) = var.cluster.node-1
+    (var.cluster.node-2.target) = var.cluster.node-2
+    (var.cluster.node-3.target) = var.cluster.node-3
+  }
 
   cache_nodes = {
     for k, v in data.incus_cluster.this.members : k => v
@@ -13,7 +19,7 @@ locals {
       "00-register-${name}" = {
         command = [
           "linstor", "node", "create",
-          name, split(":", trimprefix(member.address, "https://"))[0],
+          name, local.nodes[name].ipv4_address,
           "--node-type", "satellite"
         ]
         trigger = "once"
@@ -26,7 +32,7 @@ locals {
         command = [
           "linstor", "physical-storage", "create-device-pool",
           "--storage-pool", "nvme_pool", "--pool-name", "nvme_pool",
-          "zfsthin", name, var.cluster.nvme-2
+          "zfsthin", name, local.nodes[name].nvme-2
         ]
         trigger = "once"
       }
@@ -105,7 +111,7 @@ resource "incus_instance" "linstor" {
 
 # Configure Incus to be able to communicate with the LINSTOR controller.
 resource "incus_server" "linstor_controller" {
-  depends_on = [incus_instance.linstor]
+  depends_on = [incus_server.storage_volumes, incus_instance.linstor]
 
   config = {
     "storage.linstor.controller_connection" = "http://${var.services.linstor.ipv4}:3370"
@@ -135,21 +141,6 @@ resource "incus_storage_pool" "remote" {
     "linstor.resource_group.name"         = "remote"
     "linstor.resource_group.storage_pool" = "nvme_pool"
     "linstor.resource_group.place_count"  = "2"
-  }
-}
-
-# Use this profile for instances that need to be stored in a replicated LINSTOR pool.
-resource "incus_profile" "replicated" {
-  name        = "replicated"
-  description = "Instances that use replicated storage"
-
-  device {
-    name = "root"
-    properties = {
-      path = "/"
-      pool = incus_storage_pool.remote.name
-    }
-    type = "disk"
   }
 }
 
