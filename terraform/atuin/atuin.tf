@@ -20,8 +20,8 @@ resource "incus_instance" "atuin" {
   }
 }
 
-resource "incus_storage_volume" "atuin_data" {
-  name = "atuin-data"
+resource "incus_storage_volume" "atuin_db" {
+  name = "atuin-db"
   pool = "remote"
 }
 
@@ -34,12 +34,12 @@ resource "incus_instance" "atuin_database" {
   image    = "docker:postgres:18-alpine"
 
   device {
-    name = "database"
+    name = "data"
     type = "disk"
     properties = {
       path   = "/var/lib/postgresql"
-      pool   = "remote"
-      source = incus_storage_volume.atuin_data.name
+      pool   = incus_storage_volume.atuin_db.pool
+      source = incus_storage_volume.atuin_db.name
     }
   }
 

@@ -1,0 +1,3 @@
+bots:
+  # You can import the entire default config with this:
+  - import: (data)/meta/default-config.yaml

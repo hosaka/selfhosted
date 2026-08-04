@@ -29,8 +29,8 @@ resource "incus_instance" "syncstorage" {
   }
 }
 
-resource "incus_storage_volume" "syncstorage_data" {
-  name = "syncstorage-data"
+resource "incus_storage_volume" "syncstorage_db" {
+  name = "syncstorage-db"
   pool = "remote"
 }
 
@@ -43,12 +43,12 @@ resource "incus_instance" "syncstorage_database" {
   image    = "docker:postgres:18-alpine"
 
   device {
-    name = "database"
+    name = "data"
     type = "disk"
     properties = {
       path   = "/var/lib/postgresql"
-      pool   = incus_storage_volume.syncstorage_data.pool
-      source = incus_storage_volume.syncstorage_data.name
+      pool   = incus_storage_volume.syncstorage_db.pool
+      source = incus_storage_volume.syncstorage_db.name
     }
   }
 

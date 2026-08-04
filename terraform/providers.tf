@@ -20,4 +20,11 @@ provider "incus" {
     protocol = "oci"
     public   = true
   }
+
+  remote {
+    name     = "codeberg"
+    address  = "https://codeberg.org"
+    protocol = "oci"
+    public   = true
+  }
 }

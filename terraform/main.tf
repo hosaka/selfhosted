@@ -17,13 +17,6 @@ module "ingress" {
   private_domain = var.private_domain
 }
 
-module "atuin" {
-  source   = "./atuin"
-  config   = var.config.atuin
-  target   = var.cluster.node-1.target
-  timezone = var.timezone
-}
-
 # todo: configure lldap user and set the password
 module "auth" {
   source         = "./auth"
@@ -32,6 +25,21 @@ module "auth" {
   public_domain  = var.public_domain
   private_domain = var.private_domain
   timezone       = var.timezone
+}
+
+module "atuin" {
+  source   = "./atuin"
+  config   = var.config.atuin
+  target   = var.cluster.node-1.target
+  timezone = var.timezone
+}
+
+module "forgejo" {
+  source        = "./forgejo"
+  config        = var.config.forgejo
+  target        = var.cluster.node-2.target
+  public_domain = var.public_domain
+  timezone      = var.timezone
 }
 
 module "homeassistant" {

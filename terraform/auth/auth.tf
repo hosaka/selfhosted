@@ -66,8 +66,8 @@ resource "incus_instance" "authelia" {
   }
 }
 
-resource "incus_storage_volume" "authelia_data" {
-  name = "authelia-data"
+resource "incus_storage_volume" "authelia_db" {
+  name = "authelia-db"
   pool = "remote"
 }
 
@@ -80,12 +80,12 @@ resource "incus_instance" "authelia_database" {
   image    = "docker:postgres:18-alpine"
 
   device {
-    name = "database"
+    name = "data"
     type = "disk"
     properties = {
       path   = "/var/lib/postgresql"
-      pool   = incus_storage_volume.authelia_data.pool
-      source = incus_storage_volume.authelia_data.name
+      pool   = incus_storage_volume.authelia_db.pool
+      source = incus_storage_volume.authelia_db.name
     }
   }
 
