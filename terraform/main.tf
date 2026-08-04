@@ -10,121 +10,97 @@ data "incus_cluster" "this" {
 
 # This is the entrypoint for all server traffic.
 module "ingress" {
-  source         = "./modules/ingress"
+  source         = "./ingress"
   config         = var.config.ingress
-  target         = var.cluster.node-1.target
-  storage        = incus_storage_pool.remote.name
-  profiles       = [incus_profile.default.name, incus_profile.replicated.name]
+  target         = var.cluster.node-3.target
   public_domain  = var.public_domain
   private_domain = var.private_domain
 }
 
 module "atuin" {
-  source   = "./modules/atuin"
+  source   = "./atuin"
   config   = var.config.atuin
   target   = var.cluster.node-1.target
-  storage  = incus_storage_pool.remote.name
-  profiles = [incus_profile.default.name, incus_profile.replicated.name]
   timezone = var.timezone
 }
 
 # todo: configure lldap user and set the password
 module "auth" {
-  source         = "./modules/auth"
+  source         = "./auth"
   config         = var.config.auth
   target         = var.cluster.node-1.target
-  storage        = incus_storage_pool.remote.name
-  profiles       = [incus_profile.default.name, incus_profile.replicated.name]
   public_domain  = var.public_domain
   private_domain = var.private_domain
   timezone       = var.timezone
 }
 
 module "homeassistant" {
-  source   = "./modules/homeassistant"
+  source   = "./homeassistant"
   config   = var.config.homeassistant
   target   = var.cluster.node-1.target
-  storage  = incus_storage_pool.remote.name
-  profiles = [incus_profile.default.name, incus_profile.replicated.name]
   timezone = var.timezone
 }
 
 module "metrics" {
-  source        = "./modules/metrics"
+  source        = "./metrics"
   config        = var.config.metrics
-  target        = var.cluster.node-1.target
-  storage       = incus_storage_pool.remote.name
-  profiles      = [incus_profile.default.name, incus_profile.replicated.name]
+  target        = var.cluster.node-2.target
   public_domain = var.public_domain
   timezone      = var.timezone
 }
 
 module "notify" {
-  source        = "./modules/notify"
+  source        = "./notify"
   config        = var.config.notify
-  target        = var.cluster.node-1.target
-  storage       = incus_storage_pool.remote.name
-  profiles      = [incus_profile.default.name, incus_profile.replicated.name]
+  target        = var.cluster.node-2.target
   public_domain = var.public_domain
   timezone      = var.timezone
 }
 
 module "searxng" {
-  source        = "./modules/searxng"
+  source        = "./searxng"
   config        = var.config.searxng
-  target        = var.cluster.node-1.target
-  storage       = incus_storage_pool.remote.name
-  profiles      = [incus_profile.default.name, incus_profile.replicated.name]
+  target        = var.cluster.node-3.target
   public_domain = var.public_domain
   timezone      = var.timezone
 }
 
 module "slskd" {
-  source        = "./modules/slskd"
+  source        = "./slskd"
   config        = var.config.slskd
   target        = var.cluster.node-1.target
-  storage       = incus_storage_pool.remote.name
-  profiles      = [incus_profile.default.name, incus_profile.replicated.name]
   public_domain = var.public_domain
   timezone      = var.timezone
 }
 
 # module "snikket" {
-#   source        = "./modules/snikket"
+#   source        = "./snikket"
 #   config        = var.config.snikket
-#   target        = var.cluster.node-2.target
-#   storage       = incus_storage_pool.remote.name
-#   profiles      = [incus_profile.default.name, incus_profile.replicated.name]
+#   target        = var.cluster.node-3.target
 #   public_domain = var.public_domain
 #   timezone      = var.timezone
 # }
 
 module "syncstorage" {
-  source        = "./modules/syncstorage"
+  source        = "./syncstorage"
   config        = var.config.syncstorage
   target        = var.cluster.node-1.target
-  storage       = incus_storage_pool.remote.name
-  profiles      = [incus_profile.default.name, incus_profile.replicated.name]
   public_domain = var.public_domain
   timezone      = var.timezone
 }
 
-module "vault" {
-  source        = "./modules/vault"
-  config        = var.config.vault
+module "vaultwarden" {
+  source        = "./vaultwarden"
+  config        = var.config.vaultwarden
   target        = var.cluster.node-1.target
-  storage       = incus_storage_pool.remote.name
-  profiles      = [incus_profile.default.name, incus_profile.replicated.name]
   public_domain = var.public_domain
   timezone      = var.timezone
 }
 
 module "wakapi" {
-  source        = "./modules/wakapi"
+  source        = "./wakapi"
   config        = var.config.wakapi
-  target        = var.cluster.node-1.target
-  storage       = incus_storage_pool.remote.name
-  profiles      = [incus_profile.default.name, incus_profile.replicated.name]
+  target        = var.cluster.node-2.target
   public_domain = var.public_domain
   timezone      = var.timezone
 }
