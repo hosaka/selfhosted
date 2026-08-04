@@ -27,7 +27,7 @@ resource "incus_instance" "searxng" {
   config = {
     "environment.SEARXNG_SECRET"    = sensitive(var.config.secret)
     "environment.SEARXNG_BASE_URL"  = "https://search.${var.public_domain}"
-    "environment.SEARXNG_REDIS_URL" = "redis://searxng-valkey:6379"
+    "environment.SEARXNG_REDIS_URL" = "redis://${incus_instance.searxng_valkey.name}:6379"
   }
 }
 
