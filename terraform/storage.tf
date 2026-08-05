@@ -1,5 +1,5 @@
 locals {
-  target = var.cluster.node-3.target
+  target = var.cluster.node-1.target
 
   nodes = {
     (var.cluster.node-1.target) = var.cluster.node-1
@@ -28,14 +28,26 @@ locals {
       # Create the storage pools in each satellite node that will contribute storage
       # to the cluster. Since nvme-1 is taken up by IncusOS and local storage we will
       # use the spare nvme-2.
-      "01-pool-${name}" = {
-        command = [
-          "linstor", "physical-storage", "create-device-pool",
-          "--storage-pool", "nvme_pool", "--pool-name", "nvme_pool",
-          "zfsthin", name, local.nodes[name].nvme-2
-        ]
-        trigger = "once"
-      }
+
+      # Creating nvme_pool this way will result in an unencrypted ZFS pool in IncusOS
+      # which will be not managed by it and will result in it being discarded during 
+      # an update, see:
+
+      # Instead ZFS pools should be created using `incus admin os system storage edit`
+      # for each node, adding required disks to the pool first, then in linstror OCI
+      # add them with `linstor storage-pool create zfsthin node-N nvme_pool nvme_pool`
+
+      # todo: automate the above, require creating the nvme_pool first, the rest can
+      # be done with an exec command here
+
+      # "01-pool-${name}" = {
+      #   command = [
+      #     "linstor", "physical-storage", "create-device-pool",
+      #     "--storage-pool", "nvme_pool", "--pool-name", "nvme_pool",
+      #     "zfsthin", name, local.nodes[name].nvme-2
+      #   ]
+      #   trigger = "once"
+      # }
 
     }
   ]...)
@@ -44,6 +56,7 @@ locals {
 # Each node should have it's own cache storage but only the bootstrap node gets this
 # by default because the IncusOS image is created with "Apply default configuration".
 # The other nodes in the cluster need manual configuration.
+
 resource "incus_storage_volume" "images" {
   for_each    = local.cache_nodes
   name        = "images"

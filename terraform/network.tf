@@ -2,7 +2,7 @@
 resource "incus_network" "lan_pending" {
   for_each = data.incus_cluster.this.members
 
-  name   = "lan"
+  name   = var.cluster.nic-1
   type   = "physical"
   target = data.incus_cluster.this.is_clustered ? each.key : null
 
@@ -12,7 +12,7 @@ resource "incus_network" "lan_pending" {
 }
 
 resource "incus_network" "lan" {
-  name        = "lan"
+  name        = var.cluster.nic-1
   type        = "physical"
   description = "Direct local network access (without NAT)"
 

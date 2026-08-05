@@ -1,6 +1,6 @@
 variable "frpc_version" {
   type    = string
-  default = "0.69.1"
+  default = "0.70.1"
 }
 
 variable "caddy_version" {
@@ -10,7 +10,7 @@ variable "caddy_version" {
 
 variable "whoami_version" {
   type    = string
-  default = "1.11.0"
+  default = "1.12.0"
 }
 
 resource "incus_instance" "frpc" {
