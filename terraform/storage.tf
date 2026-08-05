@@ -31,14 +31,17 @@ locals {
 
       # Creating nvme_pool this way will result in an unencrypted ZFS pool in IncusOS
       # which will be not managed by it and will result in it being discarded during 
-      # an update, see:
+      # an update.
+      # see: https://github.com/lxc/incus-os/issues/1258#issuecomment-5193553992
 
-      # Instead ZFS pools should be created using `incus admin os system storage edit`
-      # for each node, adding required disks to the pool first, then in linstror OCI
-      # add them with `linstor storage-pool create zfsthin node-N nvme_pool nvme_pool`
+      # Instead:
+      # - Create a pool through IncusOS (encrypted)
+      # - Create a Linstor volume on that pool (unencrypted)
+      # - Have Linstor use that volume for storage
+      # - See: https://linuxcontainers.org/incus-os/docs/main/reference/system/storage/#managing-volumes
 
       # todo: automate the above, require creating the nvme_pool first, the rest can
-      # be done with an exec command here
+      # be done with an exec command here.
 
       # "01-pool-${name}" = {
       #   command = [
