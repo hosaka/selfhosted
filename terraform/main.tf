@@ -18,14 +18,15 @@ module "ingress" {
 }
 
 # todo: configure lldap user and set the password
-module "auth" {
-  source         = "./auth"
-  config         = var.config.auth
-  target         = var.cluster.node-1.target
-  public_domain  = var.public_domain
-  private_domain = var.private_domain
-  timezone       = var.timezone
-}
+
+# module "auth" {
+#   source         = "./auth"
+#   config         = var.config.auth
+#   target         = var.cluster.node-3.target
+#   public_domain  = var.public_domain
+#   private_domain = var.private_domain
+#   timezone       = var.timezone
+# }
 
 module "atuin" {
   source   = "./atuin"
@@ -34,52 +35,52 @@ module "atuin" {
   timezone = var.timezone
 }
 
-module "forgejo" {
-  source        = "./forgejo"
-  config        = var.config.forgejo
-  target        = var.cluster.node-2.target
-  public_domain = var.public_domain
-  timezone      = var.timezone
-}
+# module "forgejo" {
+#   source        = "./forgejo"
+#   config        = var.config.forgejo
+#   target        = var.cluster.node-2.target
+#   public_domain = var.public_domain
+#   timezone      = var.timezone
+# }
 
-module "homeassistant" {
-  source   = "./homeassistant"
-  config   = var.config.homeassistant
-  target   = var.cluster.node-1.target
-  timezone = var.timezone
-}
+# module "homeassistant" {
+#   source   = "./homeassistant"
+#   config   = var.config.homeassistant
+#   target   = var.cluster.node-1.target
+#   timezone = var.timezone
+# }
 
-module "metrics" {
-  source        = "./metrics"
-  config        = var.config.metrics
-  target        = var.cluster.node-2.target
-  public_domain = var.public_domain
-  timezone      = var.timezone
-}
+# module "metrics" {
+#   source        = "./metrics"
+#   config        = var.config.metrics
+#   target        = var.cluster.node-2.target
+#   public_domain = var.public_domain
+#   timezone      = var.timezone
+# }
 
-module "notify" {
-  source        = "./notify"
-  config        = var.config.notify
-  target        = var.cluster.node-2.target
-  public_domain = var.public_domain
-  timezone      = var.timezone
-}
+# module "notify" {
+#   source        = "./notify"
+#   config        = var.config.notify
+#   target        = var.cluster.node-2.target
+#   public_domain = var.public_domain
+#   timezone      = var.timezone
+# }
 
-module "searxng" {
-  source        = "./searxng"
-  config        = var.config.searxng
-  target        = var.cluster.node-3.target
-  public_domain = var.public_domain
-  timezone      = var.timezone
-}
+# module "searxng" {
+#   source        = "./searxng"
+#   config        = var.config.searxng
+#   target        = var.cluster.node-3.target
+#   public_domain = var.public_domain
+#   timezone      = var.timezone
+# }
 
-module "slskd" {
-  source        = "./slskd"
-  config        = var.config.slskd
-  target        = var.cluster.node-1.target
-  public_domain = var.public_domain
-  timezone      = var.timezone
-}
+# module "slskd" {
+#   source        = "./slskd"
+#   config        = var.config.slskd
+#   target        = var.cluster.node-1.target
+#   public_domain = var.public_domain
+#   timezone      = var.timezone
+# }
 
 # module "snikket" {
 #   source        = "./snikket"
@@ -89,26 +90,26 @@ module "slskd" {
 #   timezone      = var.timezone
 # }
 
-module "syncstorage" {
-  source        = "./syncstorage"
-  config        = var.config.syncstorage
-  target        = var.cluster.node-1.target
-  public_domain = var.public_domain
-  timezone      = var.timezone
-}
+# module "syncstorage" {
+#   source        = "./syncstorage"
+#   config        = var.config.syncstorage
+#   target        = var.cluster.node-1.target
+#   public_domain = var.public_domain
+#   timezone      = var.timezone
+# }
 
-module "vaultwarden" {
-  source        = "./vaultwarden"
-  config        = var.config.vaultwarden
-  target        = var.cluster.node-1.target
-  public_domain = var.public_domain
-  timezone      = var.timezone
-}
+# module "vaultwarden" {
+#   source        = "./vaultwarden"
+#   config        = var.config.vaultwarden
+#   target        = var.cluster.node-1.target
+#   public_domain = var.public_domain
+#   timezone      = var.timezone
+# }
 
-module "wakapi" {
-  source        = "./wakapi"
-  config        = var.config.wakapi
-  target        = var.cluster.node-2.target
-  public_domain = var.public_domain
-  timezone      = var.timezone
-}
+# module "wakapi" {
+#   source        = "./wakapi"
+#   config        = var.config.wakapi
+#   target        = var.cluster.node-2.target
+#   public_domain = var.public_domain
+#   timezone      = var.timezone
+# }
