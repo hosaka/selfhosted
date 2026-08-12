@@ -70,7 +70,7 @@ resource "incus_instance" "snikket_certs" {
   type = "container"
 
   target   = var.target
-  profiles = var.profiles
+  profiles = ["default"]
   image    = "docker:snikket/snikket-cert-manager:${var.snikket_version}"
 
   device {
@@ -78,7 +78,7 @@ resource "incus_instance" "snikket_certs" {
     type = "disk"
     properties = {
       path   = "/snikket"
-      pool   = var.storage
+      pool   = incus_storage_volume.snikket_data.pool
       source = incus_storage_volume.snikket_data.name
     }
   }
@@ -94,7 +94,7 @@ resource "incus_instance" "snikket_web" {
   type = "container"
 
   target   = var.target
-  profiles = var.profiles
+  profiles = ["default"]
   image    = "docker:snikket/snikket-web-portal:${var.snikket_version}"
 
   config = {
