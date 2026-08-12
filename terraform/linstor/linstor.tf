@@ -72,7 +72,11 @@ resource "incus_instance" "linstor" {
   project = "internal"
 
   config = {
-    # "boot.autostart" = true
+    "boot.autostart"          = true
+    "boot.autostart.priority" = 10
+
+    # Instructs which interface should be used for IP reporting. LAN in this case.
+    "user.access_interface" = "eth1"
 
     "cloud-init.user-data" = templatefile("${path.module}/user-data.yml.tpl", {
       linbit_key = indent(6, trimspace(file("${path.module}/package-signing-pubkey.asc")))
@@ -101,7 +105,7 @@ resource "incus_instance" "linstor" {
 # Configure Incus to be able to communicate with the LINSTOR controller.
 resource "incus_server" "linstor_controller" {
   config = {
-    "storage.linstor.controller_connection" = "http://10.10.0.75:3370"
+    "storage.linstor.controller_connection" = "http://${incus_instance.linstor.ipv4_address}:3370"
   }
 }
 
@@ -114,23 +118,23 @@ resource "incus_storage_pool" "linstor_per_node" {
   driver   = "linstor"
   target   = each.key
 
-  # config = {
-  #   "source" = "linstor"
-  # }
-  #
-  # lifecycle {
-  #   ignore_changes = [
-  #     # Incus changes the source behind the scenes so we ignore these changes.
-  #     config["source"],
-  #   ]
-  # }
+  config = {
+    "source" = "linstor"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      # Incus changes the source behind the scenes so we ignore these changes.
+      config["source"],
+    ]
+  }
 
   depends_on = [
     incus_server.linstor_controller
   ]
 }
 
-resource "incus_storage_pool" "remote" {
+resource "incus_storage_pool" "linstor" {
   name        = "linstor"
   driver      = "linstor"
   description = "Replicated storage pool (LINSTOR)"
@@ -147,6 +151,6 @@ resource "incus_storage_pool" "remote" {
 
 resource "null_resource" "post_linstor" {
   depends_on = [
-    incus_storage_pool.remote,
+    incus_storage_pool.linstor,
   ]
 }

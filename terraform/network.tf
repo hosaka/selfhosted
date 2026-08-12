@@ -28,9 +28,10 @@ resource "incus_network" "incusbr0" {
 
 locals {
   meshTunnelInterfaces = {
-    "node-1" = var.cluster.nic-1
-    "node-2" = var.cluster.nic-1
-    "node-3" = var.cluster.nic-1
+    (var.cluster.node-1.target) = var.cluster.nic-1
+    (var.cluster.node-2.target) = var.cluster.nic-1
+    (var.cluster.node-3.target) = var.cluster.nic-1
+    # (var.cluster.node-4.target) = var.cluster.nic-1
   }
 }
 
@@ -118,17 +119,3 @@ resource "null_resource" "post_networks" {
   ]
 }
 
-# resource "incus_profile" "lan" {
-#   name        = "lan"
-#   description = "Instances that need direct LAN access"
-#
-#   device {
-#     name = "eth1"
-#     type = "nic"
-#     properties = {
-#       name    = "eth1"
-#       network = incus_network.lan.name
-#     }
-#   }
-# }
-#

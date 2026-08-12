@@ -29,9 +29,19 @@ My selfhosted config.
 
 ### Setup
 
-Create an Incus cluster with 3 nodes. This is detailed in the [IncusOs Docs](https://linuxcontainers.org/incus-os/docs/main/tutorials/incus-cluster/). Make sure that `incus remote ls` contains the cluster endpoint and set it as default:
+Create an Incus cluster with all nodes.
+
+> This also is detailed in the [IncusOs Docs](https://linuxcontainers.org/incus-os/docs/main/tutorials/incus-cluster/)
+
 ```bash
+incus remote add node-n <node-ip-address>
+incus config set node-1: cluster.https_address=<node-1-ip-address>:8443
+incus cluster enable node-1: node-1
+# add the cluster itself as a remote and set it as default
+incus remote add cluster <node-1-ip-address>
 incus remote switch cluster
+# join the remaining nodes, give them more descriptive names like node-1 etc.
+incus cluster join cluster: node-n
 ```
 
 Add `instances` role to IncusOS in order be able to attach a container or a virtual machine directly to the host's network. Run `incus admin os system network edit --target node-n` for each node and add to the interface config:
@@ -41,21 +51,20 @@ roles:
   - instances
 ```
 
-Install `incus-linstor` application and set `enabled` to true for `linstor` service on each node:
+Set `enabled` to true for `linstor` service on each node:
 
 ```bash
-incus admin os application add -d '{"name":"incus-linstor"}' --target node-n
 incus admin os service edit linstor --target node-n
 ```
 
 Deploy the LINSTOR controller, it is pinned to a single node and orchestrates shared cluster storage:
 ```bash
-just apply -target=incus_storage_pool.remote
+just apply -target=module.linstor.incus_storage_pool.linstor
 ```
 
 Trust `metrics.crt` in order to allow metrics monitoring services to scrape the data from Incus:
 ```bash
-incus config trust add-certificate metrics.crt --type=metrics
+incus config trust add-certificate metrics/metrics.crt --type=metrics
 ```
 
 ### Orchestration

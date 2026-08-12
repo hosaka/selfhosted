@@ -3,19 +3,31 @@ data "incus_cluster" "this" {
   lifecycle {
     postcondition {
       condition     = alltrue(self.is_clustered ? [for i, v in self.members : v.status == "Online"] : [])
-      error_message = "All servers must be online."
+      error_message = "All cluster members must be online."
     }
   }
 }
 
-# This is the entrypoint for all server traffic.
-module "ingress" {
-  source         = "./ingress"
-  config         = var.config.ingress
-  target         = var.cluster.node-3.target
-  public_domain  = var.public_domain
-  private_domain = var.private_domain
+locals {
+  members = data.incus_cluster.this.is_clustered ? { for k, v in data.incus_cluster.this.members : k => v } : {}
 }
+
+module "linstor" {
+  source = "./linstor"
+  target = var.cluster.node-1.target
+  depends_on = [
+    null_resource.post_server
+  ]
+}
+
+# This is the entrypoint for all server traffic.
+# module "ingress" {
+#   source         = "./ingress"
+#   config         = var.config.ingress
+#   target         = var.cluster.node-3.target
+#   public_domain  = var.public_domain
+#   private_domain = var.private_domain
+# }
 
 # todo: configure lldap user and set the password
 
@@ -28,12 +40,12 @@ module "ingress" {
 #   timezone       = var.timezone
 # }
 
-module "atuin" {
-  source   = "./atuin"
-  config   = var.config.atuin
-  target   = var.cluster.node-1.target
-  timezone = var.timezone
-}
+# module "atuin" {
+#   source   = "./atuin"
+#   config   = var.config.atuin
+#   target   = var.cluster.node-1.target
+#   timezone = var.timezone
+# }
 
 # module "forgejo" {
 #   source        = "./forgejo"
