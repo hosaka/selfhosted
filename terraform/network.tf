@@ -1,35 +1,134 @@
-# External
-resource "incus_network" "lan_pending" {
-  for_each = data.incus_cluster.this.members
+resource "incus_network" "incusbr0_per_node" {
+  for_each = local.members
 
-  name   = var.cluster.nic-1
-  type   = "physical"
-  target = data.incus_cluster.this.is_clustered ? each.key : null
+  name   = "incusbr0"
+  target = each.key
+  type   = "bridge"
 
   config = {
-    parent = var.cluster.nic-1
   }
+
+  depends_on = [
+    null_resource.post_projects,
+  ]
+}
+
+resource "incus_network" "incusbr0" {
+  name        = "incusbr0"
+  description = "Local network bridge (NAT)"
+
+  config = {
+  }
+
+  depends_on = [
+    null_resource.post_projects,
+    incus_network.incusbr0_per_node,
+  ]
+}
+
+locals {
+  meshTunnelInterfaces = {
+    "node-1" = var.cluster.nic-1
+    "node-2" = var.cluster.nic-1
+    "node-3" = var.cluster.nic-1
+  }
+}
+
+// Generate random values for the meshbr0 IPv6 subnet.
+resource "random_integer" "meshbr0-subnet-segment-2" {
+  min = 0
+  max = 65535
+}
+resource "random_integer" "meshbr0-subnet-segment-3" {
+  min = 0
+  max = 65535
+}
+resource "random_integer" "meshbr0-subnet-segment-4" {
+  min = 0
+  max = 65535
+}
+
+resource "incus_network" "meshbr0_per_node" {
+  for_each = local.members
+
+  name   = "meshbr0"
+  target = each.key
+  type   = "bridge"
+
+  config = {
+    "tunnel.mesh.interface" = local.meshTunnelInterfaces[each.key]
+  }
+
+  depends_on = [
+    null_resource.post_projects,
+  ]
+}
+
+resource "incus_network" "meshbr0" {
+  name        = "meshbr0"
+  description = "Internal mesh network bridge"
+
+  config = {
+    "ipv4.address"         = "10.150.19.1/24"
+    "ipv4.nat"             = "true"
+    "ipv6.address"         = format("fd42:%x:%x:%x::/64", random_integer.meshbr0-subnet-segment-2.result, random_integer.meshbr0-subnet-segment-3.result, random_integer.meshbr0-subnet-segment-4.result)
+    "ipv6.nat"             = "true"
+    "tunnel.mesh.id"       = "1000"
+    "tunnel.mesh.protocol" = "vxlan"
+  }
+
+  depends_on = [
+    null_resource.post_projects,
+    incus_network.meshbr0_per_node,
+  ]
+}
+
+resource "incus_network" "lan_per_node" {
+  for_each = local.members
+
+  name   = "lan"
+  type   = "physical"
+  target = each.key
+
+  config = {
+    parent = local.meshTunnelInterfaces[each.key]
+  }
+
+  depends_on = [
+    null_resource.post_projects,
+  ]
 }
 
 resource "incus_network" "lan" {
-  name        = var.cluster.nic-1
+  name        = "lan"
   type        = "physical"
   description = "Direct local network access (without NAT)"
 
-  depends_on = [incus_network.lan_pending]
+  depends_on = [
+    null_resource.post_projects,
+    incus_network.lan_per_node,
+  ]
 }
 
-resource "incus_profile" "lan" {
-  name        = "lan"
-  description = "Instances that need direct LAN access"
-
-  device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      name    = "eth1"
-      network = incus_network.lan.name
-    }
-  }
+resource "null_resource" "post_networks" {
+  depends_on = [
+    incus_network.incusbr0,
+    incus_network.meshbr0,
+    incus_network.lan,
+  ]
 }
 
+# resource "incus_profile" "lan" {
+#   name        = "lan"
+#   description = "Instances that need direct LAN access"
+#
+#   device {
+#     name = "eth1"
+#     type = "nic"
+#     properties = {
+#       name    = "eth1"
+#       network = incus_network.lan.name
+#     }
+#   }
+# }
+#
