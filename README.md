@@ -43,23 +43,6 @@ Create an Incus cluster with all nodes. This also is detailed in the [IncusOS Do
 just cluster 10.10.0.101 10.10.0.102 10.10.0.103
 ```
 
-Add `instances` role to IncusOS in order be able to attach a container or a virtual machine directly to the host's network. For each node, add the `roles` under the `interfaces` config:
-```bash
-incus admin os system network edit --target node-n
-```
-
-The result should look similar to this:
-```yaml
-config:
-  interfaces:
-    - addresses:
-        - dhcp4
-        - slaac
-      name: ens18
-      roles:
-        - instances
-```
-
 Bootstrap the cluster configuration:
 ```bash
 tofu init
