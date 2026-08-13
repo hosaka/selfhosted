@@ -77,13 +77,13 @@ restart instance:
 
 [doc('encrypt files for storing them in git repository')]
 encrypt:
-    sops encrypt ./restic/.env > ./restic/default.env
-    sops encrypt ./authelia/jwks/private.pem > ./authelia/jwks/private.pem.enc
+    sops encrypt ./secrets.default.tfvars > ./secrets.auto.tfvars
+    sops encrypt ./auth/private.pem > ./auth/private.pem.enc
 
 [doc('decrypt files stored in git repository')]
 decrypt:
     sops decrypt ./restic/default.env > ./restic/.env
-    sops decrypt ./authelia/jwks/private.pem.enc > ./authelia/jwks/private.pem
+    sops decrypt ./auth/private.pem.enc > ./auth/private.pem
 
 [doc('generate random OIDC client id (uses authelia docker image)')]
 genid:

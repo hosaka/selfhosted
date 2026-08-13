@@ -144,6 +144,7 @@ Backups are done using `restic` and `resticprofile`. See the [restic/README.md](
 
 ### Software
 
+- [ ] Better automation for Linstor provisioning, perhaps getting [Operations Center](https://github.com/FuturFusion/operations-center) involved
 - [ ] CardDAV and CalDAV for calendar and contacts sync like [radicale](https://radicale.org/v3.html)
 - [ ] [Safe{Wallet}](https://github.com/safe-global/safe-wallet-web) for multisig wallets
 - [x] Browser sync, e.g. [syncstorage-rs](https://github.com/mozilla-services/syncstorage-rs) for Firefox

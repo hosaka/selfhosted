@@ -16,11 +16,10 @@ secrets.auto.tfvars
 # vpn
 wg0.conf
 
-# pem
+# certs and keys
 *.pem
-
-# key
 *.key
+*.pfx
 
 # incus
 *.iso
