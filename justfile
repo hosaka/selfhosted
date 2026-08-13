@@ -17,9 +17,9 @@ cwd := quote(invocation_directory() + "/")
 @edit:
     just --edit
 
-[arg('node-1', pattern='^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$', help='IP address of the first node')]
-[arg('node-2', pattern='^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$', help='IP address of the second node')]
-[arg('node-3', pattern='^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$', help='IP address of the third node')]
+[arg('node-1', help='IP address of the first node')]
+[arg('node-2', help='IP address of the second node')]
+[arg('node-3', help='IP address of the third node')]
 [doc('form an incus cluster')]
 cluster node-1 node-2 node-3:
     # add individual nodes first
@@ -75,15 +75,29 @@ stop instance:
 restart instance:
     incus restart {{ instance }}
 
+[arg('target', pattern='auth|keys|restic|secrets', help="target to encrpt")]
 [doc('encrypt files for storing them in git repository')]
-encrypt:
-    sops encrypt ./secrets.default.tfvars > ./secrets.auto.tfvars
-    sops encrypt ./auth/private.pem > ./auth/private.pem.enc
+@encrypt target="secrets":
+    case "{{ target }}" in \
+      secrets) sops encrypt ./secrets.auto.tfvars > ./secrets.default.tfvars ;; \
+      keys) sops encrypt ./incus/client.key > ./incus/client.key.enc && \
+            sops encrypt ./incus/client.pfx > ./incus/client.pfx.enc && \
+            sops encrypt ./metrics/metrics.key > ./metrics/metrics.key.enc ;; \
+      restic) sops encrypt ./restic/.env > ./restic/default.env ;; \
+      auth) sops encrypt ./auth/private.pem > ./auth/private.pem.enc ;; \
+    esac
 
+[arg('target', pattern='auth|keys|restic|secrets', help="target to decrypt")]
 [doc('decrypt files stored in git repository')]
-decrypt:
-    sops decrypt ./restic/default.env > ./restic/.env
-    sops decrypt ./auth/private.pem.enc > ./auth/private.pem
+@decrypt target="secrets":
+    case "{{ target }}" in \
+      secrets) sops decrypt ./secrets.default.tfvars > ./secrets.auto.tfvars ;; \
+      keys) sops decrypt ./incus/client.key.enc > ./incus/client.key && \
+            sops decrypt ./incus/client.pfx.enc > ./incus/client.pfx && \
+            sops decrypt ./metrics/metrics.key.enc > ./metrics/metrics.key ;; \
+      restic) sops decrypt ./restic/default.env > ./restic/.env ;; \
+      auth) sops decrypt ./auth/private.pem.enc > ./auth/private.pem ;; \
+    esac
 
 [doc('generate random OIDC client id (uses authelia docker image)')]
 genid:

@@ -122,13 +122,23 @@ just apply -auto-aprove -target=module.linstor.null_resource.post_linstor
 
 ### Network
 
-A [frp server](https://github.com/fatedier/frp) on a VPS is the entrypoint with Caddy acting as a reverse proxy to other services. See the [ingress/](./ingress/) configuration for more details.
+A [frp server](https://github.com/fatedier/frp) on a VPS is the entrypoint with Caddy acting as a reverse proxy to other services. See the [ingress/](ingress/) configuration for more details.
 
 > I have previously ran Cloudflare Tunnel but decided to ditch it in favour of having more control over non HTTP traffic and more control over my traffic in general. Using Fast Reverse Proxy makes TCP/UDP much easier to work with and in most cases doesn't require connecting client to install any additional software. For the last CF Tunnel version see commit `b904227fc6`.
 
 ### Configuration
 
-All applications are configured with a single [secrets.default.tfvars](secrets.default.tfvars). This file is encrypted using [SOPS](https://getsops.io/docs/) with [age](https://age-encryption.org/) and must be decrypted first before it can be used: `sops decrypt secrets.default.tfvars > secrets.auto.tfvars`. Any `*.auto.tfvars` files will be automatically picked up by OpenTofu. Prior to commit `6adee98aed` SOPS with PGP backend was used.
+All applications are configured with a single [secrets.default.tfvars](secrets.default.tfvars). This file is encrypted using [SOPS](https://getsops.io/docs/) with [age](https://age-encryption.org/) and must be decrypted first before it can be used:
+```bash
+just decrypt secrets
+```
+
+When changes were made to the secrets, they can be encrypted back for git storage:
+```bash
+just encrypt secrets
+```
+
+> Prior to commit `6adee98aed` SOPS with PGP backend was used.
 
 ## Backups
 
