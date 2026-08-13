@@ -1,0 +1,5 @@
+force_install: true
+target:
+  id: nvme
+  bus: nvme
+  sort_order: smallest

@@ -1,0 +1,3 @@
+auto_reboot: false
+channel: stable
+check_frequency: 6h

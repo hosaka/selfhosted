@@ -23,6 +23,8 @@ wg0.conf
 
 # incus
 *.iso
+*.img
+*.tar
 
 # mise
 mise.local.toml

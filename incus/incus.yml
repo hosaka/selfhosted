@@ -1,0 +1,19 @@
+apply_defaults: false
+preseed:
+  certificates:
+    - name: cert
+      type: client
+      description: Client certificate for accessing the cluster
+      certificate: |
+        -----BEGIN CERTIFICATE-----
+        MIIBzjCCAVSgAwIBAgIQduYaJvU19aBdocn1Rao/jDAKBggqhkjOPQQDAzAvMRkw
+        FwYDVQQKExBMaW51eCBDb250YWluZXJzMRIwEAYDVQQDDAlhbGV4QHZvaWQwHhcN
+        MjYwNzIzMTI0MDA5WhcNMzYwNzIwMTI0MDA5WjAvMRkwFwYDVQQKExBMaW51eCBD
+        b250YWluZXJzMRIwEAYDVQQDDAlhbGV4QHZvaWQwdjAQBgcqhkjOPQIBBgUrgQQA
+        IgNiAASd8fncxUy2nl+6e+0kXpgkvpHq+uJtQhBSz2o4C1Izbs4ybkzX2CHlw/Od
+        OfQKBFA1cXCf56sqcqkQHNBVFSaWEJ1Xp08HYqEWQJYV1B2QvyhSOH6hjShr03Ip
+        DPNWXMejNTAzMA4GA1UdDwEB/wQEAwIFoDATBgNVHSUEDDAKBggrBgEFBQcDAjAM
+        BgNVHRMBAf8EAjAAMAoGCCqGSM49BAMDA2gAMGUCMQDqDN+TDhbLxzOj0KvxEU1D
+        ktCWOoKzGQzheRy5qKPhXLGMAcW3l+lo74PCZO71fBoCMBkmj6TyGiSm1T6XJyaW
+        GyHmbr/bqJhXA0JawGK/5j70GpzmHfF71FCwfkubYYTYXg==
+        -----END CERTIFICATE-----
