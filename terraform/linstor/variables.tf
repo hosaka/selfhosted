@@ -1,11 +1,9 @@
-variable "config" {
-  type = object({
-    members = map(any)
-  })
-}
-
 variable "target" {
   type = string
+}
+
+variable "members" {
+  type = map(any)
 }
 
 variable "timezone" {

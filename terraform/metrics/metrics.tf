@@ -13,16 +13,9 @@ variable "loki_version" {
   default = "3.7.4"
 }
 
-variable "metrics_port" {
-  type    = string
-  default = "8444"
-}
-
-data "incus_cluster" "this" {}
-
 locals {
   metrics_targets = {
-    for name, member in data.incus_cluster.this.members :
+    for name, member in var.members :
     name => "${split(":", trimprefix(member.address, "https://"))[0]}:${var.metrics_port}"
   }
 }
@@ -33,8 +26,8 @@ locals {
 # In order for prometheus to authenticate against the /1.0/metrics endpoint a
 # metrics.crt and metric.key file need to be present in the container.
 resource "incus_server" "metrics" {
-  for_each = data.incus_cluster.this.members
-  target   = data.incus_cluster.this.is_clustered ? each.key : null
+  for_each = var.members
+  target   = each.key
 
   config = {
     "core.metrics_address" = ":${var.metrics_port}"

@@ -7,6 +7,10 @@ variable "config" {
   })
 }
 
+variable "members" {
+  type = map(any)
+}
+
 variable "target" {
   type = string
 }
@@ -18,5 +22,10 @@ variable "timezone" {
 
 variable "public_domain" {
   type = string
+}
+
+variable "metrics_port" {
+  type    = string
+  default = "8444"
 }
 

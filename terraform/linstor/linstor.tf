@@ -1,6 +1,6 @@
 locals {
   satellite_execs = merge([
-    for name, member in var.config.members : {
+    for name, member in var.members : {
 
       # Register the satellite nodes. They don't have to be immediately reachable.
       "00-register-${name}" = {
@@ -65,7 +65,7 @@ resource "null_resource" "post_linstor_controller" {
 
 # Create the storage pool on Incus using Linstor.
 resource "incus_storage_pool" "linstor_per_node" {
-  for_each = { for k, v in var.config.members : k => v }
+  for_each = { for k, v in var.members : k => v }
   name     = "linstor"
   driver   = "linstor"
   target   = each.key
