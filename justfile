@@ -17,21 +17,29 @@ cwd := quote(invocation_directory() + "/")
 @edit:
     just --edit
 
+[doc('bootstrap the infra')]
+bootstrap *args:
+    tofu -chdir=terraform/ apply -var-file=env-test.tfvars -target=null_resource.post_server {{ args }}
+
 [doc('apply all infrastructure')]
 apply *args:
-    tofu -chdir=terraform/ apply -var-file=env-prod.tfvars {{ args }}
+    tofu -chdir=terraform/ apply -var-file=env-test.tfvars {{ args }}
 
 [doc('plan infrastructure changes')]
 plan *args:
-    tofu -chdir=terraform/ plan -var-file=env-prod.tfvars {{ args }}
+    tofu -chdir=terraform/ plan -var-file=env-test.tfvars {{ args }}
 
 [doc('apply module changes')]
 up module *args:
-    tofu -chdir=terraform/ apply -var-file=env-prod.tfvars -target=module.{{ module }} {{ args }}
+    tofu -chdir=terraform/ apply -var-file=env-test.tfvars -target=module.{{ module }} {{ args }}
 
 [doc('plan module changes')]
 check module *args:
-    tofu -chdir=terraform/ plan -var-file=env-prod.tfvars -target=module.{{ module }} {{ args }}
+    tofu -chdir=terraform/ plan -var-file=env-test.tfvars -target=module.{{ module }} {{ args }}
+
+[doc('destroy module changes')]
+destroy module *args:
+    tofu -chdir=terraform/ destroy -var-file=env-test.tfvars -target=module.{{ module }} {{ args }}
 
 [doc('follow logs of an instance')]
 logs instance:

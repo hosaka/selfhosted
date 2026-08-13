@@ -29,9 +29,7 @@ My selfhosted config.
 
 ### Setup
 
-Create an Incus cluster with all nodes.
-
-> This also is detailed in the [IncusOs Docs](https://linuxcontainers.org/incus-os/docs/main/tutorials/incus-cluster/)
+Create an Incus cluster with all nodes. This also is detailed in the [IncusOs Docs](https://linuxcontainers.org/incus-os/docs/main/tutorials/incus-cluster/)
 
 ```bash
 incus remote add node-n <node-ip-address>
@@ -55,6 +53,11 @@ Set `enabled` to true for `linstor` service on each node:
 
 ```bash
 incus admin os service edit linstor --target node-n
+```
+
+Bootstrap the cluster configuration:
+```bash
+just bootstrap
 ```
 
 Deploy the LINSTOR controller, it is pinned to a single node and orchestrates shared cluster storage:

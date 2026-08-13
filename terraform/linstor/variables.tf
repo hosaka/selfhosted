@@ -1,6 +1,7 @@
 variable "config" {
-  type    = object({})
-  default = {}
+  type = object({
+    members = map(any)
+  })
 }
 
 variable "target" {

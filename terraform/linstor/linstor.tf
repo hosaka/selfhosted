@@ -1,12 +1,6 @@
-data "incus_cluster" "this" {}
-
 locals {
-  members = data.incus_cluster.this.is_clustered ? {
-    for k, v in data.incus_cluster.this.members : k => v
-  } : {}
-
   satellite_execs = merge([
-    for name, member in data.incus_cluster.this.members : {
+    for name, member in var.config.members : {
 
       # Register the satellite nodes to the LINSTOR cluster.
       "00-register-${name}" = {
@@ -113,7 +107,7 @@ resource "incus_server" "linstor_controller" {
 # option to ensure that LINSTOR uses the nvme_pool storage pool for the volumes on this
 # Incus storage pool.
 resource "incus_storage_pool" "linstor_per_node" {
-  for_each = local.members
+  for_each = { for k, v in var.config.members : k => v }
   name     = "linstor"
   driver   = "linstor"
   target   = each.key

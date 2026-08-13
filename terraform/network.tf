@@ -35,16 +35,26 @@ locals {
   }
 }
 
+// Generate random values for the meshbr0 IPv4 subnet.
+resource "random_integer" "meshbr0-v4-subnet-2" {
+  min = 100
+  max = 255
+}
+resource "random_integer" "meshbr0-v4-subnet-3" {
+  min = 0
+  max = 255
+}
+
 // Generate random values for the meshbr0 IPv6 subnet.
-resource "random_integer" "meshbr0-subnet-segment-2" {
+resource "random_integer" "meshbr0-v6-subnet-2" {
   min = 0
   max = 65535
 }
-resource "random_integer" "meshbr0-subnet-segment-3" {
+resource "random_integer" "meshbr0-v6-subnet-3" {
   min = 0
   max = 65535
 }
-resource "random_integer" "meshbr0-subnet-segment-4" {
+resource "random_integer" "meshbr0-v6-subnet-4" {
   min = 0
   max = 65535
 }
@@ -70,9 +80,9 @@ resource "incus_network" "meshbr0" {
   description = "Internal mesh network bridge"
 
   config = {
-    "ipv4.address"         = "10.150.19.1/24"
+    "ipv4.address"         = format("10.%d.%d.1/24", random_integer.meshbr0-v4-subnet-2.result, random_integer.meshbr0-v4-subnet-3.result)
     "ipv4.nat"             = "true"
-    "ipv6.address"         = format("fd42:%x:%x:%x::/64", random_integer.meshbr0-subnet-segment-2.result, random_integer.meshbr0-subnet-segment-3.result, random_integer.meshbr0-subnet-segment-4.result)
+    "ipv6.address"         = format("fd42:%x:%x:%x::/64", random_integer.meshbr0-v6-subnet-2.result, random_integer.meshbr0-v6-subnet-3.result, random_integer.meshbr0-v6-subnet-4.result)
     "ipv6.nat"             = "true"
     "tunnel.mesh.id"       = "1000"
     "tunnel.mesh.protocol" = "vxlan"

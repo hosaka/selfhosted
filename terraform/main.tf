@@ -15,6 +15,9 @@ locals {
 module "linstor" {
   source = "./linstor"
   target = var.cluster.node-1.target
+  config = {
+    members = local.members
+  }
   depends_on = [
     null_resource.post_server
   ]

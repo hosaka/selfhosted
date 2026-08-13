@@ -23,6 +23,7 @@ resource "incus_server" "this" {
 
   depends_on = [
     null_resource.post_projects,
+    null_resource.post_profiles,
     null_resource.post_networks,
     null_resource.post_storage_pools,
     null_resource.post_storage_volumes,
