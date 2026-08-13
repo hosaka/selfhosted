@@ -17,7 +17,25 @@ cwd := quote(invocation_directory() + "/")
 @edit:
     just --edit
 
-[doc('bootstrap the infra')]
+[arg('node-1', pattern='^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$', help='IP address of the first node')]
+[arg('node-2', pattern='^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$', help='IP address of the second node')]
+[arg('node-3', pattern='^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$', help='IP address of the third node')]
+[doc('form an incus cluster')]
+cluster node-1 node-2 node-3:
+    # add individual nodes first
+    incus remote add node-1 {{ node-1 }}
+    incus remote add node-2 {{ node-2 }}
+    incus remote add node-3 {{ node-3 }}
+    # enable cluster and set it as default
+    incus config set node-1: cluster.https_address={{ node-1 }}:8443
+    incus cluster enable node-1: node-1
+    incus remote add cluster {{ node-1 }}
+    incus remote switch cluster
+    # join the remaining nodes
+    incus cluster join cluster: node-2
+    incus cluster join cluster: node-3
+
+[doc('bootstrap the cluster infra')]
 bootstrap *args:
     tofu -chdir=terraform/ apply -var-file=env-test.tfvars -target=null_resource.post_server {{ args }}
 
@@ -55,13 +73,11 @@ restart instance:
 
 [doc('encrypt files for storing them in git repository')]
 encrypt:
-    sops encrypt .env > default.env
     sops encrypt ./restic/.env > ./restic/default.env
     sops encrypt ./authelia/jwks/private.pem > ./authelia/jwks/private.pem.enc
 
 [doc('decrypt files stored in git repository')]
 decrypt:
-    sops decrypt default.env > .env
     sops decrypt ./restic/default.env > ./restic/.env
     sops decrypt ./authelia/jwks/private.pem.enc > ./authelia/jwks/private.pem
 
@@ -72,22 +88,3 @@ genid:
 [doc('generate random OIDC client secret (uses authelia docker image)')]
 gensecret:
     docker run --rm ghcr.io/authelia/authelia:latest authelia crypto hash generate pbkdf2 --variant sha512 --random --random.length 72 --random.charset rfc3986
-
-[doc('rsync selfhosted config to the server')]
-[no-cd]
-[no-exit-message]
-sync:
-    rsync -chavzP --no-perms --no-owner --no-group \
-      --include='**.gitignore' --exclude='/.git' --filter=':- .gitignore' --delete-after \
-      {{ cwd }} alex@box.hosaka.cc:box/
-
-[doc('manually trigger voidrepo sync script')]
-[no-cd]
-[no-exit-message]
-voidsync:
-    docker compose exec voidrepo sync.sh
-
-[doc('ssh into the server')]
-[no-exit-message]
-ssh:
-    ssh alex@box.hosaka.cc
