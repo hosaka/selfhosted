@@ -3,10 +3,13 @@
 PROJECT_NAME = "{{ config_root | basename }}"
 
 [tools]
+age = "latest"
+age-plugin-yubikey = "latest"
 go = "latest"
 hadolint = "latest"
 just = "latest"
 marksman = "latest"
+opentofu = "latest"
 prek = "latest"
 sops = "latest"
 uv = "latest"

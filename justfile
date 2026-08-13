@@ -21,14 +21,18 @@ cwd := quote(invocation_directory() + "/")
 
 [arg('format', pattern="iso|img", help="File format to generate")]
 [doc('prepare an image with IncusOS')]
-image format:
+image format="img": _flasher-tool
     flasher-tool --channel=stable --format={{ format }} --seed=./incus/seed.tar
+
+[private]
+_flasher-tool: (onpath "go")
+    go install github.com/lxc/incus-os/incus-osd/cmd/flasher-tool@latest
 
 [arg('node-1', help='IP address of the first node')]
 [arg('node-2', help='IP address of the second node')]
 [arg('node-3', help='IP address of the third node')]
 [doc('form an incus cluster')]
-cluster node-1 node-2 node-3:
+cluster node-1 node-2 node-3: (onpath "incus")
     # add individual nodes first
     incus remote add node-1 {{ node-1 }}
     incus remote add node-2 {{ node-2 }}
@@ -71,20 +75,20 @@ destroy module *args:
     tofu destroy -var-file=env-test.tfvars -target=module.{{ module }} {{ args }}
 
 [doc('follow logs of an instance')]
-logs instance:
+logs instance: (onpath "incus")
     incus console --show-log {{ instance }}
 
 [doc('bring an instance down')]
-stop instance:
+stop instance: (onpath "incus")
     incust stop {{ instance }}
 
 [doc('restart an instance')]
-restart instance:
+restart instance: (onpath "incus")
     incus restart {{ instance }}
 
 [arg('target', pattern='all|auth|keys|restic|secrets', help='target to entrypt')]
 [doc('encrypt files for storing them in git repository')]
-encrypt target:
+encrypt target: (onpath "sops") (onpath "age") (onpath "age-plugin-yubikey")
     @just _encrypt-{{ target }}
 
 [private]
@@ -110,7 +114,7 @@ _encrypt-all: _encrypt-secrets _encrypt-keys _encrypt-restic _encrypt-auth
 
 [arg('target', pattern='all|auth|keys|restic|secrets', help='target to decrypt')]
 [doc('decrypt files stored in git repository')]
-decrypt target="secrets":
+decrypt target="secrets": (onpath "sops") (onpath "age") (onpath "age-plugin-yubikey")
     @just _decrypt-{{ target }}
 
 [private]
@@ -141,3 +145,7 @@ genid:
 [doc('generate random OIDC client secret (uses authelia docker image)')]
 gensecret:
     docker run --rm ghcr.io/authelia/authelia:latest authelia crypto hash generate pbkdf2 --variant sha512 --random --random.length 72 --random.charset rfc3986
+
+[private]
+@onpath tool:
+    echo 'using {{ require(tool) }}' > /dev/null
