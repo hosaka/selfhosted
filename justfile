@@ -17,6 +17,11 @@ cwd := quote(invocation_directory() + "/")
 @edit:
     just --edit
 
+[arg('format', pattern="iso|img", help="File format to generate")]
+[doc('prepare an image with IncusOS')]
+image format:
+    flasher-tool --channel=stable --format={{ format }} --seed=./incus/seed.tar
+
 [arg('node-1', help='IP address of the first node')]
 [arg('node-2', help='IP address of the second node')]
 [arg('node-3', help='IP address of the third node')]
