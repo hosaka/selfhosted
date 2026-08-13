@@ -27,24 +27,37 @@ My selfhosted config.
 
 ## Software
 
+### Orchestration
+
+M920q PCs are clustered together using [Incus OS](https://linuxcontainers.org/incus-os/) responsible for OCI and VM instances that run individual services while the mITX machine takes on the NAS responsibilities.
+
+I have previously ran the services with docker compose but decided to switch to a virtualization platform due to running out of compute power on the NAS and having to deal with outages when the NAS had to either go down for maintenance or otherwise had a bad day and would bring my whole stack down. I initially reached for [Proxmox VE](https://www.proxmox.com) as a battle tested hypervisor but ultimately settled on [Incus OS](https://linuxcontainers.org/incus-os/) for its simplicity, immutability and being able to almost entirely set it up using Infrastructure-as-Code. For the last docker compose version see commit `5bed864b9d`.
+
+I have previously attempted to run containers using rootless podman with moderate success, but inter-container networking was difficult and at times too slow (slurp4netns). The fact that other tools like kustomize are needed to have a flexible configuration was another downside. Podman Quadlets have been available since but require systemd. Perhaps I will revisit podman again someday. For the last podman version see commit ``.
+
 ### Setup
 
-Create an Incus cluster with all nodes. This also is detailed in the [IncusOs Docs](https://linuxcontainers.org/incus-os/docs/main/tutorials/incus-cluster/)
-
+Create an Incus cluster with all nodes. This also is detailed in the [IncusOs Docs](https://linuxcontainers.org/incus-os/docs/main/tutorials/incus-cluster/).
 ```bash
 # pass the IP addresses for nodes 1..3
 just cluster 10.10.0.101 10.10.0.102 10.10.0.103
 ```
 
 Add `instances` role to IncusOS in order be able to attach a container or a virtual machine directly to the host's network. For each node, add the `roles` to the `interface` config:
-
 ```bash
 incus admin os system network edit --target node-n
 ```
 
+The result should look similar to this:
 ```yaml
-roles:
-  - instances
+config:
+  interfaces:
+    - addresses:
+        - dhcp4
+        - slaac
+      name: ens18
+      roles:
+        - instances
 ```
 
 Bootstrap the cluster configuration:
@@ -53,7 +66,7 @@ just bootstrap
 ```
 
 ### Storage
-Each node in the cluster has a spare NVME dedicated to distributed storage with [LINSTOR](https://linuxcontainers.org/incus/docs/main/reference/storage_linstor/). Deploying this with an Incus cluster is somewhat cumbersome and requires manual steps.
+Each node in the cluster has a spare NVME dedicated to distributed storage with [LINSTOR](https://linuxcontainers.org/incus/docs/main/reference/storage_linstor/). Deploying this with an IncusOS cluster is somewhat cumbersome and requires manual steps.
 
 First make sure the `linstor` service on each node has `enabled` set to true:
 ```bash
@@ -65,14 +78,6 @@ Deploy the LINSTOR controller, it is pinned to a single node and orchestrates sh
 just apply -target=module.linstor.null_resource.post_linstor
 ```
 
-### Orchestration
-
-M920q PCs are clustered together using [Incus OS](https://linuxcontainers.org/incus-os/) responsible for OCI and VM instances than run individual services while the mITX machine takes on the NAS responsibilities.
-
-I have previously ran the services with docker compose but decided to switch to a virtualization platform due to running out of compute power on the NAS and having to deal with outages when the NAS had to either go down for maintenance or otherwise had a bad day and would bring my whole stack down. I initially reached for [Proxmox VE](https://www.proxmox.com) as a battle tested hypervisor but ultimately settled on [Incus OS](https://linuxcontainers.org/incus-os/) for its simplicity, immutability and being able to almost entirely set it up using Infrastructure-as-Code. For the last docker compose version see commit `d83bf56ed8`.
-
-I have previously attempted to run containers using rootless podman with moderate success, but inter-container networking was difficult and at times too slow (slurp4netns). The fact that other tools like kustomize are needed to have a flexible configuration was another downside. Perhaps I will revisit podman again someday.
-
 ### Network
 
 A [frp server](https://github.com/fatedier/frp) on a VPS is the entrypoint with Caddy acting as a reverse proxy to other services.
@@ -82,8 +87,6 @@ I have previously ran Cloudflare Tunnel but decided to ditch it in favour of hav
 ### Configuration
 
 All applications are configured with a single [default.env](default.env). This env file is encrypted using [SOPS](https://getsops.io/docs/) with [age](https://age-encryption.org/) and must be decrypted first before it can be used: `sops decrypt default.env > .env`. Prior to commit `6adee98aed` SOPS with PGP backend was used.
-
-Individual services can be disabled by commenting them out from the include list in `compose.yml`.
 
 ## Backups
 
