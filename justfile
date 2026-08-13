@@ -37,6 +37,7 @@ flash image target:
 _flasher-tool: (onpath 'go')
     go install github.com/lxc/incus-os/incus-osd/cmd/flasher-tool@latest
 
+# todo: incus remote list --format=json and parse the output to make this idempotent
 [arg('node-1', help='IP address of the first node')]
 [arg('node-2', help='IP address of the second node')]
 [arg('node-3', help='IP address of the third node')]
@@ -52,14 +53,14 @@ cluster node-1 node-2 node-3: (onpath 'incus')
     incus remote add cluster {{ node-1 }}
     incus remote switch cluster
     # join the remaining nodes
-    incus cluster join cluster: node-2
-    incus cluster join cluster: node-3
+    incus cluster join cluster: node-2:
+    incus cluster join cluster: node-3:
     # remove individual nodes
-    for node in node-1 node-2 node-3; do \
-      incus remote remove $node; \
-    done
+    incus remote remove node-1
+    incus remote remove node-2
+    incus remote remove node-3
 
-[doc('bootstrap the cluster infra')]
+[doc('bootstrap the cluster')]
 bootstrap *args: (onpath 'tofu')
     tofu apply -var-file=env-test.tfvars -target=null_resource.post_server {{ args }}
 
