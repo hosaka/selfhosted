@@ -22,7 +22,6 @@ resource "incus_server" "this" {
   }
 
   depends_on = [
-    null_resource.post_certificates,
     null_resource.post_projects,
     null_resource.post_profiles,
     null_resource.post_networks,
