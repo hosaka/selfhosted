@@ -4,6 +4,7 @@ time:
   timezone: Asia/Tokyo
 interfaces:
   - name: eno1
+    # hwaddr:
     addresses:
       - dhcp4
       - slaac

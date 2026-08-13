@@ -1,0 +1,13 @@
+dns:
+  domain: hosaka.cc
+  hostname: node-3.hosaka.cc
+time:
+  timezone: Asia/Tokyo
+interfaces:
+  - name: eno1
+    hwaddr: 98:fa:9b:9d:77:65
+    addresses:
+      - dhcp4
+      - slaac
+    roles:
+      - instances

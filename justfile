@@ -123,7 +123,7 @@ _encrypt-all: _encrypt-secrets _encrypt-keys _encrypt-restic _encrypt-auth
 
 [arg('target', pattern='all|auth|keys|restic|secrets', help='target to decrypt')]
 [doc('decrypt files stored in git repository')]
-decrypt target='secrets': (onpath 'sops') (onpath 'age') (onpath 'age-plugin-yubikey')
+decrypt target: (onpath 'sops') (onpath 'age') (onpath 'age-plugin-yubikey')
     @just _decrypt-{{ target }}
 
 [private]
