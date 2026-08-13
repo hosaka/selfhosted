@@ -21,3 +21,6 @@ wg0.conf
 
 # key
 *.key
+
+# incus
+*.iso

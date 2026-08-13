@@ -41,27 +41,27 @@ cluster node-1 node-2 node-3:
 
 [doc('bootstrap the cluster infra')]
 bootstrap *args:
-    tofu -chdir=terraform/ apply -var-file=env-test.tfvars -target=null_resource.post_server {{ args }}
+    tofu apply -var-file=env-test.tfvars -target=null_resource.post_server {{ args }}
 
 [doc('apply all infrastructure')]
 apply *args:
-    tofu -chdir=terraform/ apply -var-file=env-test.tfvars {{ args }}
+    tofu apply -var-file=env-test.tfvars {{ args }}
 
 [doc('plan infrastructure changes')]
 plan *args:
-    tofu -chdir=terraform/ plan -var-file=env-test.tfvars {{ args }}
+    tofu plan -var-file=env-test.tfvars {{ args }}
 
 [doc('apply module changes')]
 up module *args:
-    tofu -chdir=terraform/ apply -var-file=env-test.tfvars -target=module.{{ module }} {{ args }}
+    tofu apply -var-file=env-test.tfvars -target=module.{{ module }} {{ args }}
 
 [doc('plan module changes')]
 check module *args:
-    tofu -chdir=terraform/ plan -var-file=env-test.tfvars -target=module.{{ module }} {{ args }}
+    tofu plan -var-file=env-test.tfvars -target=module.{{ module }} {{ args }}
 
 [doc('destroy module changes')]
 destroy module *args:
-    tofu -chdir=terraform/ destroy -var-file=env-test.tfvars -target=module.{{ module }} {{ args }}
+    tofu destroy -var-file=env-test.tfvars -target=module.{{ module }} {{ args }}
 
 [doc('follow logs of an instance')]
 logs instance:

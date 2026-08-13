@@ -29,15 +29,15 @@ My selfhosted config.
 
 ### Orchestration
 
-M920q PCs are clustered together using [Incus OS](https://linuxcontainers.org/incus-os/) responsible for OCI and VM instances that run individual services while the mITX machine takes on the NAS responsibilities.
+M920q PCs are clustered together using [IncusOS](https://linuxcontainers.org/incus-os/) responsible for OCI and VM instances that run individual services while the mITX machine takes on the NAS responsibilities. [OpenTofu](https://opentofu.org) is used for "Infra as Code" configuration.
 
-I have previously ran the services with docker compose but decided to switch to a virtualization platform due to running out of compute power on the NAS and having to deal with outages when the NAS had to either go down for maintenance or otherwise had a bad day and would bring my whole stack down. I initially reached for [Proxmox VE](https://www.proxmox.com) as a battle tested hypervisor but ultimately settled on [Incus OS](https://linuxcontainers.org/incus-os/) for its simplicity, immutability and being able to almost entirely set it up using Infrastructure-as-Code. For the last docker compose version see commit `5bed864b9d`.
+> I have previously ran the services with docker compose but decided to switch to a virtualization platform due to running out of compute power on the NAS and having to deal with outages when the NAS had to either go down for maintenance or otherwise had a bad day and would bring my whole stack down. I initially reached for [Proxmox VE](https://www.proxmox.com) as a battle tested hypervisor but settled on [IncusOS](https://linuxcontainers.org/incus-os/) for its simplicity, immutability and being able to almost entirely set it up using IaC. For the last docker compose version see commit `5bed864b9d`.
 
-I have previously attempted to run containers using rootless podman with moderate success, but inter-container networking was difficult and at times too slow (slurp4netns). The fact that other tools like kustomize are needed to have a flexible configuration was another downside. Podman Quadlets have been available since but require systemd. Perhaps I will revisit podman again someday. For the last podman version see commit ``.
+> I have previously attempted to run containers using rootless podman with moderate success, but inter-container networking was difficult and at times too slow (slurp4netns). The fact that other tools like kustomize are needed to have a flexible configuration was another downside. Podman Quadlets have been available since but requires systemd. Perhaps I will revisit podman again someday. For the last podman version see commit `9dcddc6c6d`.
 
 ### Setup
 
-Create an Incus cluster with all nodes. This also is detailed in the [IncusOs Docs](https://linuxcontainers.org/incus-os/docs/main/tutorials/incus-cluster/).
+Create an Incus cluster with all nodes. This also is detailed in the [IncusOS Docs](https://linuxcontainers.org/incus-os/docs/main/tutorials/incus-cluster/).
 ```bash
 # pass the IP addresses for nodes 1..3
 just cluster 10.10.0.101 10.10.0.102 10.10.0.103
@@ -122,13 +122,13 @@ just apply -auto-aprove -target=module.linstor.null_resource.post_linstor
 
 ### Network
 
-A [frp server](https://github.com/fatedier/frp) on a VPS is the entrypoint with Caddy acting as a reverse proxy to other services.
+A [frp server](https://github.com/fatedier/frp) on a VPS is the entrypoint with Caddy acting as a reverse proxy to other services. See the [ingress/](./ingress/) configuration for more details.
 
-I have previously ran Cloudflare Tunnel but decided to ditch it in favour of having more control over non HTTP traffic and more control over my traffic in general. Using Fast Reverse Proxy makes TCP/UDP much easier to work with and in most cases doesn't require connecting client to install any additional software. For the last CF Tunnel version see commit `b904227fc6`.
+> I have previously ran Cloudflare Tunnel but decided to ditch it in favour of having more control over non HTTP traffic and more control over my traffic in general. Using Fast Reverse Proxy makes TCP/UDP much easier to work with and in most cases doesn't require connecting client to install any additional software. For the last CF Tunnel version see commit `b904227fc6`.
 
 ### Configuration
 
-All applications are configured with a single [default.env](default.env). This env file is encrypted using [SOPS](https://getsops.io/docs/) with [age](https://age-encryption.org/) and must be decrypted first before it can be used: `sops decrypt default.env > .env`. Prior to commit `6adee98aed` SOPS with PGP backend was used.
+All applications are configured with a single [secrets.default.tfvars](secrets.default.tfvars). This file is encrypted using [SOPS](https://getsops.io/docs/) with [age](https://age-encryption.org/) and must be decrypted first before it can be used: `sops decrypt secrets.default.tfvars > secrets.auto.tfvars`. Any `*.auto.tfvars` files will be automatically picked up by OpenTofu. Prior to commit `6adee98aed` SOPS with PGP backend was used.
 
 ## Backups
 
