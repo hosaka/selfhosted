@@ -121,8 +121,18 @@ resource "incus_storage_volume" "prometheus_data" {
   }
 }
 
+resource "incus_certificate" "metrics_key" {
+  name        = "metrics"
+  type        = "metrics"
+  description = "Prometheus metrics"
+  certificate = file("${path.module}/metrics.crt")
+  # can be optionally restircted to a list of projects
+  # restricted = true
+  # projects   = ["metrics"]
+}
+
 resource "incus_instance" "prometheus" {
-  depends_on = [incus_server.metrics]
+  depends_on = [incus_server.metrics, incus_certificate.metrics_key]
 
   name = "prometheus"
   type = "container"

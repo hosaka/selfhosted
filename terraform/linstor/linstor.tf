@@ -19,7 +19,7 @@ locals {
       #    incus admin os service edit linstor --target node-n
       #
       # 1. Create a ZFS pool that will be used by linstor (encrypted):
-      #    incus admin os system storage storage edit --target node-n
+      #    incus admin os system storage edit --target node-n
       #
       # config:
       #   pools:
