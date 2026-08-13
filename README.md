@@ -43,7 +43,7 @@ Create an Incus cluster with all nodes. This also is detailed in the [IncusOs Do
 just cluster 10.10.0.101 10.10.0.102 10.10.0.103
 ```
 
-Add `instances` role to IncusOS in order be able to attach a container or a virtual machine directly to the host's network. For each node, add the `roles` to the `interface` config:
+Add `instances` role to IncusOS in order be able to attach a container or a virtual machine directly to the host's network. For each node, add the `roles` under the `interfaces` config:
 ```bash
 incus admin os system network edit --target node-n
 ```
@@ -62,6 +62,7 @@ config:
 
 Bootstrap the cluster configuration:
 ```bash
+tofu init
 just bootstrap
 ```
 
@@ -73,9 +74,50 @@ First make sure the `linstor` service on each node has `enabled` set to true:
 incus admin os service edit linstor --target node-n
 ```
 
-Deploy the LINSTOR controller, it is pinned to a single node and orchestrates shared cluster storage:
+The result should look similar to this:
+```yaml
+config:
+  enabled: true
+```
+
+Create an encrypted ZFS pool on each node that will be used by Linstor (also see [Storage Docs](https://linuxcontainers.org/incus-os/docs/main/reference/system/storage/#managing-volumes
+)):
 ```bash
-just apply -target=module.linstor.null_resource.post_linstor
+incus admin os system storage edit --target node-n
+```
+
+Add the new pool under `config`. Double check that the disk id is listed under `drives` and does not currently belong to an existing pool:
+```yaml
+config:
+  pools:
+    - name: nvme
+      type: zfs-raid0
+      devices:
+      - /dev/disk/by-id/<disk-id-to-be-used-by-incus>
+```
+
+Create a ZFS volume on that pool for each node for use with Linstor. Make sure the name of the pool matches with the one created in the last step:
+```bash
+for node in node-1 node-2 node-3; do \
+  incus admin os system storage create-volume -d '{"pool":"nvme","name":"linstor","use":"linstor"}' --target $node; \
+done
+```
+
+Deploy the Linstor controller, it is pinned to a single node and orchestrates shared cluster storage:
+```bash
+just apply -auto-aprove -target=module.linstor.null_resource.post_linstor_controller
+```
+
+Create storage pools in each node that will contribute storage to the cluster. This needs to be run in the linstor-controller container:
+```bash
+for node in node-1 node-2 node-3; do \
+  incus exec --project=internal linstor-controller linstor storage-pool create zfsthin $node nvme nvme/linstor; \
+done
+```
+
+Finally, create an Incus `linstor` pool that can be used by the rest of the services:
+```bash
+just apply -auto-aprove -target=module.linstor.null_resource.post_linstor
 ```
 
 ### Network

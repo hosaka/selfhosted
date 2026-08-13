@@ -12,15 +12,14 @@ locals {
   members = data.incus_cluster.this.is_clustered ? { for k, v in data.incus_cluster.this.members : k => v } : {}
 }
 
+# Replicated storage
 module "linstor" {
   source = "./linstor"
   target = var.cluster.node-1.target
   config = {
     members = local.members
   }
-  depends_on = [
-    null_resource.post_server
-  ]
+  depends_on = [null_resource.post_server]
 }
 
 # This is the entrypoint for all server traffic.

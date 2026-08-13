@@ -34,6 +34,10 @@ cluster node-1 node-2 node-3:
     # join the remaining nodes
     incus cluster join cluster: node-2
     incus cluster join cluster: node-3
+    # remove individual nodes
+    for node in node-1 node-2 node-3; do \
+      incus remote remove $node; \
+    done
 
 [doc('bootstrap the cluster infra')]
 bootstrap *args:
