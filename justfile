@@ -37,7 +37,6 @@ flash image target:
 _flasher-tool: (onpath 'go')
     go install github.com/lxc/incus-os/incus-osd/cmd/flasher-tool@latest
 
-# todo: incus remote list --format=json and parse the output to make this idempotent
 [arg('node-1', help='IP address of the first node')]
 [arg('node-2', help='IP address of the second node')]
 [arg('node-3', help='IP address of the third node')]
@@ -62,27 +61,40 @@ cluster node-1 node-2 node-3: (onpath 'incus')
 
 [doc('bootstrap the cluster')]
 bootstrap *args: (onpath 'tofu')
-    tofu apply -var-file=env-test.tfvars -target=null_resource.post_server {{ args }}
+    tofu apply -var-file=env-prod.tfvars -target=null_resource.post_server {{ args }}
+
+[doc('bootstrap the linstor controller')]
+bootstrap-linstor: (onpath 'incus') (onpath 'tofu')
+    for node in node-1 node-2 node-3; do \
+      incus admin os service edit linstor --target $node; \
+      incus admin os system storage edit --target $node; \
+      incus admin os system storage create-volume -d '{"pool":"nvme","name":"linstor","use":"linstor"}' --target $node; \
+    done
+    tofu apply -var-file=env-prod.tfvars -auto-approve -target=module.linstor.null_resource.post_linstor_controller
+    for node in node-1 node-2 node-3; do \
+      incus exec --project=internal linstor-controller linstor storage-pool create zfsthin $node nvme nvme/linstor; \
+    done
+    tofu apply -var-file=env-prod.tfvars -auto-approve -target=module.linstor.null_resource.post_linstor
 
 [doc('apply all infrastructure')]
 apply *args: (onpath 'tofu')
-    tofu apply -var-file=env-test.tfvars {{ args }}
+    tofu apply -var-file=env-prod.tfvars {{ args }}
 
 [doc('plan infrastructure changes')]
 plan *args: (onpath 'tofu')
-    tofu plan -var-file=env-test.tfvars {{ args }}
+    tofu plan -var-file=env-prod.tfvars {{ args }}
 
 [doc('apply module changes')]
 up module *args: (onpath 'tofu')
-    tofu apply -var-file=env-test.tfvars -target=module.{{ module }} {{ args }}
+    tofu apply -var-file=env-prod.tfvars -target=module.{{ module }} {{ args }}
 
 [doc('plan module changes')]
 check module *args: (onpath 'tofu')
-    tofu plan -var-file=env-test.tfvars -target=module.{{ module }} {{ args }}
+    tofu plan -var-file=env-prod.tfvars -target=module.{{ module }} {{ args }}
 
 [doc('destroy module changes')]
 destroy module *args: (onpath 'tofu')
-    tofu destroy -var-file=env-test.tfvars -target=module.{{ module }} {{ args }}
+    tofu destroy -var-file=env-prod.tfvars -target=module.{{ module }} {{ args }}
 
 [doc('follow logs of an instance')]
 logs instance: (onpath 'incus')

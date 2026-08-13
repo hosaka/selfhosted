@@ -50,26 +50,19 @@ just bootstrap
 ```
 
 ### Storage
-Each node in the cluster has a spare NVME dedicated to distributed storage with [LINSTOR](https://linuxcontainers.org/incus/docs/main/reference/storage_linstor/). Deploying this with an IncusOS cluster is somewhat cumbersome and requires manual steps.
-
-First make sure the `linstor` service on each node has `enabled` set to true:
+Each node in the cluster has a spare NVME dedicated to distributed storage with [LINSTOR](https://linuxcontainers.org/incus/docs/main/reference/storage_linstor/). Deploying this with an IncusOS cluster is somewhat cumbersome and requires manual steps, but can be semi-automated with a just recipe:
 ```bash
-incus admin os service edit linstor --target node-n
+just bootstrap-linstor
 ```
 
-The result should look similar to this:
+1. When prompted with the `linstor` service configuration, make sure that each node has `enabled` set to true. The result should look similar to this:
 ```yaml
 config:
   enabled: true
 ```
 
-Create an encrypted ZFS pool on each node that will be used by Linstor (also see [Storage Docs](https://linuxcontainers.org/incus-os/docs/main/reference/system/storage/#managing-volumes
-)):
-```bash
-incus admin os system storage edit --target node-n
-```
-
-Add the new pool under `config`. Double check that the disk id is listed under `drives` and does not currently belong to an existing pool:
+2. When prompted with the storage configuration, define an ZFS pool on each node that will be used by Linstor (also see [Storage Docs](https://linuxcontainers.org/incus-os/docs/main/reference/system/storage/#managing-volumes
+)). Add the new `nvme` pool under `config`. Double check that the disk id is listed under `drives` and does not currently belong to an existing pool:
 ```yaml
 config:
   pools:
@@ -79,29 +72,7 @@ config:
       - /dev/disk/by-id/<disk-id-to-be-used-by-incus>
 ```
 
-Create a ZFS volume on that pool for each node for use with Linstor. Make sure the name of the pool matches with the one created in the last step:
-```bash
-for node in node-1 node-2 node-3; do \
-  incus admin os system storage create-volume -d '{"pool":"nvme","name":"linstor","use":"linstor"}' --target $node; \
-done
-```
-
-Deploy the Linstor controller, it is pinned to a single node and orchestrates shared cluster storage:
-```bash
-just apply -auto-aprove -target=module.linstor.null_resource.post_linstor_controller
-```
-
-Create storage pools in each node that will contribute storage to the cluster. This needs to be run in the linstor-controller container:
-```bash
-for node in node-1 node-2 node-3; do \
-  incus exec --project=internal linstor-controller linstor storage-pool create zfsthin $node nvme nvme/linstor; \
-done
-```
-
-Finally, create an Incus `linstor` pool that can be used by the rest of the services:
-```bash
-just apply -auto-aprove -target=module.linstor.null_resource.post_linstor
-```
+The rest of the recipe will deploy the Linstor controller, create storage pools that will contribute capacity to the cluster (this runs on the linstor-controller container), and finally create an Incus `linstor` pool that can be used by the rest of the services.
 
 ### Network
 
@@ -137,6 +108,7 @@ Backups are done using `restic` and `resticprofile`. See the [restic/README.md](
 
 ### Software
 
+- [ ] Make just cluster and bootstrap-linstor recipes idempotent. Incus CLI does have a `--format=json` that can be piped to `jq` where we can check the current state
 - [ ] Better automation for Linstor provisioning, perhaps getting [Operations Center](https://github.com/FuturFusion/operations-center) involved
 - [ ] CardDAV and CalDAV for calendar and contacts sync like [radicale](https://radicale.org/v3.html)
 - [ ] [Safe{Wallet}](https://github.com/safe-global/safe-wallet-web) for multisig wallets
