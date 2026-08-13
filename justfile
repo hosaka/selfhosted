@@ -21,11 +21,22 @@ cwd := quote(invocation_directory() + "/")
     just --show {{ args }}
 
 [arg('format', pattern='iso|img', help='File format to generate')]
+[doc('prepare images for all nodes')]
+images format='img':
+    @just image node-1 {{ format }}
+    @just image node-2 {{ format }}
+    @just image node-3 {{ format }}
+
+[arg('format', pattern='iso|img', help='File format to generate')]
+[arg('node', pattern='node-1|node-2|node-3', help='Node to build the image for')]
 [doc('prepare an image with IncusOS')]
-image format='img': _flasher-tool (onpath 'tar')
-    tar --directory=incus/ -cvf seed.tar \
-      applications.yml incus.yml install.yml network.yml update.yml
-    flasher-tool --channel=stable --format={{ format }} --seed=seed.tar
+image node format='img': _flasher-tool (onpath 'tar')
+    tar --directory=incus/ -cvf seed-{{ node }}.tar \
+      applications.yml incus.yml update.yml \
+      --directory={{ node }}/ install.yml network.yml
+    flasher-tool --channel=stable --format={{ format }} --seed=seed-{{ node }}.tar
+    mv IncusOS_*.{{ format }} incus-os-{{ node }}.{{ format }}
+    rm seed-{{ node }}.tar
 
 [arg('target', pattern='/dev/.*', help='Path to IncusOS image')]
 [arg('image', pattern='.*\.img|.*\.iso', help='Target block device')]
