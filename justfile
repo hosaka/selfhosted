@@ -1,3 +1,5 @@
+#!/usr/bin/env just --justfile
+
 cwd := quote(invocation_directory() + "/")
 
 [doc('list recipes (default)')]
@@ -80,29 +82,57 @@ stop instance:
 restart instance:
     incus restart {{ instance }}
 
-[arg('target', pattern='auth|keys|restic|secrets', help="target to encrpt")]
+[arg('target', pattern='all|auth|keys|restic|secrets', help='target to entrypt')]
 [doc('encrypt files for storing them in git repository')]
-@encrypt target="secrets":
-    case "{{ target }}" in \
-      secrets) sops encrypt ./secrets.auto.tfvars > ./secrets.default.tfvars ;; \
-      keys) sops encrypt ./incus/client.key > ./incus/client.key.enc && \
-            sops encrypt ./incus/client.pfx > ./incus/client.pfx.enc && \
-            sops encrypt ./metrics/metrics.key > ./metrics/metrics.key.enc ;; \
-      restic) sops encrypt ./restic/.env > ./restic/default.env ;; \
-      auth) sops encrypt ./auth/private.pem > ./auth/private.pem.enc ;; \
-    esac
+encrypt target:
+    @just _encrypt-{{ target }}
 
-[arg('target', pattern='auth|keys|restic|secrets', help="target to decrypt")]
+[private]
+_encrypt-secrets:
+    sops encrypt ./secrets.auto.tfvars > ./secrets.default.tfvars
+
+[private]
+_encrypt-keys:
+    sops encrypt ./incus/client.key > ./incus/client.key.enc
+    sops encrypt ./incus/client.pfx > ./incus/client.pfx.enc
+    sops encrypt ./metrics/metrics.key > ./metrics/metrics.key.enc
+
+[private]
+_encrypt-restic:
+    sops encrypt ./restic/.env > ./restic/default.env
+
+[private]
+_encrypt-auth:
+    sops encrypt ./auth/private.pem > ./auth/private.pem.enc
+
+[private]
+_encrypt-all: _encrypt-secrets _encrypt-keys _encrypt-restic _encrypt-auth
+
+[arg('target', pattern='all|auth|keys|restic|secrets', help='target to decrypt')]
 [doc('decrypt files stored in git repository')]
-@decrypt target="secrets":
-    case "{{ target }}" in \
-      secrets) sops decrypt ./secrets.default.tfvars > ./secrets.auto.tfvars ;; \
-      keys) sops decrypt ./incus/client.key.enc > ./incus/client.key && \
-            sops decrypt ./incus/client.pfx.enc > ./incus/client.pfx && \
-            sops decrypt ./metrics/metrics.key.enc > ./metrics/metrics.key ;; \
-      restic) sops decrypt ./restic/default.env > ./restic/.env ;; \
-      auth) sops decrypt ./auth/private.pem.enc > ./auth/private.pem ;; \
-    esac
+decrypt target="secrets":
+    @just _decrypt-{{ target }}
+
+[private]
+_decrypt-secrets:
+    sops decrypt ./secrets.default.tfvars > ./secrets.auto.tfvars
+
+[private]
+_decrypt-keys:
+    sops decrypt ./incus/client.key.enc > ./incus/client.key
+    sops decrypt ./incus/client.pfx.enc > ./incus/client.pfx
+    sops decrypt ./metrics/metrics.key.enc > ./metrics/metrics.key
+
+[private]
+_decrypt-restic:
+    sops decrypt ./restic/default.env > ./restic/.env
+
+[private]
+_decrypt-auth:
+    sops decrypt ./auth/private.pem.enc > ./auth/private.pem
+
+[private]
+_decrypt-all: _decrypt-secrets _decrypt-keys _decrypt-restic _decrypt-auth
 
 [doc('generate random OIDC client id (uses authelia docker image)')]
 genid:

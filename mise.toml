@@ -3,12 +3,16 @@
 PROJECT_NAME = "{{ config_root | basename }}"
 
 [tools]
-sops = "latest"
+go = "latest"
 hadolint = "latest"
+just = "latest"
 marksman = "latest"
 prek = "latest"
-uv = "0.11.29"
-go = "latest"
+sops = "latest"
+uv = "latest"
+
+[settings]
+python.uv_venv_auto = "create|source"
 
 [tasks.info]
 description = "Print project information"
