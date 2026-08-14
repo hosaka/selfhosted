@@ -8,6 +8,7 @@ My selfhosted config.
 
 - KeepLiNK KP-9000-9XH-X 8x2.5 Gb and 1x10Gb Unmanaged Switch
 - 3x Lenovo M920q Tiny PCs, each with 2x Kioxia XG6 256GB NVME, 2x SK Hynix DDR4 PC4-2666V 8GB and 2.5 GbE NIC
+- ShrikeLab PDU V1 with 5x 65W USB-C outputs, based on Meanwell HRP-300-24 PSU
 - 12U 10" DeskPi RackMate T2 Black Version
 
 **The NAS**
