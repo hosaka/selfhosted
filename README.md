@@ -63,7 +63,7 @@ config:
 ```
 
 2. When prompted with the storage configuration, define an ZFS pool on each node that will be used by Linstor (also see [Storage Docs](https://linuxcontainers.org/incus-os/docs/main/reference/system/storage/#managing-volumes
-)). Add the new `nvme` pool under `config`. Double check that the disk id is listed under `drives` and does not currently belong to an existing pool:
+)). Add the new `nvme` pool under `config`. Double check that the disk ID is listed under `drives` and does not currently belong to an existing pool:
 ```yaml
 config:
   pools:
@@ -74,6 +74,11 @@ config:
 ```
 
 The rest of the recipe will deploy the Linstor controller, create storage pools that will contribute capacity to the cluster (this runs on the linstor-controller container), and finally create an Incus `linstor` pool that can be used by the rest of the services.
+
+3. Check the IP address of the `linstor-controller` instance and add it to a list of static leases in the router:
+```bash
+incus info --project internal linstor-controller
+```
 
 ### Network
 
