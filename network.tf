@@ -27,7 +27,7 @@ resource "incus_network" "incusbr0" {
 }
 
 locals {
-  meshTunnelInterfaces = {
+  memberUplinkInterface = {
     (var.cluster.node-1.target) = var.cluster.uplink
     (var.cluster.node-2.target) = var.cluster.uplink
     (var.cluster.node-3.target) = var.cluster.uplink
@@ -67,7 +67,7 @@ resource "incus_network" "meshbr0_per_node" {
   type   = "bridge"
 
   config = {
-    "tunnel.mesh.interface" = local.meshTunnelInterfaces[each.key]
+    "tunnel.mesh.interface" = local.memberUplinkInterface[each.key]
   }
 
   depends_on = [
@@ -102,7 +102,7 @@ resource "incus_network" "lan_per_node" {
   target = each.key
 
   config = {
-    parent = local.meshTunnelInterfaces[each.key]
+    parent = local.memberUplinkInterface[each.key]
   }
 
   depends_on = [
