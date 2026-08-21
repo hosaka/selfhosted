@@ -3,11 +3,17 @@ dns:
   hostname: node-1.hosaka.cc
 time:
   timezone: Asia/Tokyo
-interfaces:
-  - name: eno1
-    hwaddr: 00:2b:67:10:3e:ee
+bonds:
+  - name: uplink
+    mode: active-backup
+    hwaddr: 8c:a6:82:71:9c:6d
+    members:
+      - enp1s0 # 2.5GbE
+      - eno1 # 1GbE
     addresses:
       - dhcp4
       - slaac
     roles:
+      - management
+      - cluster
       - instances

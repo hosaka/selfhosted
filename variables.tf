@@ -19,8 +19,7 @@ variable "cluster" {
   type = object({
     name = optional(string, "cluster")
 
-    nic-1 = string
-    nic-2 = string
+    uplink = string
 
     node-1 = object({
       target = optional(string, "node-1")

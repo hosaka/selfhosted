@@ -1,6 +1,5 @@
 cluster = {
-  nic-1 = "eno1"
-  nic-2 = "enp5s0"
+  uplink = "uplink"
 
   node-1 = {
     ipv4_address = "10.10.0.101"

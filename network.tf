@@ -28,10 +28,10 @@ resource "incus_network" "incusbr0" {
 
 locals {
   meshTunnelInterfaces = {
-    (var.cluster.node-1.target) = var.cluster.nic-1
-    (var.cluster.node-2.target) = var.cluster.nic-1
-    (var.cluster.node-3.target) = var.cluster.nic-1
-    # (var.cluster.node-4.target) = var.cluster.nic-1
+    (var.cluster.node-1.target) = var.cluster.uplink
+    (var.cluster.node-2.target) = var.cluster.uplink
+    (var.cluster.node-3.target) = var.cluster.uplink
+    # node-4 may differ - keep the map structure for that reason
   }
 }
 
