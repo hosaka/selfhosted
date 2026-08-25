@@ -1,6 +1,6 @@
 dns:
   domain: hosaka.cc
-  hostname: node-1.hosaka.cc
+  hostname: node-1
 time:
   timezone: Asia/Tokyo
 bonds:
