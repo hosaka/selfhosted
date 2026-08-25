@@ -1,6 +1,6 @@
 variable "vaultwarden_version" {
   type    = string
-  default = "1.37.1"
+  default = "1.37.2"
 }
 
 resource "incus_storage_volume" "vaultwarden_data" {
