@@ -64,31 +64,14 @@ just bootstrap
 
 ### Storage
 
-Each node in the cluster has a spare NVME dedicated to distributed storage with [LINSTOR](https://linuxcontainers.org/incus/docs/main/reference/storage_linstor/). Deploying this with an IncusOS cluster is somewhat cumbersome and requires manual steps, but can be semi-automated with a just recipe:
+Each node in the cluster has a spare NVME dedicated to distributed storage with [LINSTOR](https://linuxcontainers.org/incus/docs/main/reference/storage_linstor/). Deploying this with an IncusOS cluster is somewhat cumbersome and requires manual steps, but can be automated with a just recipe:
 ```bash
 just bootstrap-linstor
 ```
 
-1. When prompted with the `linstor` service configuration, make sure that each node has `enabled` set to true. The result should look similar to this:
-```yaml
-config:
-  enabled: true
-```
+This will do a few things: enable the `linstor` service, prompt you for disks that should be pooled in as Linstor storage and wipe them, create a new encrypted ZFS volume on each disk, deploy the Linstor controller, create storage pools that will contribute capacity to the cluster (this runs on the `linstor-controller` container), and finally create an Incus `linstor` pool that can be used by the rest of the services.
 
-2. When prompted with the storage configuration, define an ZFS pool on each node that will be used by Linstor (also see [Storage Docs](https://linuxcontainers.org/incus-os/docs/main/reference/system/storage/#managing-volumes
-)). Add the new `nvme` pool under `config`. Double check that the disk ID is listed under `drives` and does not currently belong to an existing pool:
-```yaml
-config:
-  pools:
-    - name: nvme
-      type: zfs-raid0
-      devices:
-      - /dev/disk/by-id/<disk-id-to-be-used-by-incus>
-```
-
-The rest of the recipe will deploy the Linstor controller, create storage pools that will contribute capacity to the cluster (this runs on the linstor-controller container), and finally create an Incus `linstor` pool that can be used by the rest of the services.
-
-3. Check the IP address of the `linstor-controller` instance and add it to a list of static leases in the router:
+It is a good idea to check the IP address of the `linstor-controller` instance and add it to a list of static leases in the router because the nodes in the cluster will attempt to reach it at that address:
 ```bash
 incus info --project internal linstor-controller
 ```

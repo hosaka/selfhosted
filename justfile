@@ -74,17 +74,85 @@ cluster node-1 node-2 node-3: (onpath 'incus')
 bootstrap *args: (onpath 'tofu')
     tofu apply -var-file=env-prod.tfvars -target=null_resource.post_server {{ args }}
 
-[doc('bootstrap the linstor controller')]
-bootstrap-linstor: (onpath 'incus') (onpath 'tofu')
-    for node in node-1 node-2 node-3; do \
-      incus admin os service edit linstor --target $node; \
-      incus admin os system storage edit --target $node; \
-      incus admin os system storage create-volume -d '{"pool":"nvme","name":"linstor","use":"linstor"}' --target $node; \
+[doc('bootstrap linstor on the cluster')]
+bootstrap-linstor: (onpath 'incus') (onpath 'tofu') (onpath 'yq')
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    NODES=(node-1 node-2 node-3)
+
+    declare -A disks
+
+    for node in "${NODES[@]}"; do
+      show=$(incus admin os system storage show --target "$node")
+
+      if echo "$show" | yq -e '.state.pools[] | select(.name == "nvme")' >/dev/null 2>&1; then
+        echo "$node: nvme pool already exists, skipping"
+        continue
+      fi
+
+      mapfile -t free < <(echo "$show" | yq -r '
+        .state.drives[]
+        | select((.member_pool // "") == "")
+        | select(.boot != true)
+        | .id')
+
+      case ${#free[@]} in
+        0)
+          echo "$node: no unallocated drives" >&2
+          exit 1
+          ;;
+        1)
+          disks[$node]="${free[0]}"
+          ;;
+        *)
+          echo "$node:"
+          printf '%s\n' "${free[@]}" | nl -w2 -s') '
+          while :; do
+            read -rp "select drive for $node [1-${#free[@]}]: " n
+            if [[ "$n" =~ ^[0-9]+$ ]] && (( n >= 1 && n <= ${#free[@]} )); then
+              disks[$node]="${free[$((n-1))]}"
+              break
+            fi
+          done
+          ;;
+      esac
     done
+
+    if [ -n "${disks[*]:-}" ]; then
+      for node in "${NODES[@]}"; do
+        if [ -n "${disks[$node]:-}" ]; then echo "$node: ${disks[$node]}"; fi
+      done
+      read -rp "wipe these drives and use them for linstor pool (double check the drive ids)? [y/N] " ok
+      [ "$ok" = "y" ] || exit 1
+
+      for node in "${NODES[@]}"; do
+        [ -n "${disks[$node]:-}" ] || continue
+
+        # wipe the drives beforehand (if a ZFS volume already exists, creating one will fail)
+        incus admin os system storage wipe-drive -d "{\"id\":\"${disks[$node]}\"}" --target "$node"
+
+        # make sure the linstor service is enabled in incus
+        incus admin os service show linstor --target "$node" \
+          | yq '.config.enabled = true' \
+          | incus admin os service edit linstor --target "$node"
+
+        # create a ZFS pool with devices
+        incus admin os system storage show --target "$node" \
+          | yq ".config.pools = ((.config.pools // []) | map(select(.name != \"nvme\")) + [{\"name\":\"nvme\",\"type\":\"zfs-raid0\",\"devices\":[\"${disks[$node]}\"]}])" \
+          | incus admin os system storage edit --target "$node"
+
+        # create a ZFS volume on top of the pool that will be used by linstor
+        incus admin os system storage create-volume -d '{"pool":"nvme","name":"linstor","use":"linstor"}' --target "$node" || true
+      done
+    fi
+
     tofu apply -var-file=env-prod.tfvars -auto-approve -target=module.linstor.null_resource.post_linstor_controller
-    for node in node-1 node-2 node-3; do \
-      incus exec --project=internal linstor-controller linstor storage-pool create zfsthin $node nvme nvme/linstor; \
+
+    for node in "${NODES[@]}"; do
+      incus exec --project=internal linstor-controller -- linstor storage-pool create zfsthin "$node" nvme nvme/linstor || true
     done
+
     tofu apply -var-file=env-prod.tfvars -auto-approve -target=module.linstor.null_resource.post_linstor
 
 [doc('apply all infrastructure')]

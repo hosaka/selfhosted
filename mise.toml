@@ -13,6 +13,7 @@ opentofu = "latest"
 prek = "latest"
 sops = "latest"
 uv = "latest"
+yq = "latest"
 
 [settings]
 python.uv_venv_auto = "create|source"
