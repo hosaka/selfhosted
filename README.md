@@ -38,7 +38,19 @@ M920q PCs are clustered together using [IncusOS](https://linuxcontainers.org/inc
 
 ### Setup
 
-Create an Incus cluster with all nodes. This also is detailed in the [IncusOS Docs](https://linuxcontainers.org/incus-os/docs/main/tutorials/incus-cluster/).
+Prepare images for nodes in the cluster:
+```bash
+just images
+```
+
+Flash an image onto a USB drive:
+```bash
+just flash incus-os-node-1.img /dev/sdX
+```
+
+Install the OS and repeat the same procedure for the remaining nodes in a cluster.
+
+Create an Incus cluster with all nodes (when prompted for "member name to identify this server" use `node-2` and `node-3` respectively). For more details see the [IncusOS Docs](https://linuxcontainers.org/incus-os/docs/main/tutorials/incus-cluster/).
 ```bash
 # pass the IP addresses for nodes 1..3
 just cluster 10.10.0.101 10.10.0.102 10.10.0.103
@@ -51,6 +63,7 @@ just bootstrap
 ```
 
 ### Storage
+
 Each node in the cluster has a spare NVME dedicated to distributed storage with [LINSTOR](https://linuxcontainers.org/incus/docs/main/reference/storage_linstor/). Deploying this with an IncusOS cluster is somewhat cumbersome and requires manual steps, but can be semi-automated with a just recipe:
 ```bash
 just bootstrap-linstor
