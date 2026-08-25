@@ -39,6 +39,7 @@ resource "incus_instance" "linstor_controller" {
     type = "nic"
     properties = {
       "network" = "lan"
+      "hwaddr"  = "10:66:6a:3f:16:7a"
     }
   }
 
