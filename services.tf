@@ -7,7 +7,13 @@ locals {
     whoami = 12
   }
 
-  service_ips = {
-    for name, idx in local.service_idx : name => cidrhost(local.mesh_subnet, idx)
+  services = {
+    for name, idx in local.service_idx : name => {
+      ipv4 = cidrhost(local.mesh_subnet, idx)
+      # that first 3 octets must match Incus's OUI
+      mac = format("10:66:6a:%s", join(":", [
+        for o in slice(split(".", cidrhost(local.mesh_subnet, idx)), 1, 4) : format("%02x", tonumber(o))
+      ]))
+    }
   }
 }

@@ -1,3 +1,16 @@
+variable "network" {
+  type = object({
+    caddy = object({
+      ipv4 = string
+      mac  = string
+    })
+    frpc = object({
+      ipv4 = string
+      mac  = string
+    })
+  })
+}
+
 variable "frpc_version" {
   type    = string
   default = "0.70.1"
@@ -8,9 +21,13 @@ variable "caddy_version" {
   default = "2.11.4"
 }
 
-variable "whoami_version" {
-  type    = string
-  default = "1.12.0"
+variable "services" {
+  type = list(object({
+    name   = string
+    public = bool
+    caddy  = string
+  }))
+  default = []
 }
 
 resource "incus_instance" "frpc" {
@@ -28,12 +45,24 @@ resource "incus_instance" "frpc" {
   file {
     content = templatefile("${path.module}/frpc.toml.tpl", {
       public_domain   = var.public_domain
+      caddy_ip        = var.network.caddy.ipv4
       frp_server_addr = var.config.frp_server_addr
       frp_auth_token  = sensitive(var.config.frp_auth_token)
+      services        = var.services
     })
     target_path        = "/etc/frp/frpc.toml"
     mode               = "0600"
     create_directories = true
+  }
+
+  device {
+    name = "eth0"
+    type = "nic"
+    properties = {
+      network        = "meshbr0"
+      "ipv4.address" = var.network.frpc.ipv4
+      hwaddr         = var.network.frpc.mac
+    }
   }
 
   config = {
@@ -43,7 +72,12 @@ resource "incus_instance" "frpc" {
 
 resource "incus_storage_volume" "caddy_data" {
   name = "caddy-data"
-  pool = "remote"
+  pool = "linstor"
+
+  config = {
+    "initial.uid" = "1000"
+    "initial.gid" = "1000"
+  }
 }
 
 resource "incus_instance" "caddy" {
@@ -68,24 +102,32 @@ resource "incus_instance" "caddy" {
     }
   }
 
+  device {
+    name = "eth0"
+    type = "nic"
+    properties = {
+      network        = "meshbr0"
+      "ipv4.address" = var.network.caddy.ipv4
+      hwaddr         = var.network.caddy.mac
+    }
+  }
+
   file {
-    content = templatefile("${path.module}/Caddyfile.tpl", {
-      public_domain  = var.public_domain
-      private_domain = var.private_domain
-      cf_api_email   = sensitive(var.config.caddy_cf_api_email)
-      cf_api_token   = sensitive(var.config.caddy_cf_api_token)
-    })
+    content = join("\n", concat(
+      [templatefile("${path.module}/Caddyfile.header.tpl", {
+        cf_api_email = sensitive(var.config.caddy_cf_api_email)
+        cf_api_token = sensitive(var.config.caddy_cf_api_token)
+      })],
+      [for s in var.services : s.caddy]
+    ))
     target_path = "/config/Caddyfile"
     mode        = "0600"
+    uid         = 1000
+    gid         = 1000
   }
-}
 
-resource "incus_instance" "whoami" {
-  name = "whoami"
-  type = "container"
-
-  target   = var.target
-  profiles = ["default"]
-  image    = "ghcr:traefik/whoami:v${var.whoami_version}"
+  config = {
+    "environment.TZ" = var.timezone
+  }
 }
 
