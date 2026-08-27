@@ -1,16 +1,3 @@
-variable "network" {
-  type = object({
-    caddy = object({
-      ipv4 = string
-      mac  = string
-    })
-    frpc = object({
-      ipv4 = string
-      mac  = string
-    })
-  })
-}
-
 variable "frpc_version" {
   type    = string
   default = "0.70.1"
@@ -24,10 +11,28 @@ variable "caddy_version" {
 variable "services" {
   type = list(object({
     name   = string
-    public = bool
+    public = optional(bool, false)
     caddy  = string
   }))
   default = []
+}
+
+locals {
+  caddyfile = join("\n", concat(
+    [templatefile("${path.module}/Caddyfile.header.tpl", {
+      cf_api_email = sensitive(var.config.caddy_cf_api_email)
+      cf_api_token = sensitive(var.config.caddy_cf_api_token)
+    })],
+    [for s in var.services : s.caddy]
+  ))
+
+  frpc_toml = templatefile("${path.module}/frpc.toml.tpl", {
+    public_domain   = var.public_domain
+    caddy_ip        = incus_instance.caddy.ipv4_address
+    frp_server_addr = var.config.frp_server_addr
+    frp_auth_token  = sensitive(var.config.frp_auth_token)
+    services        = var.services
+  })
 }
 
 resource "incus_instance" "frpc" {
@@ -43,13 +48,7 @@ resource "incus_instance" "frpc" {
   }
 
   file {
-    content = templatefile("${path.module}/frpc.toml.tpl", {
-      public_domain   = var.public_domain
-      caddy_ip        = var.network.caddy.ipv4
-      frp_server_addr = var.config.frp_server_addr
-      frp_auth_token  = sensitive(var.config.frp_auth_token)
-      services        = var.services
-    })
+    content            = local.frpc_toml
     target_path        = "/etc/frp/frpc.toml"
     mode               = "0600"
     create_directories = true
@@ -59,9 +58,9 @@ resource "incus_instance" "frpc" {
     name = "eth0"
     type = "nic"
     properties = {
-      network        = "meshbr0"
-      "ipv4.address" = var.network.frpc.ipv4
-      hwaddr         = var.network.frpc.mac
+      network = "meshbr0"
+      # "ipv4.address" = var.network.frpc.ipv4
+      # hwaddr         = var.network.frpc.mac
     }
   }
 
@@ -106,20 +105,12 @@ resource "incus_instance" "caddy" {
     name = "eth0"
     type = "nic"
     properties = {
-      network        = "meshbr0"
-      "ipv4.address" = var.network.caddy.ipv4
-      hwaddr         = var.network.caddy.mac
+      network = "meshbr0"
     }
   }
 
   file {
-    content = join("\n", concat(
-      [templatefile("${path.module}/Caddyfile.header.tpl", {
-        cf_api_email = sensitive(var.config.caddy_cf_api_email)
-        cf_api_token = sensitive(var.config.caddy_cf_api_token)
-      })],
-      [for s in var.services : s.caddy]
-    ))
+    content     = local.caddyfile
     target_path = "/config/Caddyfile"
     mode        = "0600"
     uid         = 1000
@@ -131,3 +122,26 @@ resource "incus_instance" "caddy" {
   }
 }
 
+resource "null_resource" "caddy_reload" {
+  triggers = {
+    caddyfile = sha1(local.caddyfile)
+  }
+
+  provisioner "local-exec" {
+    command = "incus exec caddy -- caddy reload --config /config/Caddyfile"
+  }
+
+  depends_on = [incus_instance.caddy]
+}
+
+resource "null_resource" "frpc_restart" {
+  triggers = {
+    config = sha1(local.frpc_toml)
+  }
+
+  provisioner "local-exec" {
+    command = "incus restart frpc"
+  }
+
+  depends_on = [incus_instance.frpc]
+}

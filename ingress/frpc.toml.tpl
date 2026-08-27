@@ -13,6 +13,8 @@ transport.poolCount = 10
 # see: https://gofrp.org/en/docs/features/common/realip/
 # transport.proxyProtocolVersion = "v2"
 
+loginFailExit = false
+
 [[proxies]]
 name = "https-cluster"
 type = "https"

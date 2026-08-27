@@ -1,10 +1,3 @@
-variable "network" {
-  type = object({
-    ipv4 = string,
-    mac  = string,
-  })
-}
-
 variable "whoami_version" {
   type    = string
   default = "1.12.0"
@@ -22,10 +15,12 @@ resource "incus_instance" "whoami" {
     name = "eth0"
     type = "nic"
     properties = {
-      network        = "meshbr0"
-      "ipv4.address" = var.network.ipv4
-      hwaddr         = var.network.mac
+      network = "meshbr0"
     }
+  }
+
+  wait_for {
+    type = "ipv4"
   }
 }
 
@@ -35,7 +30,7 @@ output "ingress" {
     public = true
     caddy  = <<-EOT
 		whoami.${var.private_domain}, whoami.${var.public_domain} {
-			reverse_proxy ${var.network.ipv4}:80
+			reverse_proxy ${incus_instance.whoami.ipv4_address}:80
 		}
     EOT
   }
