@@ -43,6 +43,10 @@ resource "incus_instance" "atuin_database" {
     }
   }
 
+  wait_for {
+    type = "ipv4"
+  }
+
   config = {
     "environment.POSTGRES_DB"       = var.config.db_name
     "environment.POSTGRES_USER"     = var.config.db_username
@@ -51,3 +55,14 @@ resource "incus_instance" "atuin_database" {
   }
 }
 
+output "ingress" {
+  value = {
+    name   = "atuin"
+    public = true
+    caddy  = <<-EOT
+      atuin.${var.private_domain}, atuin.${var.public_domain} {
+        reverse_proxy ${incus_instance.atuin.ipv4_address}:8888
+      }
+    EOT
+  }
+}

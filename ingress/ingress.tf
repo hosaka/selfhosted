@@ -134,13 +134,13 @@ resource "null_resource" "caddy_reload" {
   depends_on = [incus_instance.caddy]
 }
 
-resource "null_resource" "frpc_restart" {
+resource "null_resource" "frpc_reload" {
   triggers = {
     config = sha1(local.frpc_toml)
   }
 
   provisioner "local-exec" {
-    command = "incus restart frpc"
+    command = "incus exec frpc -- frpc reload --config /etc/frp/frpc.toml"
   }
 
   depends_on = [incus_instance.frpc]

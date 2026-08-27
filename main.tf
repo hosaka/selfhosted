@@ -22,119 +22,135 @@ module "linstor" {
 
 # This is the entrypoint for all server traffic.
 module "ingress" {
-  source         = "./ingress"
-  config         = var.config.ingress
-  target         = var.cluster.node-3.target
-  public_domain  = var.public_domain
-  private_domain = var.private_domain
-  depends_on     = [null_resource.post_server, module.linstor]
-}
+  source = "./ingress"
 
-# Service authentication layer
-module "auth" {
-  source         = "./auth"
-  config         = var.config.auth
+  config         = var.config.ingress
   target         = var.cluster.node-3.target
   public_domain  = var.public_domain
   private_domain = var.private_domain
   timezone       = var.timezone
   depends_on     = [null_resource.post_server, module.linstor]
+
+  services = [
+    module.whoami.ingress,
+  ]
 }
 
-module "atuin" {
-  source     = "./atuin"
-  config     = var.config.atuin
-  target     = var.cluster.node-1.target
-  timezone   = var.timezone
-  depends_on = [null_resource.post_server, module.linstor]
-}
+# # Service authentication layer
+# module "auth" {
+#   source         = "./auth"
+#   config         = var.config.auth
+#   target         = var.cluster.node-3.target
+#   public_domain  = var.public_domain
+#   private_domain = var.private_domain
+#   timezone       = var.timezone
+#   depends_on     = [null_resource.post_server, module.linstor]
+# }
 
-module "forgejo" {
-  source        = "./forgejo"
-  config        = var.config.forgejo
-  target        = var.cluster.node-2.target
-  public_domain = var.public_domain
-  timezone      = var.timezone
-  depends_on    = [null_resource.post_server, module.linstor]
-}
+# module "atuin" {
+#   source         = "./atuin"
+#   config         = var.config.atuin
+#   target         = var.cluster.node-1.target
+#   public_domain  = var.public_domain
+#   private_domain = var.private_domain
+#   timezone       = var.timezone
+#   depends_on     = [null_resource.post_server, module.linstor]
+# }
 
-module "homeassistant" {
-  source     = "./homeassistant"
-  config     = var.config.homeassistant
-  target     = var.cluster.node-1.target
-  timezone   = var.timezone
-  depends_on = [null_resource.post_server, module.linstor]
-}
+# module "forgejo" {
+#   source        = "./forgejo"
+#   config        = var.config.forgejo
+#   target        = var.cluster.node-2.target
+#   public_domain = var.public_domain
+#   timezone      = var.timezone
+#   depends_on    = [null_resource.post_server, module.linstor]
+# }
+#
+# module "homeassistant" {
+#   source     = "./homeassistant"
+#   config     = var.config.homeassistant
+#   target     = var.cluster.node-1.target
+#   timezone   = var.timezone
+#   depends_on = [null_resource.post_server, module.linstor]
+# }
+#
+# module "metrics" {
+#   source        = "./metrics"
+#   config        = var.config.metrics
+#   members       = local.members
+#   target        = var.cluster.node-2.target
+#   public_domain = var.public_domain
+#   timezone      = var.timezone
+#   depends_on    = [null_resource.post_server, module.linstor]
+# }
+#
+# module "notify" {
+#   source        = "./notify"
+#   config        = var.config.notify
+#   target        = var.cluster.node-2.target
+#   public_domain = var.public_domain
+#   timezone      = var.timezone
+#   depends_on    = [null_resource.post_server, module.linstor]
+# }
+#
+# module "searxng" {
+#   source        = "./searxng"
+#   config        = var.config.searxng
+#   target        = var.cluster.node-3.target
+#   public_domain = var.public_domain
+#   timezone      = var.timezone
+#   depends_on    = [null_resource.post_server, module.linstor]
+# }
+#
+# module "slskd" {
+#   source        = "./slskd"
+#   config        = var.config.slskd
+#   target        = var.cluster.node-1.target
+#   public_domain = var.public_domain
+#   timezone      = var.timezone
+#   depends_on    = [null_resource.post_server, module.linstor]
+# }
+#
+# module "snikket" {
+#   source        = "./snikket"
+#   config        = var.config.snikket
+#   target        = var.cluster.node-3.target
+#   public_domain = var.public_domain
+#   timezone      = var.timezone
+#   depends_on    = [null_resource.post_server, module.linstor]
+# }
+#
+# module "syncstorage" {
+#   source        = "./syncstorage"
+#   config        = var.config.syncstorage
+#   target        = var.cluster.node-1.target
+#   public_domain = var.public_domain
+#   timezone      = var.timezone
+#   depends_on    = [null_resource.post_server, module.linstor]
+# }
+#
+# module "vaultwarden" {
+#   source        = "./vaultwarden"
+#   config        = var.config.vaultwarden
+#   target        = var.cluster.node-1.target
+#   public_domain = var.public_domain
+#   timezone      = var.timezone
+#   depends_on    = [null_resource.post_server, module.linstor]
+# }
+#
+# module "wakapi" {
+#   source        = "./wakapi"
+#   config        = var.config.wakapi
+#   target        = var.cluster.node-2.target
+#   public_domain = var.public_domain
+#   timezone      = var.timezone
+#   depends_on    = [null_resource.post_server, module.linstor]
+# }
 
-module "metrics" {
-  source        = "./metrics"
-  config        = var.config.metrics
-  members       = local.members
-  target        = var.cluster.node-2.target
-  public_domain = var.public_domain
-  timezone      = var.timezone
-  depends_on    = [null_resource.post_server, module.linstor]
-}
-
-module "notify" {
-  source        = "./notify"
-  config        = var.config.notify
-  target        = var.cluster.node-2.target
-  public_domain = var.public_domain
-  timezone      = var.timezone
-  depends_on    = [null_resource.post_server, module.linstor]
-}
-
-module "searxng" {
-  source        = "./searxng"
-  config        = var.config.searxng
-  target        = var.cluster.node-3.target
-  public_domain = var.public_domain
-  timezone      = var.timezone
-  depends_on    = [null_resource.post_server, module.linstor]
-}
-
-module "slskd" {
-  source        = "./slskd"
-  config        = var.config.slskd
-  target        = var.cluster.node-1.target
-  public_domain = var.public_domain
-  timezone      = var.timezone
-  depends_on    = [null_resource.post_server, module.linstor]
-}
-
-module "snikket" {
-  source        = "./snikket"
-  config        = var.config.snikket
-  target        = var.cluster.node-3.target
-  public_domain = var.public_domain
-  timezone      = var.timezone
-  depends_on    = [null_resource.post_server, module.linstor]
-}
-
-module "syncstorage" {
-  source        = "./syncstorage"
-  config        = var.config.syncstorage
-  target        = var.cluster.node-1.target
-  public_domain = var.public_domain
-  timezone      = var.timezone
-  depends_on    = [null_resource.post_server, module.linstor]
-}
-
-module "vaultwarden" {
-  source        = "./vaultwarden"
-  config        = var.config.vaultwarden
-  target        = var.cluster.node-1.target
-  public_domain = var.public_domain
-  timezone      = var.timezone
-  depends_on    = [null_resource.post_server, module.linstor]
-}
-
-module "wakapi" {
-  source        = "./wakapi"
-  config        = var.config.wakapi
-  target        = var.cluster.node-2.target
-  public_domain = var.public_domain
-  timezone      = var.timezone
-  depends_on    = [null_resource.post_server, module.linstor]
+module "whoami" {
+  source         = "./whoami"
+  target         = var.cluster.node-1.target
+  public_domain  = var.public_domain
+  private_domain = var.private_domain
+  depends_on     = [null_resource.post_server]
 }
