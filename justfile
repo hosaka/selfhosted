@@ -72,7 +72,7 @@ cluster node-1 node-2 node-3: (onpath 'incus')
 
 [doc('bootstrap the cluster')]
 bootstrap *args: (onpath 'tofu')
-    tofu apply -var-file=env-prod.tfvars -target=null_resource.post_server {{ args }}
+    tofu apply -target=null_resource.post_server {{ args }}
 
 [doc('bootstrap linstor on the cluster')]
 bootstrap-linstor: (onpath 'incus') (onpath 'tofu') (onpath 'yq')
@@ -147,33 +147,25 @@ bootstrap-linstor: (onpath 'incus') (onpath 'tofu') (onpath 'yq')
       done
     fi
 
-    tofu apply -var-file=env-prod.tfvars -auto-approve -target=module.linstor.null_resource.post_linstor_controller
+    tofu apply -auto-approve -target=module.linstor.null_resource.post_linstor_controller
 
     for node in "${NODES[@]}"; do
       incus exec --project=internal linstor-controller -- linstor storage-pool create zfsthin "$node" nvme nvme/linstor || true
     done
 
-    tofu apply -var-file=env-prod.tfvars -auto-approve -target=module.linstor.null_resource.post_linstor
-
-[doc('apply all infrastructure')]
-apply *args: (onpath 'tofu')
-    tofu apply -var-file=env-prod.tfvars {{ args }}
-
-[doc('plan infrastructure changes')]
-plan *args: (onpath 'tofu')
-    tofu plan -var-file=env-prod.tfvars {{ args }}
-
-[doc('apply module changes')]
-up module *args: (onpath 'tofu')
-    tofu apply -var-file=env-prod.tfvars -target=module.{{ module }} {{ args }}
+    tofu apply -auto-approve -target=module.linstor.null_resource.post_linstor
 
 [doc('plan module changes')]
-check module *args: (onpath 'tofu')
-    tofu plan -var-file=env-prod.tfvars -target=module.{{ module }} {{ args }}
+plan module *args: (onpath 'tofu')
+    tofu plan -target=module.{{ module }} {{ args }}
+
+[doc('apply module changes')]
+apply module *args: (onpath 'tofu')
+    tofu apply -target=module.{{ module }} {{ args }}
 
 [doc('destroy module changes')]
 destroy module *args: (onpath 'tofu')
-    tofu destroy -var-file=env-prod.tfvars -target=module.{{ module }} {{ args }}
+    tofu destroy -target=module.{{ module }} {{ args }}
 
 [doc('follow logs of an instance')]
 logs instance: (onpath 'incus')
