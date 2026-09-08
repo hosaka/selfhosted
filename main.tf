@@ -34,6 +34,7 @@ module "ingress" {
   services = [
     module.atuin.ingress,
     module.notify.ingress,
+    module.wakapi.ingress,
     module.whoami.ingress,
   ]
 }
@@ -141,14 +142,15 @@ module "notify" {
 #   depends_on    = [null_resource.post_server, module.linstor]
 # }
 
-# module "wakapi" {
-#   source        = "./wakapi"
-#   config        = var.config.wakapi
-#   target        = var.cluster.node-2.target
-#   public_domain = var.public_domain
-#   timezone      = var.timezone
-#   depends_on    = [null_resource.post_server, module.linstor]
-# }
+module "wakapi" {
+  source         = "./wakapi"
+  config         = var.config.wakapi
+  target         = var.cluster.node-2.target
+  public_domain  = var.public_domain
+  private_domain = var.private_domain
+  timezone       = var.timezone
+  depends_on     = [null_resource.post_server, module.linstor]
+}
 
 module "whoami" {
   source         = "./whoami"

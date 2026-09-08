@@ -5,7 +5,7 @@ variable "wakapi_version" {
 
 resource "incus_storage_volume" "wakapi_data" {
   name = "wakapi-data"
-  pool = "remote"
+  pool = "linstor"
 
   config = {
     "initial.uid" = "65532"
@@ -31,9 +31,21 @@ resource "incus_instance" "wakapi" {
     }
   }
 
+  device {
+    name = "eth0"
+    type = "nic"
+    properties = {
+      network = "meshbr0"
+    }
+  }
+
+  wait_for {
+    type = "ipv4"
+  }
+
   config = {
     "environment.WAKAPI_PUBLIC_URL"                     = "https://waka.${var.public_domain}"
-    "environment.WAKAPI_DB_NAME"                        = "/app/data/wakapi_db.db"
+    "environment.WAKAPI_DB_NAME"                        = "/app/data/wakapi.db"
     "environment.WAKAPI_PASSWORD_SALT"                  = "${sensitive(var.config.password_salt)}"
     "environment.WAKAPI_INSECURE_COOKIES"               = "false"
     "environment.WAKAPI_ALLOW_SIGNUP"                   = "false"
@@ -44,6 +56,20 @@ resource "incus_instance" "wakapi" {
     "environment.WAKAPI_OIDC_PROVIDERS_0_CLIENT_ID"     = "${var.config.oidc_client_id}"
     "environment.WAKAPI_OIDC_PROVIDERS_0_CLIENT_SECRET" = "${sensitive(var.config.oidc_client_secret)}"
     "environment.WAKAPI_OIDC_PROVIDERS_0_ENDPOINT"      = "https://auth.${var.public_domain}"
+    "environment.TZ"                                    = var.timezone
+
+    "user.access_interface" = "eth0"
   }
 }
 
+output "ingress" {
+  value = {
+    name   = "waka"
+    public = true
+    caddy  = <<-EOT
+      waka.${var.private_domain}, waka.${var.public_domain} {
+        reverse_proxy ${incus_instance.wakapi.ipv4_address}:3000
+      }
+    EOT
+  }
+}
