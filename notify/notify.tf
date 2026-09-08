@@ -10,7 +10,7 @@ variable "diun_version" {
 
 resource "incus_storage_volume" "gotify_data" {
   name = "gotify-data"
-  pool = "remote"
+  pool = "linstor"
 }
 
 resource "incus_instance" "gotify" {
@@ -31,6 +31,18 @@ resource "incus_instance" "gotify" {
     }
   }
 
+  device {
+    name = "eth0"
+    type = "nic"
+    properties = {
+      network = "meshbr0"
+    }
+  }
+
+  wait_for {
+    type = "ipv4"
+  }
+
   config = {
     "environment.GOTIFY_OIDC_ENABLED"       = "true"
     "environment.GOTIFY_OIDC_ISSUER"        = "https://auth.${var.public_domain}"
@@ -39,12 +51,14 @@ resource "incus_instance" "gotify" {
     "environment.GOTIFY_OIDC_REDIRECTURL"   = "https://gotify.${var.public_domain}/auth/oidc/callback"
     "environment.GOTIFY_OIDC_AUTOREGISTER"  = "true"
     "environment.GOTIFY_OIDC_USERNAMECLAIM" = "preferred_username"
+
+    "user.access_interface" = "eth0"
   }
 }
 
 resource "incus_storage_volume" "diun_data" {
   name = "diun-data"
-  pool = "remote"
+  pool = "linstor"
 }
 
 resource "incus_instance" "diun" {
@@ -59,10 +73,22 @@ resource "incus_instance" "diun" {
     name = "data"
     type = "disk"
     properties = {
-      path   = "/app/data"
+      path   = "/data"
       pool   = incus_storage_volume.diun_data.pool
       source = incus_storage_volume.diun_data.name
     }
+  }
+
+  device {
+    name = "eth0"
+    type = "nic"
+    properties = {
+      network = "meshbr0"
+    }
+  }
+
+  wait_for {
+    type = "ipv4"
   }
 
   file {
@@ -74,7 +100,7 @@ resource "incus_instance" "diun" {
   # TODO: template this as a config file and pass it with --conifg, see https://crazymax.dev/diun/config/
 
   config = {
-    "environment.DIUN_NOTIF_GOTIFY_ENDPOINT"   = "http://${incus_instance.gotify.name}"
+    "environment.DIUN_NOTIF_GOTIFY_ENDPOINT"   = "http://${incus_instance.gotify.ipv4_address}"
     "environment.DIUN_NOTIF_GOTIFY_TOKEN"      = "${sensitive(var.config.gotify_token)}"
     "environment.DIUN_WATCH_WORKERS"           = "10"
     "environment.DIUN_WATCH_SCHEDULE"          = "0 */6 * * *"
@@ -89,5 +115,19 @@ resource "incus_instance" "diun" {
     "environment.DIUN_PROVIDERS_FILE_FILENAME" = "/config.yml"
 
     "oci.entrypoint" = "/bin/sh -c 'while [ ! -f /config.yml ]; do sleep 1; done; exec diun serve'"
+
+    "user.access_interface" = "eth0"
+  }
+}
+
+output "ingress" {
+  value = {
+    name   = "gotify"
+    public = true
+    caddy  = <<-EOT
+      gotify.${var.private_domain}, gotify.${var.public_domain} {
+        reverse_proxy ${incus_instance.gotify.ipv4_address}:80
+      }
+    EOT
   }
 }

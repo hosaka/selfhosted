@@ -33,6 +33,7 @@ module "ingress" {
 
   services = [
     module.atuin.ingress,
+    module.notify.ingress,
     module.whoami.ingress,
   ]
 }
@@ -66,7 +67,7 @@ module "atuin" {
 #   timezone      = var.timezone
 #   depends_on    = [null_resource.post_server, module.linstor]
 # }
-#
+
 # module "homeassistant" {
 #   source     = "./homeassistant"
 #   config     = var.config.homeassistant
@@ -74,7 +75,7 @@ module "atuin" {
 #   timezone   = var.timezone
 #   depends_on = [null_resource.post_server, module.linstor]
 # }
-#
+
 # module "metrics" {
 #   source        = "./metrics"
 #   config        = var.config.metrics
@@ -84,16 +85,17 @@ module "atuin" {
 #   timezone      = var.timezone
 #   depends_on    = [null_resource.post_server, module.linstor]
 # }
-#
-# module "notify" {
-#   source        = "./notify"
-#   config        = var.config.notify
-#   target        = var.cluster.node-2.target
-#   public_domain = var.public_domain
-#   timezone      = var.timezone
-#   depends_on    = [null_resource.post_server, module.linstor]
-# }
-#
+
+module "notify" {
+  source         = "./notify"
+  config         = var.config.notify
+  target         = var.cluster.node-2.target
+  public_domain  = var.public_domain
+  private_domain = var.private_domain
+  timezone       = var.timezone
+  depends_on     = [null_resource.post_server, module.linstor]
+}
+
 # module "searxng" {
 #   source        = "./searxng"
 #   config        = var.config.searxng
@@ -102,7 +104,7 @@ module "atuin" {
 #   timezone      = var.timezone
 #   depends_on    = [null_resource.post_server, module.linstor]
 # }
-#
+
 # module "slskd" {
 #   source        = "./slskd"
 #   config        = var.config.slskd
@@ -111,7 +113,7 @@ module "atuin" {
 #   timezone      = var.timezone
 #   depends_on    = [null_resource.post_server, module.linstor]
 # }
-#
+
 # module "snikket" {
 #   source        = "./snikket"
 #   config        = var.config.snikket
@@ -120,7 +122,7 @@ module "atuin" {
 #   timezone      = var.timezone
 #   depends_on    = [null_resource.post_server, module.linstor]
 # }
-#
+
 # module "syncstorage" {
 #   source        = "./syncstorage"
 #   config        = var.config.syncstorage
@@ -129,7 +131,7 @@ module "atuin" {
 #   timezone      = var.timezone
 #   depends_on    = [null_resource.post_server, module.linstor]
 # }
-#
+
 # module "vaultwarden" {
 #   source        = "./vaultwarden"
 #   config        = var.config.vaultwarden
@@ -138,7 +140,7 @@ module "atuin" {
 #   timezone      = var.timezone
 #   depends_on    = [null_resource.post_server, module.linstor]
 # }
-#
+
 # module "wakapi" {
 #   source        = "./wakapi"
 #   config        = var.config.wakapi
