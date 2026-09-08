@@ -64,6 +64,10 @@ resource "incus_instance" "frpc" {
     }
   }
 
+  wait_for {
+    type = "ipv4"
+  }
+
   config = {
     "oci.entrypoint" = "/bin/sh -c 'while [ ! -f /etc/frp/frpc.toml ]; do sleep 1; done; exec /usr/bin/frpc --config /etc/frp/frpc.toml'"
   }
