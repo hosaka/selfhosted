@@ -59,8 +59,6 @@ resource "incus_instance" "frpc" {
     type = "nic"
     properties = {
       network = "meshbr0"
-      # "ipv4.address" = var.network.frpc.ipv4
-      # hwaddr         = var.network.frpc.mac
     }
   }
 

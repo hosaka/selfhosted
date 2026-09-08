@@ -32,6 +32,7 @@ module "ingress" {
   depends_on     = [null_resource.post_server, module.linstor]
 
   services = [
+    module.atuin.ingress,
     module.whoami.ingress,
   ]
 }
@@ -47,15 +48,15 @@ module "ingress" {
 #   depends_on     = [null_resource.post_server, module.linstor]
 # }
 
-# module "atuin" {
-#   source         = "./atuin"
-#   config         = var.config.atuin
-#   target         = var.cluster.node-1.target
-#   public_domain  = var.public_domain
-#   private_domain = var.private_domain
-#   timezone       = var.timezone
-#   depends_on     = [null_resource.post_server, module.linstor]
-# }
+module "atuin" {
+  source         = "./atuin"
+  config         = var.config.atuin
+  target         = var.cluster.node-1.target
+  public_domain  = var.public_domain
+  private_domain = var.private_domain
+  timezone       = var.timezone
+  depends_on     = [null_resource.post_server, module.linstor]
+}
 
 # module "forgejo" {
 #   source        = "./forgejo"

@@ -11,18 +11,46 @@ resource "incus_instance" "atuin" {
   profiles = ["default"]
   image    = "ghcr:atuinsh/atuin:${var.atuin_version}"
 
+  device {
+    name = "eth0"
+    type = "nic"
+    properties = {
+      network = "meshbr0"
+    }
+  }
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
+      network = "incusbr0"
+    }
+  }
+
+  wait_for {
+    type = "ipv4"
+  }
+
   config = {
     "environment.ATUIN_HOST"              = "0.0.0.0"
     "environment.ATUIN_OPEN_REGISTRATION" = "false"
-    "environment.ATUIN_DB_URI"            = "postgres://${var.config.db_username}:${sensitive(var.config.db_password)}@${incus_instance.atuin_database.name}/${var.config.db_name}"
+    "environment.ATUIN_DB_URI"            = "postgres://${var.config.db_username}:${sensitive(var.config.db_password)}@${incus_instance.atuin_database.ipv4_address}/${var.config.db_name}"
 
     "oci.entrypoint" = "/usr/local/bin/atuin-server start"
+
+    "user.access_interface" = "eth0"
   }
 }
 
 resource "incus_storage_volume" "atuin_db" {
   name = "atuin-db"
-  pool = "remote"
+  pool = "linstor"
+
+  config = {
+    # postgres user in alpine
+    "initial.uid" = "70"
+    "initial.gid" = "70"
+  }
 }
 
 resource "incus_instance" "atuin_database" {
@@ -40,6 +68,14 @@ resource "incus_instance" "atuin_database" {
       path   = "/var/lib/postgresql"
       pool   = incus_storage_volume.atuin_db.pool
       source = incus_storage_volume.atuin_db.name
+    }
+  }
+
+  device {
+    name = "eth0"
+    type = "nic"
+    properties = {
+      network = "incusbr0"
     }
   }
 
