@@ -54,6 +54,12 @@ resource "incus_instance" "syncstorage" {
 resource "incus_storage_volume" "syncstorage_db" {
   name = "syncstorage-db"
   pool = "linstor"
+
+  config = {
+    # postgres user in alpine
+    "initial.uid" = "70"
+    "initial.gid" = "70"
+  }
 }
 
 resource "incus_instance" "syncstorage_database" {

@@ -98,7 +98,7 @@ output "ingress" {
     name   = "atuin"
     public = true
     caddy  = <<-EOT
-      atuin.${var.private_domain}, atuin.${var.public_domain} {
+      atuin.${var.public_domain} {
         reverse_proxy ${incus_instance.atuin.ipv4_address}:8888
       }
     EOT
