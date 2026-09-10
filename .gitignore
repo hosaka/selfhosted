@@ -25,6 +25,7 @@ wg0.conf
 *.iso
 *.img
 *.tar
+*.tar.gz
 
 # mise
 mise.local.toml

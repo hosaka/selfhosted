@@ -5,7 +5,7 @@ variable "vaultwarden_version" {
 
 resource "incus_storage_volume" "vaultwarden_data" {
   name = "vaultwarden-data"
-  pool = "remote"
+  pool = "linstor"
 }
 
 resource "incus_instance" "vaultwarden" {
@@ -24,6 +24,18 @@ resource "incus_instance" "vaultwarden" {
       pool   = incus_storage_volume.vaultwarden_data.pool
       source = incus_storage_volume.vaultwarden_data.name
     }
+  }
+
+  device {
+    name = "eth0"
+    type = "nic"
+    properties = {
+      network = "meshbr0"
+    }
+  }
+
+  wait_for {
+    type = "ipv4"
   }
 
   config = {
@@ -52,6 +64,48 @@ resource "incus_instance" "vaultwarden" {
     "environment.SSO_CLIENT_SECRET" = sensitive(var.config.oidc_client_secret)
     "environment.YUBICO_CLIENT_ID"  = var.config.yubico_client_id
     "environment.YUBICO_SECRET_KEY" = sensitive(var.config.yubico_secret_key)
+    "environment.TZ"                = var.timezone
+
+    "user.access_interface" = "eth0"
   }
 }
 
+output "ingress" {
+  value = {
+    name   = "vaultwarden"
+    public = true
+    caddy  = <<-EOT
+      vaultwarden.${var.private_domain}, vaultwarden.${var.public_domain} {
+        encode zstd gzip
+
+        header {
+          # enable HTTP Strict Transport Security (HSTS)
+          Strict-Transport-Security "max-age=31536000; preload"
+          # disable enable cross-site filter (XSS)
+          X-XSS-Protection "0"
+          # disallow sniffing of X-Content-Type-Options
+          X-Content-Type-Options "nosniff"
+          # disallow the site to be rendered within a frame (clickjacking protection)
+          X-Frame-Options "SAMEORIGIN"
+          # prevent search engines from indexing
+          X-Robots-Tag "none"
+          # remove server name
+          -Server
+        }
+
+        # allow access to the admin interface only from local networks
+        @admin {
+          path /admin*
+          not remote_ip private_ranges
+        }
+        respond @admin "401 - {remote_host} is not an allowed IP" 401
+
+        # proxy everything to Rocket
+        reverse_proxy ${incus_instance.vaultwarden.ipv4_address}:80 {
+          # send the true remote IP to Rocket, so fail2ban can ban collect IPs from the log
+          header_up X-Real-IP {remote_host}
+        }
+      }
+    EOT
+  }
+}

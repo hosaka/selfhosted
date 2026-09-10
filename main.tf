@@ -35,6 +35,7 @@ module "ingress" {
     module.atuin.ingress,
     module.notify.ingress,
     module.syncstorage.ingress,
+    module.vaultwarden.ingress,
     module.wakapi.ingress,
     module.whoami.ingress,
   ]
@@ -135,14 +136,15 @@ module "syncstorage" {
   depends_on     = [null_resource.post_server, module.linstor]
 }
 
-# module "vaultwarden" {
-#   source        = "./vaultwarden"
-#   config        = var.config.vaultwarden
-#   target        = var.cluster.node-1.target
-#   public_domain = var.public_domain
-#   timezone      = var.timezone
-#   depends_on    = [null_resource.post_server, module.linstor]
-# }
+module "vaultwarden" {
+  source         = "./vaultwarden"
+  config         = var.config.vaultwarden
+  target         = var.cluster.node-3.target
+  public_domain  = var.public_domain
+  private_domain = var.private_domain
+  timezone       = var.timezone
+  depends_on     = [null_resource.post_server, module.linstor]
+}
 
 module "wakapi" {
   source         = "./wakapi"
