@@ -88,6 +88,8 @@ resource "incus_instance" "atuin_database" {
     "environment.POSTGRES_USER"     = var.config.db_username
     "environment.POSTGRES_PASSWORD" = sensitive(var.config.db_password)
     "environment.PGTZ"              = var.timezone
+
+    "user.access_interface" = "eth0"
   }
 }
 
