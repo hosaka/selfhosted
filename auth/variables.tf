@@ -5,9 +5,9 @@ variable "config" {
     lldap_user_pass  = string
     lldap_jwt_secret = string
     lldap_key_seed   = string
+    lldap_password   = string
 
     # authelia
-    ldap_password          = string
     session_secret         = string
     storage_encryption_key = string
     smtp_address           = string

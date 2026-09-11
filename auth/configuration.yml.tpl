@@ -18,13 +18,13 @@ authentication_backend:
 
   ldap:
     implementation: lldap
-    address: ldap://lldap:3890
+    address: "ldap://${lldap_address}:3890"
     base_dn: "${lldap_base_dn}"
 
     # "uid" should be the username you created for authentication with the "lldap_strict_readonly" permission
     # if using Authelia to change user passwords, then this user needs the "lldap_password_manager" permission
     user: "uid=authelia,ou=people,${lldap_base_dn}"
-    password: "${ldap_password}"
+    password: "${lldap_password}"
 
     # to allow sign in both with username and email, comment this filter to use defaults
     # users_filter: "(&({username_attribute}={input})(objectClass=person))"
@@ -36,13 +36,13 @@ session:
       authelia_url: "https://auth.${public_domain}"
       # default_redirection_url: "https://home.${public_domain}"
   redis:
-    host: authelia-valkey
+    host: "${valkey_address}"
     port: 6379
 
 storage:
   encryption_key: "${storage_encryption_key}"
   postgres:
-    address: authelia-database
+    address: "${db_address}"
     database: "${db_name}"
     username: "${db_username}"
     password: "${db_password}"

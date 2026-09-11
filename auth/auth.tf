@@ -20,19 +20,22 @@ resource "incus_instance" "authelia" {
     content = templatefile("${path.module}/configuration.yml.tpl", {
       public_domain  = var.public_domain
       private_domain = var.private_domain
-      lldap_base_dn  = var.config.lldap_base_dn
 
+      db_address             = incus_instance.authelia_database.ipv4_address
       db_name                = var.config.db_name
       db_password            = sensitive(var.config.db_password)
       db_username            = var.config.db_username
       jwt_secret             = sensitive(var.config.jwt_secret)
       jwks_key               = sensitive(indent(10, trimspace(file("${path.module}/private.pem"))))
-      ldap_password          = sensitive(var.config.ldap_password)
+      lldap_address          = incus_instance.lldap.ipv4_address
+      lldap_base_dn          = var.config.lldap_base_dn
+      lldap_password         = sensitive(var.config.lldap_password)
       session_secret         = sensitive(var.config.session_secret)
       smtp_address           = var.config.smtp_address
       smtp_password          = sensitive(var.config.smtp_password)
       smtp_sender            = var.config.smtp_sender
       smtp_username          = sensitive(var.config.smtp_username)
+      valkey_address         = incus_instance.authelia_valkey.ipv4_address
       storage_encryption_key = sensitive(var.config.storage_encryption_key)
 
       # clients
@@ -61,14 +64,42 @@ resource "incus_instance" "authelia" {
     create_directories = true
   }
 
+  device {
+    name = "eth0"
+    type = "nic"
+    properties = {
+      network = "meshbr0"
+    }
+  }
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
+      network = "incusbr0"
+    }
+  }
+
+  wait_for {
+    type = "ipv4"
+  }
+
   config = {
     "oci.entrypoint" = "/bin/sh -c 'while [ ! -f /config/configuration.yml ]; do sleep 1; done; exec /app/entrypoint.sh'"
+
+    "user.access_interface" = "eth0"
   }
 }
 
 resource "incus_storage_volume" "authelia_db" {
   name = "authelia-db"
-  pool = "remote"
+  pool = "linstor"
+
+  config = {
+    # postgres user in alpine
+    "initial.uid" = "70"
+    "initial.gid" = "70"
+  }
 }
 
 resource "incus_instance" "authelia_database" {
@@ -89,18 +120,37 @@ resource "incus_instance" "authelia_database" {
     }
   }
 
+  device {
+    name = "eth0"
+    type = "nic"
+    properties = {
+      network = "incusbr0"
+    }
+  }
+
+  wait_for {
+    type = "ipv4"
+  }
+
   config = {
     "environment.POSTGRES_DB"       = var.config.db_name
     "environment.POSTGRES_USER"     = var.config.db_username
     "environment.POSTGRES_PASSWORD" = sensitive(var.config.db_password)
     "environment.PGTZ"              = var.timezone
+
+    "user.access_interface" = "eth0"
   }
 }
 
 resource "incus_storage_volume" "authelia_cache" {
-  name   = "authelia-cache"
-  pool   = "local"
-  target = var.target
+  name = "authelia-cache"
+  pool = "linstor"
+
+  config = {
+    # valkey user in alpine
+    "initial.uid" = "999"
+    "initial.gid" = "1000"
+  }
 }
 
 resource "incus_instance" "authelia_valkey" {
@@ -120,11 +170,32 @@ resource "incus_instance" "authelia_valkey" {
       source = incus_storage_volume.authelia_cache.name
     }
   }
+
+  device {
+    name = "eth0"
+    type = "nic"
+    properties = {
+      network = "incusbr0"
+    }
+  }
+
+  wait_for {
+    type = "ipv4"
+  }
+
+  config = {
+    "user.access_interface" = "eth0"
+  }
 }
 
 resource "incus_storage_volume" "lldap_data" {
   name = "lldap-data"
-  pool = "remote"
+  pool = "linstor"
+
+  config = {
+    "initial.uid" = "1000"
+    "initial.gid" = "1000"
+  }
 }
 
 # todo: figure out how to create default authelia user/pwd with lldap_password_manager gruop
@@ -147,10 +218,40 @@ resource "incus_instance" "lldap" {
     }
   }
 
+  device {
+    name = "eth0"
+    type = "nic"
+    properties = {
+      network = "meshbr0"
+    }
+  }
+
+  wait_for {
+    type = "ipv4"
+  }
+
   config = {
     "environment.LLDAP_LDAP_BASE_DN"   = var.config.lldap_base_dn
     "environment.LLDAP_LDAP_USER_PASS" = sensitive(var.config.lldap_user_pass)
     "environment.LLDAP_JWT_SECRET"     = sensitive(var.config.lldap_jwt_secret)
     "environment.LLDAP_KEY_SEED"       = sensitive(var.config.lldap_key_seed)
+    "environment.TZ"                   = var.timezone
+
+    "user.access_interface" = "eth0"
+  }
+}
+
+output "ingress" {
+  value = {
+    name   = "auth"
+    public = true
+    caddy  = <<-EOT
+      auth.${var.public_domain} {
+        reverse_proxy ${incus_instance.authelia.ipv4_address}:9091
+      }
+      users.${var.private_domain} {
+        reverse_proxy ${incus_instance.lldap.ipv4_address}:17170
+      }
+    EOT
   }
 }

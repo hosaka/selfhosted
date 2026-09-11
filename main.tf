@@ -32,6 +32,7 @@ module "ingress" {
   depends_on     = [null_resource.post_server, module.linstor]
 
   services = [
+    module.auth.ingress,
     module.atuin.ingress,
     module.notify.ingress,
     module.syncstorage.ingress,
@@ -41,16 +42,16 @@ module "ingress" {
   ]
 }
 
-# # Service authentication layer
-# module "auth" {
-#   source         = "./auth"
-#   config         = var.config.auth
-#   target         = var.cluster.node-3.target
-#   public_domain  = var.public_domain
-#   private_domain = var.private_domain
-#   timezone       = var.timezone
-#   depends_on     = [null_resource.post_server, module.linstor]
-# }
+# Service authentication layer
+module "auth" {
+  source         = "./auth"
+  config         = var.config.auth
+  target         = var.cluster.node-3.target
+  public_domain  = var.public_domain
+  private_domain = var.private_domain
+  timezone       = var.timezone
+  depends_on     = [null_resource.post_server, module.linstor]
+}
 
 module "atuin" {
   source         = "./atuin"
