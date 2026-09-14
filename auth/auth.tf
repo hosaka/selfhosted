@@ -8,6 +8,50 @@ variable "lldap_version" {
   default = "0.6.3"
 }
 
+locals {
+  authelia_config = templatefile("${path.module}/configuration.yml.tpl", {
+    public_domain  = var.public_domain
+    private_domain = var.private_domain
+
+    db_address             = incus_instance.authelia_database.ipv4_address
+    db_name                = var.config.db_name
+    db_password            = sensitive(var.config.db_password)
+    db_username            = var.config.db_username
+    jwt_secret             = sensitive(var.config.jwt_secret)
+    jwks_key               = sensitive(indent(10, trimspace(file("${path.module}/private.pem"))))
+    lldap_address          = incus_instance.lldap.ipv4_address
+    lldap_base_dn          = var.config.lldap_base_dn
+    lldap_password         = sensitive(var.config.lldap_password)
+    session_secret         = sensitive(var.config.session_secret)
+    smtp_address           = var.config.smtp_address
+    smtp_password          = sensitive(var.config.smtp_password)
+    smtp_sender            = var.config.smtp_sender
+    smtp_username          = sensitive(var.config.smtp_username)
+    valkey_address         = incus_instance.authelia_valkey.ipv4_address
+    storage_encryption_key = sensitive(var.config.storage_encryption_key)
+
+    # clients
+    forgejo_client_id              = var.config.forgejo_client_id
+    forgejo_client_secret_hash     = var.config.forgejo_client_secret_hash
+    gotify_client_id               = var.config.gotify_client_id
+    gotify_client_secret_hash      = var.config.gotify_client_secret_hash
+    grafana_client_id              = var.config.grafana_client_id
+    grafana_client_secret_hash     = var.config.grafana_client_secret_hash
+    immich_client_id               = var.config.immich_client_id
+    immich_client_secret_hash      = var.config.immich_client_secret_hash
+    jellyfin_client_id             = var.config.jellyfin_client_id
+    jellyfin_client_secret_hash    = var.config.jellyfin_client_secret_hash
+    kavita_client_id               = var.config.kavita_client_id
+    kavita_client_secret_hash      = var.config.kavita_client_secret_hash
+    paperless_client_id            = var.config.paperless_client_id
+    paperless_client_secret_hash   = var.config.paperless_client_secret_hash
+    vaultwarden_client_id          = var.config.vaultwarden_client_id
+    vaultwarden_client_secret_hash = var.config.vaultwarden_client_secret_hash
+    wakapi_client_id               = var.config.wakapi_client_id
+    wakapi_client_secret_hash      = var.config.wakapi_client_secret_hash
+  })
+}
+
 resource "incus_instance" "authelia" {
   name = "authelia"
   type = "container"
@@ -17,48 +61,7 @@ resource "incus_instance" "authelia" {
   image    = "ghcr:authelia/authelia:${var.authelia_version}"
 
   file {
-    content = templatefile("${path.module}/configuration.yml.tpl", {
-      public_domain  = var.public_domain
-      private_domain = var.private_domain
-
-      db_address             = incus_instance.authelia_database.ipv4_address
-      db_name                = var.config.db_name
-      db_password            = sensitive(var.config.db_password)
-      db_username            = var.config.db_username
-      jwt_secret             = sensitive(var.config.jwt_secret)
-      jwks_key               = sensitive(indent(10, trimspace(file("${path.module}/private.pem"))))
-      lldap_address          = incus_instance.lldap.ipv4_address
-      lldap_base_dn          = var.config.lldap_base_dn
-      lldap_password         = sensitive(var.config.lldap_password)
-      session_secret         = sensitive(var.config.session_secret)
-      smtp_address           = var.config.smtp_address
-      smtp_password          = sensitive(var.config.smtp_password)
-      smtp_sender            = var.config.smtp_sender
-      smtp_username          = sensitive(var.config.smtp_username)
-      valkey_address         = incus_instance.authelia_valkey.ipv4_address
-      storage_encryption_key = sensitive(var.config.storage_encryption_key)
-
-      # clients
-      forgejo_client_id              = var.config.forgejo_client_id
-      forgejo_client_secret_hash     = var.config.forgejo_client_secret_hash
-      gotify_client_id               = var.config.gotify_client_id
-      gotify_client_secret_hash      = var.config.gotify_client_secret_hash
-      grafana_client_id              = var.config.grafana_client_id
-      grafana_client_secret_hash     = var.config.grafana_client_secret_hash
-      immich_client_id               = var.config.immich_client_id
-      immich_client_secret_hash      = var.config.immich_client_secret_hash
-      jellyfin_client_id             = var.config.jellyfin_client_id
-      jellyfin_client_secret_hash    = var.config.jellyfin_client_secret_hash
-      kavita_client_id               = var.config.kavita_client_id
-      kavita_client_secret_hash      = var.config.kavita_client_secret_hash
-      paperless_client_id            = var.config.paperless_client_id
-      paperless_client_secret_hash   = var.config.paperless_client_secret_hash
-      vaultwarden_client_id          = var.config.vaultwarden_client_id
-      vaultwarden_client_secret_hash = var.config.vaultwarden_client_secret_hash
-      wakapi_client_id               = var.config.wakapi_client_id
-      wakapi_client_secret_hash      = var.config.wakapi_client_secret_hash
-    })
-
+    content            = local.authelia_config
     target_path        = "/config/configuration.yml"
     mode               = "0600"
     create_directories = true
@@ -235,10 +238,24 @@ resource "incus_instance" "lldap" {
     "environment.LLDAP_LDAP_USER_PASS" = sensitive(var.config.lldap_user_pass)
     "environment.LLDAP_JWT_SECRET"     = sensitive(var.config.lldap_jwt_secret)
     "environment.LLDAP_KEY_SEED"       = sensitive(var.config.lldap_key_seed)
+    "environment.UID"                  = "1000"
+    "environment.GID"                  = "1000"
     "environment.TZ"                   = var.timezone
 
     "user.access_interface" = "eth0"
   }
+}
+
+resource "null_resource" "authelia_restart" {
+  triggers = {
+    config = sha1(local.authelia_config)
+  }
+
+  provisioner "local-exec" {
+    command = "incus exec authelia -- authelia validate-config --config /config/configuration.yml && incus restart authelia"
+  }
+
+  depends_on = [incus_instance.authelia]
 }
 
 output "ingress" {
