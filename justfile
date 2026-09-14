@@ -231,13 +231,13 @@ _decrypt-auth:
 [private]
 _decrypt-all: _decrypt-secrets _decrypt-keys _decrypt-restic _decrypt-auth
 
-[doc('generate random OIDC client id (uses authelia docker image)')]
-genid: (onpath 'docker')
-    docker run --rm ghcr.io/authelia/authelia:latest authelia crypto rand --length 72 --charset rfc3986
+[doc('generate random OIDC client id (assumes authelia instance is runnig)')]
+genid: (onpath 'incus')
+    incus exec authelia -- authelia crypto rand --length 72 --charset rfc3986
 
-[doc('generate random OIDC client secret (uses authelia docker image)')]
-gensecret: (onpath 'docker')
-    docker run --rm ghcr.io/authelia/authelia:latest authelia crypto hash generate pbkdf2 --variant sha512 --random --random.length 72 --random.charset rfc3986
+[doc('generate random OIDC client secret (assumes authelia instance is running)')]
+gensecret: (onpath 'incus')
+    incus exec authelia -- authelia crypto hash generate pbkdf2 --variant sha512 --random --random.length 72 --random.charset rfc3986
 
 [private]
 @onpath tool:
