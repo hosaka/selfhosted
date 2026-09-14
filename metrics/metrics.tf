@@ -125,7 +125,7 @@ resource "incus_instance" "grafana" {
 
 resource "null_resource" "grafana_restart" {
   triggers = {
-    config = sha1(local.grafana_config)
+    config = nonsensitive(sha1(local.grafana_config))
   }
 
   provisioner "local-exec" {

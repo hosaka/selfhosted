@@ -248,7 +248,7 @@ resource "incus_instance" "lldap" {
 
 resource "null_resource" "authelia_restart" {
   triggers = {
-    config = sha1(local.authelia_config)
+    config = nonsensitive(sha1(local.authelia_config))
   }
 
   provisioner "local-exec" {

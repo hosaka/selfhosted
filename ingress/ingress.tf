@@ -126,7 +126,7 @@ resource "incus_instance" "caddy" {
 
 resource "null_resource" "caddy_reload" {
   triggers = {
-    caddyfile = sha1(local.caddyfile)
+    caddyfile = nonsensitive(sha1(local.caddyfile))
   }
 
   provisioner "local-exec" {
@@ -138,7 +138,7 @@ resource "null_resource" "caddy_reload" {
 
 resource "null_resource" "frpc_reload" {
   triggers = {
-    config = sha1(local.frpc_toml)
+    config = nonsensitive(sha1(local.frpc_toml))
   }
 
   provisioner "local-exec" {
