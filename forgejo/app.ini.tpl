@@ -46,7 +46,7 @@ INSTALL_LOCK = true
 INTERNAL_TOKEN = ${internal_token}
 ; (Caddy -> Anubis) -> Forgejo, need to allow 2 proxies
 REVERSE_PROXY_LIMIT = 2
-REVERSE_PROXY_TRUSTED_PROXIES = 127.0.0.0/8,::1/128
+REVERSE_PROXY_TRUSTED_PROXIES = ${trusted_proxies}
 SECRET_KEY = ${secret_key}
 
 [server]
@@ -57,6 +57,8 @@ SSH_DOMAIN = git.${public_domain}
 SSH_LISTEN_PORT = 2222
 SSH_PORT = 22
 START_SSH_SERVER = true
+
+[service]
 DEFAULT_KEEP_EMAIL_PRIVATE = true
 DISABLE_REGISTRATION = true
 ALLOW_ONLY_EXTERNAL_REGISTRATION = true

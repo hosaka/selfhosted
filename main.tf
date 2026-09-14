@@ -65,12 +65,15 @@ module "atuin" {
 }
 
 # module "forgejo" {
-#   source        = "./forgejo"
-#   config        = var.config.forgejo
-#   target        = var.cluster.node-2.target
-#   public_domain = var.public_domain
-#   timezone      = var.timezone
-#   depends_on    = [null_resource.post_server, module.linstor]
+#   source = "./forgejo"
+#   config = merge(var.config.forgejo, {
+#     trusted_proxies = format("10.%d.%d.0/24", random_integer.meshbr0-v4-subnet-2.result, random_integer.meshbr0-v4-subnet-3.result)
+#   })
+#   target         = var.cluster.node-2.target
+#   public_domain  = var.public_domain
+#   private_domain = var.private_domain
+#   timezone       = var.timezone
+#   depends_on     = [null_resource.post_server, module.linstor]
 # }
 
 # module "homeassistant" {
@@ -104,7 +107,7 @@ module "notify" {
 # module "searxng" {
 #   source        = "./searxng"
 #   config        = var.config.searxng
-#   target        = var.cluster.node-3.target
+#   target        = var.cluster.node-1.target
 #   public_domain = var.public_domain
 #   timezone      = var.timezone
 #   depends_on    = [null_resource.post_server, module.linstor]

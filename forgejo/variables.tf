@@ -9,6 +9,7 @@ variable "config" {
     mailer_user        = string
     mailer_password    = string
     internal_token     = string
+    trusted_proxies    = optional(string, "127.0.0.0/8,::1/128,10.0.0.0/8")
     secret_key         = string
     lfs_jwt_secret     = string
     oidc_client_id     = string
@@ -26,6 +27,10 @@ variable "timezone" {
 }
 
 variable "public_domain" {
+  type = string
+}
+
+variable "private_domain" {
   type = string
 }
 

@@ -23,16 +23,30 @@ resource "incus_instance" "forgejo_anubis" {
     create_directories = true
   }
 
+  device {
+    name = "eth0"
+    type = "nic"
+    properties = {
+      network = "meshbr0"
+    }
+  }
+
+  wait_for {
+    type = "ipv4"
+  }
+
   config = {
-    "environment.TARGET"           = "http://${incus_instance.forgejo.name}:3000"
+    "environment.TARGET"           = "http://${incus_instance.forgejo.ipv4_address}:3000"
     "environment.SERVE_ROBOTS_TXT" = "true"
     "environment.DIFFICULTY"       = "6"
+
+    "user.access_interface" = "eth0"
   }
 }
 
 resource "incus_storage_volume" "forgejo_data" {
   name = "forgejo-data"
-  pool = "remote"
+  pool = "linstor"
 
   config = {
     "initial.uid" = "1000"
@@ -72,6 +86,7 @@ resource "incus_instance" "forgejo" {
       mailer_user     = sensitive(var.config.mailer_user)
       mailer_password = sensitive(var.config.mailer_password)
       internal_token  = sensitive(var.config.internal_token)
+      trusted_proxies = var.config.trusted_proxies
       secret_key      = sensitive(var.config.secret_key)
       lfs_jwt_secret  = sensitive(var.config.lfs_jwt_secret)
     })
@@ -92,19 +107,41 @@ resource "incus_instance" "forgejo" {
     create_directories = true
   }
 
+  device {
+    name = "eth0"
+    type = "nic"
+    properties = {
+      network = "meshbr0"
+    }
+  }
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
+      network = "incusbr0"
+    }
+  }
+
+  wait_for {
+    type = "ipv4"
+  }
+
   config = {
     "environment.USER_UID"  = "1000"
     "environment.USER_GID"  = "1000"
     "environment.GNUPGHOME" = "/var/lib/gitea/.gnupg"
+
+    "user.access_interface" = "eth0"
   }
 
   exec = {
     "10-add-oauth" = {
       command = [
-        "/bin/sh", "-c", "forgejo", "admin", "auth", "add-oauth", "--provider=openidConnect", "--name=Authelia",
-        "--key=$KEY", "--secret=$SECRET", "--auto-discover-url=$DISCOVERY",
-        "--scopes=openid", "--scopes=email", "--scopes=profile", "--scopes=groups",
-        "--group-claim-name=groups", "--admin-group=forgejo_admin", "--skip-local-2fa"
+        "forgejo", "admin", "auth", "add-oauth", "--provider=openidConnect", "--name=Authelia",
+        "--key=$KEY", "--secret=$SECRET", "--auto-discover-url=$DISCOVERY", "--scopes=openid",
+        "--scopes=email", "--scopes=profile", "--scopes=groups", "--group-claim-name=groups",
+        "--admin-group=forgejo_admin", "--skip-local-2fa"
       ]
       environment = {
         KEY       = var.config.oidc_client_id
@@ -119,7 +156,13 @@ resource "incus_instance" "forgejo" {
 
 resource "incus_storage_volume" "forgejo_db" {
   name = "forgejo-db"
-  pool = "remote"
+  pool = "linstor"
+
+  config = {
+    # postgres user in alpine
+    "initial.uid" = "70"
+    "initial.gid" = "70"
+  }
 }
 
 resource "incus_instance" "forgejo_database" {
@@ -140,11 +183,42 @@ resource "incus_instance" "forgejo_database" {
     }
   }
 
+  device {
+    name = "eth0"
+    type = "nic"
+    properties = {
+      network = "incusbr0"
+    }
+  }
+
+  wait_for {
+    type = "ipv4"
+  }
+
   config = {
     "environment.POSTGRES_DB"       = var.config.db_name
     "environment.POSTGRES_USER"     = var.config.db_username
     "environment.POSTGRES_PASSWORD" = sensitive(var.config.db_password)
     "environment.PGTZ"              = var.timezone
+
+    "user.access_interface" = "eth0"
   }
 }
 
+output "ingress" {
+  value = {
+    name   = "code"
+    public = true
+    caddy  = <<-EOT
+      code.${var.public_domain} {
+        reverse_proxy ${incus_instance.forgejo_anubis.ipv4_address}:8923 {
+          header_up X-Real-IP {remote_host}
+          header_up X-Http-Version {http.request.proto}
+        }
+      }
+      code.${var.private_domain} {
+        reverse_proxy ${incus_instance.forgejo.ipv4_address}:3000
+      }
+    EOT
+  }
+}

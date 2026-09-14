@@ -82,9 +82,9 @@ resource "incus_instance" "grafana" {
   file {
     content            = local.grafana_config
     target_path        = "/etc/grafana/grafana.ini"
-    mode               = "0600"
     uid                = 472
     gid                = 0
+    mode               = "0600"
     create_directories = true
   }
 
