@@ -35,6 +35,7 @@ module "ingress" {
     module.auth.ingress,
     module.atuin.ingress,
     module.notify.ingress,
+    module.metrics.ingress,
     module.syncstorage.ingress,
     module.vaultwarden.ingress,
     module.wakapi.ingress,
@@ -80,15 +81,15 @@ module "atuin" {
 #   depends_on = [null_resource.post_server, module.linstor]
 # }
 
-# module "metrics" {
-#   source        = "./metrics"
-#   config        = var.config.metrics
-#   members       = local.members
-#   target        = var.cluster.node-2.target
-#   public_domain = var.public_domain
-#   timezone      = var.timezone
-#   depends_on    = [null_resource.post_server, module.linstor]
-# }
+module "metrics" {
+  source        = "./metrics"
+  config        = var.config.metrics
+  members       = local.members
+  target        = var.cluster.node-2.target
+  public_domain = var.public_domain
+  timezone      = var.timezone
+  depends_on    = [null_resource.post_server, module.linstor]
+}
 
 module "notify" {
   source         = "./notify"

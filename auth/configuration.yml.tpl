@@ -105,8 +105,8 @@ identity_providers:
         require_pkce: true
         pkce_challenge_method: S256
         redirect_uris:
-          - "https://grafana.${public_domain}/login/generic_oauth"
-          - "https://grafana.${private_domain}/login/generic_oauth"
+          - "https://metrics.${public_domain}/login/generic_oauth"
+          - "https://metrics.${private_domain}/login/generic_oauth"
         scopes:
           - openid
           - email

@@ -1,12 +1,12 @@
 instance_name = selfhosted
 
 [server]
-domain = grafana.${public_domain}
-root_url = https://grafana.${public_domain}
+domain = metrics.${public_domain}
+root_url = https://metrics.${public_domain}
 
 [security]
-admin_user=${security_admin_user}
-admin_password=${security_admin_password}
+; use oauth
+disable_initial_admin_creation = true
 cookie_secure = true
 cookie_samesite = strict
 disable_gravatar = true
@@ -23,7 +23,7 @@ enabled = false
 allow_sign_up = false
 
 [auth]
-disable_login_form = false
+disable_login_form = true
 
 [auth.generic_oauth]
 enabled = true

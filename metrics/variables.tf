@@ -1,9 +1,8 @@
 variable "config" {
   type = object({
-    security_admin_user     = optional(string, "admin")
-    security_admin_password = string
-    oidc_client_id          = string
-    oidc_client_secret      = string
+    port               = optional(string, "8444")
+    oidc_client_id     = string
+    oidc_client_secret = string
   })
 }
 
@@ -22,10 +21,5 @@ variable "timezone" {
 
 variable "public_domain" {
   type = string
-}
-
-variable "metrics_port" {
-  type    = string
-  default = "8444"
 }
 

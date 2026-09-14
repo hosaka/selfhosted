@@ -16,8 +16,14 @@ variable "loki_version" {
 locals {
   metrics_targets = {
     for name, member in var.members :
-    name => "${split(":", trimprefix(member.address, "https://"))[0]}:${var.metrics_port}"
+    name => "${split(":", trimprefix(member.address, "https://"))[0]}:${var.config.port}"
   }
+  grafana_config = templatefile("${path.module}/grafana.ini.tpl", {
+    public_domain = var.public_domain
+
+    oidc_client_id     = var.config.oidc_client_id
+    oidc_client_secret = sensitive(var.config.oidc_client_secret)
+  })
 }
 
 # todo: add smartctl-exporter that runs on the node that controls the storage
@@ -30,13 +36,13 @@ resource "incus_server" "metrics" {
   target   = each.key
 
   config = {
-    "core.metrics_address" = ":${var.metrics_port}"
+    "core.metrics_address" = ":${var.config.port}"
   }
 }
 
 resource "incus_storage_volume" "grafana_data" {
   name = "grafana-data"
-  pool = "remote"
+  pool = "linstor"
 
   config = {
     "initial.uid" = "472"
@@ -45,17 +51,18 @@ resource "incus_storage_volume" "grafana_data" {
 }
 
 resource "incus_instance" "grafana" {
-  depends_on = [incus_server.metrics]
-
   name = "grafana"
   type = "container"
 
   target   = var.target
-  profiles = ["default", "lan"]
+  profiles = ["default"]
   image    = "docker:grafana/grafana:${var.grafana_version}"
 
   file {
-    content            = file("${path.module}/datasources.yml")
+    content = templatefile("${path.module}/datasources.yml.tpl", {
+      prometheus_address = incus_instance.prometheus.ipv4_address
+      loki_address       = incus_instance.loki.ipv4_address
+    })
     uid                = 472
     gid                = 0
     target_path        = "/etc/grafana/provisioning/datasources/datasources.yml"
@@ -73,19 +80,11 @@ resource "incus_instance" "grafana" {
   }
 
   file {
-    content = templatefile("${path.module}/grafana.ini.tpl", {
-      public_domain = var.public_domain
-
-      security_admin_user     = var.config.security_admin_user
-      security_admin_password = sensitive(var.config.security_admin_password)
-      oidc_client_id          = var.config.oidc_client_id
-      oidc_client_secret      = sensitive(var.config.oidc_client_secret)
-    })
-
-    uid                = 472
-    gid                = 0
+    content            = local.grafana_config
     target_path        = "/etc/grafana/grafana.ini"
     mode               = "0600"
+    uid                = 472
+    gid                = 0
     create_directories = true
   }
 
@@ -99,14 +98,46 @@ resource "incus_instance" "grafana" {
     }
   }
 
-  config = {
-    "limits.memory" = "1536MiB"
+  device {
+    name = "eth0"
+    type = "nic"
+    properties = {
+      network = "meshbr0"
+    }
   }
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
+      network = "incusbr0"
+    }
+  }
+
+  wait_for {
+    type = "ipv4"
+  }
+
+  config = {
+    "user.access_interface" = "eth0"
+  }
+}
+
+resource "null_resource" "grafana_restart" {
+  triggers = {
+    config = sha1(local.grafana_config)
+  }
+
+  provisioner "local-exec" {
+    command = "incus restart grafana"
+  }
+
+  depends_on = [incus_instance.grafana]
 }
 
 resource "incus_storage_volume" "prometheus_data" {
   name = "prometheus-data"
-  pool = "remote"
+  pool = "linstor"
 
   config = {
     "initial.uid" = "65534"
@@ -125,8 +156,6 @@ resource "incus_certificate" "metrics_key" {
 }
 
 resource "incus_instance" "prometheus" {
-  depends_on = [incus_server.metrics, incus_certificate.metrics_key]
-
   name = "prometheus"
   type = "container"
 
@@ -174,14 +203,31 @@ resource "incus_instance" "prometheus" {
     }
   }
 
-  config = {
-    "oci.entrypoint" = "/bin/sh -c 'while [ ! -f /etc/prometheus/prometheus.yml ]; do sleep 1; done; exec /bin/prometheus --config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus --storage.tsdb.retention.time=30d --storage.tsdb.retention.size=10GB --web.console.templates=/usr/share/prometheus/consoles --web.console.libraries=/usr/share/prometheus/console_libraries --web.enable-lifecycle'"
+  device {
+    name = "eth0"
+    type = "nic"
+    properties = {
+      network = "incusbr0"
+    }
   }
+
+  wait_for {
+    type = "ipv4"
+  }
+
+  config = {
+    // enable-lifecycle allows reloading config by POSTing to `/-/reload`
+    "oci.entrypoint" = "/bin/sh -c 'while [ ! -f /etc/prometheus/prometheus.yml ]; do sleep 1; done; exec /bin/prometheus --config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus --storage.tsdb.retention.time=30d --storage.tsdb.retention.size=10GB --web.console.templates=/usr/share/prometheus/consoles --web.console.libraries=/usr/share/prometheus/console_libraries --web.enable-lifecycle'"
+
+    "user.access_interface" = "eth0"
+  }
+
+  depends_on = [incus_server.metrics, incus_certificate.metrics_key]
 }
 
 resource "incus_storage_volume" "loki_data" {
   name = "loki-data"
-  pool = "remote"
+  pool = "linstor"
 
   config = {
     "initial.uid" = "10001"
@@ -190,12 +236,12 @@ resource "incus_storage_volume" "loki_data" {
 }
 
 resource "incus_instance" "loki" {
-  name     = "loki"
-  type     = "container"
-  target   = var.target
-  profiles = ["default", "lan"]
+  name = "loki"
+  type = "container"
 
-  image = "docker:grafana/loki:${var.loki_version}"
+  target   = var.target
+  profiles = ["default"]
+  image    = "docker:grafana/loki:${var.loki_version}"
 
   # custom config file can be added to /etc/loki/local-config.yaml
 
@@ -209,23 +255,38 @@ resource "incus_instance" "loki" {
     }
   }
 
+  device {
+    name = "eth0"
+    type = "nic"
+    properties = {
+      network = "meshbr0"
+    }
+  }
+
   wait_for {
     type = "ipv4"
-    nic  = "eth1"
   }
 
   config = {
-    # Instructs which interface should be used for IP reporting. LAN in this case.
-    "user.access_interface" = "eth1"
+    "user.access_interface" = "eth0"
   }
 }
 
 resource "incus_server" "loki" {
-  depends_on = [incus_instance.loki]
-
   config = {
     "logging.loki.target.type"    = "loki"
     "logging.loki.target.address" = "http://${incus_instance.loki.ipv4_address}:3100"
   }
 }
 
+output "ingress" {
+  value = {
+    name   = "metrics"
+    public = true
+    caddy  = <<-EOT
+      metrics.${var.public_domain} {
+        reverse_proxy ${incus_instance.grafana.ipv4_address}:3000
+      }
+    EOT
+  }
+}
