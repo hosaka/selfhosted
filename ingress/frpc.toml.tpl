@@ -31,3 +31,6 @@ localIP = "${caddy_ip}"
 localPort = 80
 transport.proxyProtocolVersion = "v2"
 
+%{ for s in services ~}
+${s.frpc}
+%{ endfor ~}

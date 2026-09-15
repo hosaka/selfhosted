@@ -34,6 +34,7 @@ module "ingress" {
   services = [
     module.auth.ingress,
     module.atuin.ingress,
+    module.forgejo.ingress,
     module.notify.ingress,
     module.metrics.ingress,
     module.syncstorage.ingress,
@@ -64,17 +65,17 @@ module "atuin" {
   depends_on     = [null_resource.post_server, module.linstor]
 }
 
-# module "forgejo" {
-#   source = "./forgejo"
-#   config = merge(var.config.forgejo, {
-#     trusted_proxies = format("10.%d.%d.0/24", random_integer.meshbr0-v4-subnet-2.result, random_integer.meshbr0-v4-subnet-3.result)
-#   })
-#   target         = var.cluster.node-2.target
-#   public_domain  = var.public_domain
-#   private_domain = var.private_domain
-#   timezone       = var.timezone
-#   depends_on     = [null_resource.post_server, module.linstor]
-# }
+module "forgejo" {
+  source = "./forgejo"
+  config = merge(var.config.forgejo, {
+    trusted_proxies = format("10.%d.%d.0/24", random_integer.meshbr0-v4-subnet-2.result, random_integer.meshbr0-v4-subnet-3.result)
+  })
+  target         = var.cluster.node-1.target
+  public_domain  = var.public_domain
+  private_domain = var.private_domain
+  timezone       = var.timezone
+  depends_on     = [null_resource.post_server, module.linstor]
+}
 
 # module "homeassistant" {
 #   source     = "./homeassistant"

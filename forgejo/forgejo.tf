@@ -49,6 +49,7 @@ resource "incus_storage_volume" "forgejo_data" {
   pool = "linstor"
 
   config = {
+    "size"        = "24GiB"
     "initial.uid" = "1000"
     "initial.gid" = "1000"
   }
@@ -137,11 +138,13 @@ resource "incus_instance" "forgejo" {
 
   exec = {
     "10-add-oauth" = {
-      command = [
-        "forgejo", "admin", "auth", "add-oauth", "--provider=openidConnect", "--name=Authelia",
-        "--key=$KEY", "--secret=$SECRET", "--auto-discover-url=$DISCOVERY", "--scopes=openid",
-        "--scopes=email", "--scopes=profile", "--scopes=groups", "--group-claim-name=groups",
-        "--admin-group=forgejo_admin", "--skip-local-2fa"
+      command = ["/bin/sh", "-c", <<-EOT
+        forgejo admin auth add-oauth \
+          --provider=openidConnect --name=Authelia \
+          --key="$KEY" --secret="$SECRET" --auto-discover-url="$DISCOVERY" \
+          --scopes=openid --scopes=email --scopes=profile --scopes=groups \
+          --group-claim-name=groups --admin-group=forgejo_admin --skip-local-2fa || true
+      EOT
       ]
       environment = {
         KEY       = var.config.oidc_client_id
@@ -219,6 +222,15 @@ output "ingress" {
       code.${var.private_domain} {
         reverse_proxy ${incus_instance.forgejo.ipv4_address}:3000
       }
+    EOT
+    frpc   = <<-EOT
+      [[proxies]]
+      name = "ssh-code"
+      type = "tcpmux"
+      multiplexer = "httpconnect"
+      customDomains = ["git.${var.public_domain}"]
+      localIP = "${incus_instance.forgejo.ipv4_address}"
+      localPort = 2222
     EOT
   }
 }

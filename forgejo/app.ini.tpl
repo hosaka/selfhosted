@@ -1,5 +1,6 @@
 APP_NAME = Code
 RUN_MODE = prod
+RUN_USER = git
 
 [database]
 DB_TYPE = postgres
@@ -27,10 +28,17 @@ ENABLE_OPENID_SIGNIN = false
 
 [packages]
 STORAGE_TYPE = local
-STORAGE_PATH = /var/lib/gitea/packages
+PATH = /var/lib/gitea/packages
 
 [repository]
+ROOT = /var/lib/gitea/git/repositories
 DEFAULT_REPO_UNITS = repo.code,repo.issues,repo.pulls
+
+[repository.local]
+LOCAL_COPY_PATH = /tmp/gitea/local-repo
+
+[repository.upload]
+TEMP_PATH = /tmp/gitea/uploads
 
 [repository.signing]
 SIGNING_EMAIL = noreply@code.${public_domain}
@@ -50,7 +58,12 @@ REVERSE_PROXY_TRUSTED_PROXIES = ${trusted_proxies}
 SECRET_KEY = ${secret_key}
 
 [server]
+APP_DATA_PATH = /var/lib/gitea
+HTTP_PORT = 3000
+DISABLE_SSH = false
+BUILTIN_SSH_SERVER_USER = git
 DOMAIN = code.${public_domain}
+LFS_START_SERVER = true
 LFS_JWT_SECRET = ${lfs_jwt_secret}
 ROOT_URL = https://code.${public_domain}
 SSH_DOMAIN = git.${public_domain}
@@ -63,6 +76,22 @@ DEFAULT_KEEP_EMAIL_PRIVATE = true
 DISABLE_REGISTRATION = true
 ALLOW_ONLY_EXTERNAL_REGISTRATION = true
 ENABLE_INTERNAL_SIGNIN = false
+
+[session]
+PROVIDER_CONFIG = /var/lib/gitea/data/sessions
+
+[picture]
+AVATAR_UPLOAD_PATH = /var/lib/gitea/data/avatars
+REPOSITORY_AVATAR_UPLOAD_PATH = /var/lib/gitea/data/repo-avatars
+
+[attachment]
+PATH = /var/lib/gitea/data/attachments
+
+[log]
+ROOT_PATH = /var/lib/gitea/data/log
+
+[lfs]
+PATH = /var/lib/gitea/git/lfs
 
 [oauth2_client]
 UPDATE_AVATAR = true

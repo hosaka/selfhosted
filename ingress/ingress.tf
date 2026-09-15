@@ -13,6 +13,7 @@ variable "services" {
     name   = string
     public = optional(bool, false)
     caddy  = string
+    frpc   = optional(string, "")
   }))
   default = []
 }
