@@ -13,6 +13,8 @@ resource "incus_storage_volume" "wakapi_data" {
   }
 }
 
+# todo: fails to start if authelia is not reachable
+
 resource "incus_instance" "wakapi" {
   name = "wakapi"
   type = "container"

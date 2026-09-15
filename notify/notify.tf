@@ -13,6 +13,8 @@ resource "incus_storage_volume" "gotify_data" {
   pool = "linstor"
 }
 
+# todo: fails to start if authelia is not reachable
+
 resource "incus_instance" "gotify" {
   name = "gotify"
   type = "container"

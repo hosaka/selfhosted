@@ -3,6 +3,8 @@ variable "syncstorage_version" {
   default = "0.23.3"
 }
 
+# todo: needs to actually wait for syncstorage_database to be healthy
+
 resource "incus_instance" "syncstorage" {
   name = "syncstorage"
   type = "container"
