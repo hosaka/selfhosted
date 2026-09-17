@@ -12,7 +12,7 @@ variable "services" {
   type = list(object({
     name   = string
     public = optional(bool, false)
-    caddy  = string
+    caddy  = optional(string, "")
     frpc   = optional(string, "")
   }))
   default = []
@@ -20,18 +20,19 @@ variable "services" {
 
 locals {
   caddyfile = join("\n", concat(
-    [templatefile("${path.module}/Caddyfile.header.tpl", {
-      cf_api_email = sensitive(var.config.caddy_cf_api_email)
-      cf_api_token = sensitive(var.config.caddy_cf_api_token)
+    [templatefile("${path.module}/Caddyfile.tpl", {
+      cf_api_email  = sensitive(var.config.caddy_cf_api_email)
+      cf_api_token  = sensitive(var.config.caddy_cf_api_token)
+      public_domain = var.public_domain
+      services      = var.services
     })],
-    [for s in var.services : s.caddy]
   ))
 
   frpc_toml = templatefile("${path.module}/frpc.toml.tpl", {
-    public_domain   = var.public_domain
-    caddy_ip        = incus_instance.caddy.ipv4_address
     frp_server_addr = var.config.frp_server_addr
     frp_auth_token  = sensitive(var.config.frp_auth_token)
+    caddy_ip        = incus_instance.caddy.ipv4_address
+    public_domain   = var.public_domain
     services        = var.services
   })
 }
