@@ -20,6 +20,10 @@ cwd := quote(invocation_directory() + "/")
 @show +args:
     just --show {{ args }}
 
+[private]
+@onpath tool:
+    echo 'using {{ require(tool) }}' > /dev/null
+
 [arg('format', pattern='iso|img', help='File format to generate')]
 [doc('prepare images for all nodes')]
 images format='img':
@@ -239,6 +243,27 @@ genid: (onpath 'incus')
 gensecret: (onpath 'incus')
     incus exec authelia -- authelia crypto hash generate pbkdf2 --variant sha512 --random --random.length 72 --random.charset rfc3986
 
-[private]
-@onpath tool:
-    echo 'using {{ require(tool) }}' > /dev/null
+[doc('sync snikket certs from caddy and import into prosody')]
+snikket-certs domain: (onpath 'incus')
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    ISSUER=acme-v02.api.letsencrypt.org-directory
+    TMP=$(mktemp -d); trap 'rm -rf "$TMP"' EXIT
+
+    for d in {{ domain }} groups.{{ domain }} share.{{ domain }}; do
+      incus file pull "caddy/config/caddy/certificates/$ISSUER/$d/$d.crt" "$TMP/fullchain.pem"
+      incus file pull "caddy/config/caddy/certificates/$ISSUER/$d/$d.key" "$TMP/privkey.pem"
+
+      awk 'BEGIN{n=0} /BEGIN CERT/{n++} n==1' "$TMP/fullchain.pem" > "$TMP/cert.pem"
+      awk 'BEGIN{n=0} /BEGIN CERT/{n++} n>1'  "$TMP/fullchain.pem" > "$TMP/chain.pem"
+
+      for f in cert.pem chain.pem fullchain.pem privkey.pem; do
+        incus file push "$TMP/$f" "snikket-server/snikket/letsencrypt/live/$d/$f" \
+          --create-dirs --uid 1000 --gid 1000 --mode 0640
+      done
+    done
+
+    incus exec snikket-server -- prosodyctl --root cert import /snikket/letsencrypt/live
+    incus exec snikket-server -- prosodyctl reload
+    incus exec snikket-server -- prosodyctl check certs
