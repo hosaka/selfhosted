@@ -284,9 +284,9 @@ output "ingress" {
     name   = "metrics"
     public = true
     caddy  = <<-EOT
-      metrics.${var.public_domain} {
-        reverse_proxy ${incus_instance.grafana.ipv4_address}:3000
-      }
+			metrics.${var.public_domain} {
+				reverse_proxy ${incus_instance.grafana.ipv4_address}:3000
+			}
     EOT
   }
 }

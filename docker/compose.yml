@@ -1,26 +1,19 @@
 include:
-  # - authelia.yml
-  # - atuin.yml
-  # - forgejo.yml
+  - forgejo.yml
   # - frigate.yml
-  # - gotify.yml
   # - homeassistant.yml
   - immich.yml
   - jellyfin.yml
   - kavita.yml
-  # - metrics.yml
   - navidrome.yml
   - paperless.yml
   - qbittorrent.yml
   - sabnzbd.yml
   # - searxng.yml
   - servarr.yml
-  # - slskd.yml
+  - slskd.yml
   - snikket.yml
-  # - syncstorage.yml
-  # - vaultwarden.yml
   - voidrepo.yml
-  # - wakapi.yml
 
 networks:
   frp:

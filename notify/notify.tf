@@ -127,9 +127,9 @@ output "ingress" {
     name   = "gotify"
     public = true
     caddy  = <<-EOT
-      gotify.${var.public_domain} {
-        reverse_proxy ${incus_instance.gotify.ipv4_address}:80
-      }
+			gotify.${var.public_domain} {
+				reverse_proxy ${incus_instance.gotify.ipv4_address}:80
+			}
     EOT
   }
 }

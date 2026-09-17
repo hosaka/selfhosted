@@ -109,9 +109,9 @@ output "ingress" {
     name   = "ffs"
     public = true
     caddy  = <<-EOT
-      ffs.${var.public_domain} {
-        reverse_proxy ${incus_instance.syncstorage.ipv4_address}:8000
-      }
+			ffs.${var.public_domain} {
+				reverse_proxy ${incus_instance.syncstorage.ipv4_address}:8000
+			}
     EOT
   }
 }

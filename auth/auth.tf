@@ -263,12 +263,12 @@ output "ingress" {
     name   = "auth"
     public = true
     caddy  = <<-EOT
-      auth.${var.public_domain} {
-        reverse_proxy ${incus_instance.authelia.ipv4_address}:9091
-      }
-      users.${var.private_domain} {
-        reverse_proxy ${incus_instance.lldap.ipv4_address}:17170
-      }
+			auth.${var.public_domain} {
+				reverse_proxy ${incus_instance.authelia.ipv4_address}:9091
+			}
+			users.${var.private_domain} {
+				reverse_proxy ${incus_instance.lldap.ipv4_address}:17170
+			}
     EOT
   }
 }

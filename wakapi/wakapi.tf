@@ -69,9 +69,9 @@ output "ingress" {
     name   = "waka"
     public = true
     caddy  = <<-EOT
-      waka.${var.public_domain} {
-        reverse_proxy ${incus_instance.wakapi.ipv4_address}:3000
-      }
+			waka.${var.public_domain} {
+				reverse_proxy ${incus_instance.wakapi.ipv4_address}:3000
+			}
     EOT
   }
 }

@@ -213,15 +213,15 @@ output "ingress" {
     name   = "code"
     public = true
     caddy  = <<-EOT
-      code.${var.public_domain} {
-        reverse_proxy ${incus_instance.forgejo_anubis.ipv4_address}:8923 {
-          header_up X-Real-IP {remote_host}
-          header_up X-Http-Version {http.request.proto}
-        }
-      }
-      code.${var.private_domain} {
-        reverse_proxy ${incus_instance.forgejo.ipv4_address}:3000
-      }
+			code.${var.public_domain} {
+				reverse_proxy ${incus_instance.forgejo_anubis.ipv4_address}:8923 {
+					header_up X-Real-IP {remote_host}
+					header_up X-Http-Version {http.request.proto}
+				}
+			}
+			code.${var.private_domain} {
+				reverse_proxy ${incus_instance.forgejo.ipv4_address}:3000
+			}
     EOT
     frpc   = <<-EOT
       [[proxies]]

@@ -75,37 +75,37 @@ output "ingress" {
     name   = "vaultwarden"
     public = true
     caddy  = <<-EOT
-      vaultwarden.${var.private_domain}, vaultwarden.${var.public_domain} {
-        encode zstd gzip
+			vaultwarden.${var.private_domain}, vaultwarden.${var.public_domain} {
+				encode zstd gzip
 
-        header {
-          # enable HTTP Strict Transport Security (HSTS)
-          Strict-Transport-Security "max-age=31536000; preload"
-          # disable enable cross-site filter (XSS)
-          X-XSS-Protection "0"
-          # disallow sniffing of X-Content-Type-Options
-          X-Content-Type-Options "nosniff"
-          # disallow the site to be rendered within a frame (clickjacking protection)
-          X-Frame-Options "SAMEORIGIN"
-          # prevent search engines from indexing
-          X-Robots-Tag "none"
-          # remove server name
-          -Server
-        }
+				header {
+					# enable HTTP Strict Transport Security (HSTS)
+					Strict-Transport-Security "max-age=31536000; preload"
+					# disable enable cross-site filter (XSS)
+					X-XSS-Protection "0"
+					# disallow sniffing of X-Content-Type-Options
+					X-Content-Type-Options "nosniff"
+					# disallow the site to be rendered within a frame (clickjacking protection)
+					X-Frame-Options "SAMEORIGIN"
+					# prevent search engines from indexing
+					X-Robots-Tag "none"
+					# remove server name
+					-Server
+				}
 
-        # allow access to the admin interface only from local networks
-        @admin {
-          path /admin*
-          not remote_ip private_ranges
-        }
-        respond @admin "401 - {remote_host} is not an allowed IP" 401
+				# allow access to the admin interface only from local networks
+				@admin {
+					path /admin*
+					not remote_ip private_ranges
+				}
+				respond @admin "401 - {remote_host} is not an allowed IP" 401
 
-        # proxy everything to Rocket
-        reverse_proxy ${incus_instance.vaultwarden.ipv4_address}:80 {
-          # send the true remote IP to Rocket, so fail2ban can ban collect IPs from the log
-          header_up X-Real-IP {remote_host}
-        }
-      }
+				# proxy everything to Rocket
+				reverse_proxy ${incus_instance.vaultwarden.ipv4_address}:80 {
+					# send the true remote IP to Rocket, so fail2ban can ban collect IPs from the log
+					header_up X-Real-IP {remote_host}
+				}
+			}
     EOT
   }
 }
