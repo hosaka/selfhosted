@@ -35,8 +35,9 @@ module "ingress" {
     module.auth.ingress,
     module.atuin.ingress,
     module.forgejo.ingress,
-    module.notify.ingress,
     module.metrics.ingress,
+    module.notify.ingress,
+    module.snikket.ingress,
     module.syncstorage.ingress,
     module.vaultwarden.ingress,
     module.wakapi.ingress,
@@ -123,14 +124,14 @@ module "notify" {
 #   depends_on    = [null_resource.post_server, module.linstor]
 # }
 
-# module "snikket" {
-#   source        = "./snikket"
-#   config        = var.config.snikket
-#   target        = var.cluster.node-3.target
-#   public_domain = var.public_domain
-#   timezone      = var.timezone
-#   depends_on    = [null_resource.post_server, module.linstor]
-# }
+module "snikket" {
+  source        = "./snikket"
+  config        = var.config.snikket
+  target        = var.cluster.node-2.target
+  public_domain = var.public_domain
+  timezone      = var.timezone
+  depends_on    = [null_resource.post_server, module.linstor]
+}
 
 module "syncstorage" {
   source         = "./syncstorage"

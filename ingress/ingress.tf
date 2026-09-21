@@ -10,15 +10,22 @@ variable "caddy_version" {
 
 variable "services" {
   type = list(object({
-    name   = string
-    public = optional(bool, false)
-    caddy  = optional(string, "")
-    frpc   = optional(string, "")
+    name    = string
+    public  = optional(bool, false)
+    domains = optional(list(string), [])
+    caddy   = optional(string, "")
+    frpc    = optional(string, "")
   }))
   default = []
 }
 
 locals {
+  public_domains = flatten([
+    for s in var.services :
+    length(s.domains) > 0 ? s.domains : ["${s.name}.${var.public_domain}"]
+    if s.public
+  ])
+
   caddyfile = join("\n", concat(
     [templatefile("${path.module}/Caddyfile.tpl", {
       cf_api_email  = sensitive(var.config.caddy_cf_api_email)
@@ -32,7 +39,7 @@ locals {
     frp_server_addr = var.config.frp_server_addr
     frp_auth_token  = sensitive(var.config.frp_auth_token)
     caddy_ip        = incus_instance.caddy.ipv4_address
-    public_domain   = var.public_domain
+    public_domains  = local.public_domains
     services        = var.services
   })
 }

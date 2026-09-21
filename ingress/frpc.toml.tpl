@@ -18,7 +18,7 @@ loginFailExit = false
 [[proxies]]
 name = "https-cluster"
 type = "https"
-customDomains = [${join(", ", [for s in services : format("%q", "${s.name}.${public_domain}") if s.public])}]
+customDomains = [${join(", ", [for d in public_domains : format("%q", d)])}]
 localIP = "${caddy_ip}"
 localPort = 443
 transport.proxyProtocolVersion = "v2"
@@ -26,7 +26,7 @@ transport.proxyProtocolVersion = "v2"
 [[proxies]]
 name = "http-cluster"
 type = "http"
-customDomains = [${join(", ", [for s in services : format("%q", "${s.name}.${public_domain}") if s.public])}]
+customDomains = [${join(", ", [for d in public_domains : format("%q", d)])}]
 localIP = "${caddy_ip}"
 localPort = 80
 transport.proxyProtocolVersion = "v2"

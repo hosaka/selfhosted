@@ -11,9 +11,11 @@ locals {
     proxy65 = 5000
     webui   = 5765
     # AV negotiation and discovery proxy (STUN/TURN)
-    # 3478-3479
+    stun = 3478
+    turn = 3479
     # AV negotiation and discovery proxy over TLS (STUNS/TURNS)
-    # 5349-5350
+    stuns = 5349
+    turns = 5350
     # AV data proxy (TURN data)
     turn_min = 60000
     turn_max = 60010
@@ -151,106 +153,111 @@ output "ingress" {
   value = {
     name   = "snikket"
     public = true
-    caddy  = <<-EOT
+    domains = [
+      "chat.${var.public_domain}",
+      "groups.chat.${var.public_domain}",
+      "share.chat.${var.public_domain}",
+    ]
+    caddy = <<-EOT
 			chat.${var.public_domain}, groups.chat.${var.public_domain}, share.chat.${var.public_domain} {
 				# Prosody endpoints on the chat and share*/upload domain
 				@prosody path /upload* /admin_api* /invites_api* /invites_bootstrap* /http-bind* /xmpp-websocket* /.well-known/host-meta /.well-known/host-meta.json
 				handle @prosody {
-					reverse_proxy ${incus_instance.snikket_server.ipv4_address}:5280
+					reverse_proxy ${incus_instance.snikket_server.ipv4_address}:${local.snikket_ports.api}
 				}
 
 				# everything else goes to web portal
 				handle {
-					reverse_proxy ${incus_instance.snikket_web.ipv4_address}:5765
+					reverse_proxy ${incus_instance.snikket_web.ipv4_address}:${local.snikket_ports.webui}
 				}
 			}
     EOT
-    frpc   = <<-EOT
-		[[proxies]]
-		name = "snikket-xmpp-c2s"
-		type = "tcp"
-		localIP = "${incus_instance.snikket_server.ipv4_address}"
-		localPort = 5222
-		remotePort = 5222
+    frpc  = <<-EOT
+    [[proxies]]
+    name = "snikket-xmpp-c2s"
+    type = "tcp"
+    localIP = "${incus_instance.snikket_server.ipv4_address}"
+    localPort = ${local.snikket_ports.c2s}
+    remotePort = ${local.snikket_ports.c2s}
 
-		[[proxies]]
-		name = "snikket-xmpp-s2s"
-		type = "tcp"
-		localIP = "${incus_instance.snikket_server.ipv4_address}"
-		localPort = 5269
-		remotePort = 5269
+    [[proxies]]
+    name = "snikket-xmpp-s2s"
+    type = "tcp"
+    localIP = "${incus_instance.snikket_server.ipv4_address}"
+    localPort = ${local.snikket_ports.s2s}
+    remotePort = ${local.snikket_ports.s2s}
 
-		[[proxies]]
-		name = "snikket-proxy65"
-		type = "tcp"
-		localIP = "${incus_instance.snikket_server.ipv4_address}"
-		localPort = 5000
-		remotePort = 5000
+    [[proxies]]
+    name = "snikket-proxy65"
+    type = "tcp"
+    localIP = "${incus_instance.snikket_server.ipv4_address}"
+    localPort = ${local.snikket_ports.proxy65}
+    remotePort = ${local.snikket_ports.proxy65}
 
-		[[proxies]]
-		name = "snikket-stun-tcp"
-		type = "tcp"
-		localIP = "${incus_instance.snikket_server.ipv4_address}"
-		localPort = 3478
-		remotePort = 3478
+    [[proxies]]
+    name = "snikket-stun-tcp"
+    type = "tcp"
+    localIP = "${incus_instance.snikket_server.ipv4_address}"
+    localPort = 3478
+    remotePort = 3478
 
-		[[proxies]]
-		name = "snikket-stun-udp"
-		type = "udp"
-		localIP = "${incus_instance.snikket_server.ipv4_address}"
-		localPort = 3478
-		remotePort = 3478
+    [[proxies]]
+    name = "snikket-stun-udp"
+    type = "udp"
+    localIP = "${incus_instance.snikket_server.ipv4_address}"
+    localPort = 3478
+    remotePort = 3478
 
-		[[proxies]]
-		name = "snikket-turn-tcp"
-		type = "tcp"
-		localIP = "${incus_instance.snikket_server.ipv4_address}"
-		localPort = 3479
-		remotePort = 3479
+    [[proxies]]
+    name = "snikket-turn-tcp"
+    type = "tcp"
+    localIP = "${incus_instance.snikket_server.ipv4_address}"
+    localPort = 3479
+    remotePort = 3479
 
-		[[proxies]]
-		name = "snikket-turn-udp"
-		type = "udp"
-		localIP = "${incus_instance.snikket_server.ipv4_address}"
-		localPort = 3479
-		remotePort = 3479
+    [[proxies]]
+    name = "snikket-turn-udp"
+    type = "udp"
+    localIP = "${incus_instance.snikket_server.ipv4_address}"
+    localPort = 3479
+    remotePort = 3479
 
-		[[proxies]]
-		name = "snikket-stuns-tcp"
-		type = "tcp"
-		localIP = "${incus_instance.snikket_server.ipv4_address}"
-		localPort = 5349
-		remotePort = 5349
+    [[proxies]]
+    name = "snikket-stuns-tcp"
+    type = "tcp"
+    localIP = "${incus_instance.snikket_server.ipv4_address}"
+    localPort = 5349
+    remotePort = 5349
 
-		[[proxies]]
-		name = "snikket-stuns-udp"
-		type = "udp"
-		localIP = "${incus_instance.snikket_server.ipv4_address}"
-		localPort = 5349
-		remotePort = 5349
+    [[proxies]]
+    name = "snikket-stuns-udp"
+    type = "udp"
+    localIP = "${incus_instance.snikket_server.ipv4_address}"
+    localPort = 5349
+    remotePort = 5349
 
-		[[proxies]]
-		name = "snikket-turns-tcp"
-		type = "tcp"
-		localIP = "${incus_instance.snikket_server.ipv4_address}"
-		localPort = 5350
-		remotePort = 5350
+    [[proxies]]
+    name = "snikket-turns-tcp"
+    type = "tcp"
+    localIP = "${incus_instance.snikket_server.ipv4_address}"
+    localPort = 5350
+    remotePort = 5350
 
-		[[proxies]]
-		name = "snikket-turns-udp"
-		type = "udp"
-		localIP = "${incus_instance.snikket_server.ipv4_address}"
-		localPort = 5350
-		remotePort = 5350
+    [[proxies]]
+    name = "snikket-turns-udp"
+    type = "udp"
+    localIP = "${incus_instance.snikket_server.ipv4_address}"
+    localPort = 5350
+    remotePort = 5350
 
-		{{- range $_, $v := parseNumberRangePair "60000-60010" "60000-60010" }}
-		[[proxies]]
-		name = "snikket-data-{{ $v.First }}"
-		type = "udp"
-		localIP = "${incus_instance.snikket_server.ipv4_address}"
-		localPort = {{ $v.First }}
-		remotePort = {{ $v.Second }}
-		{{- end }}
+    {{- range $_, $v := parseNumberRangePair "60000-60010" "60000-60010" }}
+    [[proxies]]
+    name = "snikket-data-{{ $v.First }}"
+    type = "udp"
+    localIP = "${incus_instance.snikket_server.ipv4_address}"
+    localPort = {{ $v.First }}
+    remotePort = {{ $v.Second }}
+    {{- end }}
     EOT
   }
 }
