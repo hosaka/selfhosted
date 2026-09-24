@@ -119,6 +119,18 @@ resource "incus_instance" "caddy" {
     }
   }
 
+  # required for any services using var.private_domain
+  # add the ipv4 on this NIC to DHCP leases on the router and point
+  # all the *.${var.private_domain} traffic to this address in order
+  # to correctly resolve LAN-only access
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
+      network = "lan"
+    }
+  }
+
   file {
     content     = local.caddyfile
     target_path = "/config/Caddyfile"

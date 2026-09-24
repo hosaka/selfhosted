@@ -210,8 +210,10 @@ resource "incus_instance" "forgejo_database" {
 
 output "ingress" {
   value = {
-    name       = "code"
-    public     = true
+    name = "code"
+    domains = [
+      "code.${var.public_domain}"
+    ]
     caddy_apex = <<-EOT
 			handle_path /sh/dotinstall {
 				reverse_proxy ${incus_instance.forgejo.ipv4_address}:3000
