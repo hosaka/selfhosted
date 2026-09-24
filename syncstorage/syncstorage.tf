@@ -106,9 +106,11 @@ resource "incus_instance" "syncstorage_database" {
 
 output "ingress" {
   value = {
-    name   = "ffs"
-    public = true
-    caddy  = <<-EOT
+    name = "ffs"
+    domains = [
+      "ffs.${var.public_domain}"
+    ]
+    caddy = <<-EOT
 			ffs.${var.public_domain} {
 				reverse_proxy ${incus_instance.syncstorage.ipv4_address}:8000
 			}

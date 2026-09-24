@@ -210,9 +210,23 @@ resource "incus_instance" "forgejo_database" {
 
 output "ingress" {
   value = {
-    name   = "code"
-    public = true
-    caddy  = <<-EOT
+    name       = "code"
+    public     = true
+    caddy_apex = <<-EOT
+			handle_path /sh/dotinstall {
+				reverse_proxy ${incus_instance.forgejo.ipv4_address}:3000
+				rewrite * /hosaka/.dotfiles/raw/branch/main/.local/bin/dotinstall
+			}
+			handle_path /public.pgp {
+				reverse_proxy ${incus_instance.forgejo.ipv4_address}:3000
+				rewrite * /hosaka.gpg
+			}
+			handle_path /void/* {
+				reverse_proxy ${incus_instance.forgejo.ipv4_address}:3000
+				rewrite * /api/packages/hosaka/generic/vast-packages/{path}
+			}
+    EOT
+    caddy      = <<-EOT
 			code.${var.public_domain} {
 				reverse_proxy ${incus_instance.forgejo_anubis.ipv4_address}:8923 {
 					header_up X-Real-IP {remote_host}
@@ -223,7 +237,7 @@ output "ingress" {
 				reverse_proxy ${incus_instance.forgejo.ipv4_address}:3000
 			}
     EOT
-    frpc   = <<-EOT
+    frpc       = <<-EOT
       [[proxies]]
       name = "ssh-code"
       type = "tcpmux"

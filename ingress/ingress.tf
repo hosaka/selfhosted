@@ -10,21 +10,20 @@ variable "caddy_version" {
 
 variable "services" {
   type = list(object({
-    name    = string
-    public  = optional(bool, false)
-    domains = optional(list(string), [])
-    caddy   = optional(string, "")
-    frpc    = optional(string, "")
+    name       = string
+    domains    = optional(list(string), [])
+    caddy      = optional(string, "")
+    caddy_apex = optional(string, "")
+    frpc       = optional(string, "")
   }))
   default = []
 }
 
 locals {
-  public_domains = flatten([
-    for s in var.services :
-    length(s.domains) > 0 ? s.domains : ["${s.name}.${var.public_domain}"]
-    if s.public
-  ])
+  public_domains = distinct(concat(
+    [var.public_domain],
+    flatten([for s in var.services : s.domains])
+  ))
 
   caddyfile = join("\n", concat(
     [templatefile("${path.module}/Caddyfile.tpl", {

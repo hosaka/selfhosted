@@ -72,9 +72,11 @@ resource "incus_instance" "vaultwarden" {
 
 output "ingress" {
   value = {
-    name   = "vaultwarden"
-    public = true
-    caddy  = <<-EOT
+    name = "vaultwarden"
+    domains = [
+      "vaultwarden.${var.public_domain}"
+    ]
+    caddy = <<-EOT
 			vaultwarden.${var.private_domain}, vaultwarden.${var.public_domain} {
 				encode zstd gzip
 

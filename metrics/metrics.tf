@@ -281,9 +281,11 @@ resource "incus_server" "loki" {
 
 output "ingress" {
   value = {
-    name   = "metrics"
-    public = true
-    caddy  = <<-EOT
+    name = "metrics"
+    domains = [
+      "metrics.${var.public_domain}"
+    ]
+    caddy = <<-EOT
 			metrics.${var.public_domain} {
 				reverse_proxy ${incus_instance.grafana.ipv4_address}:3000
 			}

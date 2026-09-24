@@ -25,12 +25,19 @@ ${public_domain} {
 	handle {
 		respond 404
 	}
-	handle_path /web/* {
-		file_server browse {
-			root /srv/web
-		}
-	}
+
+%{ for s in services ~}
+${s.caddy_apex}
+%{ endfor ~}
 }
+
+# tunnel
+# frp.${public_domain} {
+# 	reverse_proxy frpc:7400
+# }
+# frp.${public_domain} {
+# 	reverse_proxy frp.${public_domain}:7500
+# }
 
 %{ for s in services ~}
 # ${s.name}

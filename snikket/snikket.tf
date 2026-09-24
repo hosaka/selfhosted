@@ -151,8 +151,7 @@ resource "incus_instance" "snikket_web" {
 
 output "ingress" {
   value = {
-    name   = "snikket"
-    public = true
+    name = "snikket"
     domains = [
       "chat.${var.public_domain}",
       "groups.chat.${var.public_domain}",
