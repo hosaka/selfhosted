@@ -101,6 +101,8 @@ resource "incus_instance" "paperless" {
     "environment.PAPERLESS_ALLOWED_HOSTS"        = "localhost,paperless.${var.public_domain}"
     "environment.PAPERLESS_CSRF_TRUSTED_ORIGINS" = "https://paperless.${var.public_domain}"
     "environment.PAPERLESS_SECRET_KEY"           = sensitive(var.config.secret_key)
+    "environment.PAPERLESS_ADMIN_USER"           = sensitive(var.config.admin_user)
+    "environment.PAPERLESS_ADMIN_PASSWORD"       = sensitive(var.config.admin_password)
 
     "environment.PAPERLESS_REDIS"     = "redis://${incus_instance.paperless_valkey.ipv4_address}:6379"
     "environment.PAPERLESS_DBHOST"    = incus_instance.paperless_database.ipv4_address

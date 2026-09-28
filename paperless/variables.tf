@@ -1,6 +1,8 @@
 variable "config" {
   type = object({
     secret_key         = string
+    admin_user         = optional(string, "admin")
+    admin_password     = string
     db_name            = optional(string, "paperless")
     db_username        = optional(string, "postgres")
     db_password        = string
