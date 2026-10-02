@@ -80,10 +80,11 @@ resource "incus_network" "meshbr0" {
   description = "Internal mesh network bridge"
 
   config = {
-    "ipv4.address"         = format("10.%d.%d.1/24", random_integer.meshbr0-v4-subnet-2.result, random_integer.meshbr0-v4-subnet-3.result)
-    "ipv4.nat"             = "true"
-    "ipv6.address"         = format("fd42:%x:%x:%x::/64", random_integer.meshbr0-v6-subnet-2.result, random_integer.meshbr0-v6-subnet-3.result, random_integer.meshbr0-v6-subnet-4.result)
-    "ipv6.nat"             = "true"
+    "ipv4.address" = format("10.%d.%d.1/24", random_integer.meshbr0-v4-subnet-2.result, random_integer.meshbr0-v4-subnet-3.result)
+    "ipv4.nat"     = "false"
+    "ipv6.address" = "none"
+    # "ipv6.address"         = format("fd42:%x:%x:%x::/64", random_integer.meshbr0-v6-subnet-2.result, random_integer.meshbr0-v6-subnet-3.result, random_integer.meshbr0-v6-subnet-4.result)
+    # "ipv6.nat"             = "true"
     "tunnel.mesh.id"       = "1000"
     "tunnel.mesh.protocol" = "vxlan"
   }

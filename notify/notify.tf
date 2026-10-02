@@ -37,6 +37,14 @@ resource "incus_instance" "gotify" {
     name = "eth0"
     type = "nic"
     properties = {
+      network = "incusbr0"
+    }
+  }
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
       network = "meshbr0"
     }
   }
@@ -54,7 +62,7 @@ resource "incus_instance" "gotify" {
     "environment.GOTIFY_OIDC_AUTOREGISTER"  = "true"
     "environment.GOTIFY_OIDC_USERNAMECLAIM" = "preferred_username"
 
-    "user.access_interface" = "eth0"
+    "user.access_interface" = "eth1"
   }
 }
 
@@ -83,6 +91,14 @@ resource "incus_instance" "diun" {
 
   device {
     name = "eth0"
+    type = "nic"
+    properties = {
+      network = "incusbr0"
+    }
+  }
+
+  device {
+    name = "eth1"
     type = "nic"
     properties = {
       network = "meshbr0"
@@ -118,7 +134,7 @@ resource "incus_instance" "diun" {
 
     "oci.entrypoint" = "/bin/sh -c 'while [ ! -f /config.yml ]; do sleep 1; done; exec diun serve'"
 
-    "user.access_interface" = "eth0"
+    "user.access_interface" = "eth1"
   }
 }
 

@@ -71,7 +71,7 @@ resource "incus_instance" "authelia" {
     name = "eth0"
     type = "nic"
     properties = {
-      network = "meshbr0"
+      network = "incusbr0"
     }
   }
 
@@ -79,7 +79,7 @@ resource "incus_instance" "authelia" {
     name = "eth1"
     type = "nic"
     properties = {
-      network = "incusbr0"
+      network = "meshbr0"
     }
   }
 
@@ -90,7 +90,7 @@ resource "incus_instance" "authelia" {
   config = {
     "oci.entrypoint" = "/bin/sh -c 'while [ ! -f /config/configuration.yml ]; do sleep 1; done; exec /app/entrypoint.sh'"
 
-    "user.access_interface" = "eth0"
+    "user.access_interface" = "eth1"
   }
 }
 
@@ -225,6 +225,14 @@ resource "incus_instance" "lldap" {
     name = "eth0"
     type = "nic"
     properties = {
+      network = "incusbr0"
+    }
+  }
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
       network = "meshbr0"
     }
   }
@@ -242,7 +250,7 @@ resource "incus_instance" "lldap" {
     "environment.GID"                  = "1000"
     "environment.TZ"                   = var.timezone
 
-    "user.access_interface" = "eth0"
+    "user.access_interface" = "eth1"
   }
 }
 

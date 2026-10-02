@@ -17,7 +17,7 @@ resource "incus_instance" "syncstorage" {
     name = "eth0"
     type = "nic"
     properties = {
-      network = "meshbr0"
+      network = "incusbr0"
     }
   }
 
@@ -25,7 +25,7 @@ resource "incus_instance" "syncstorage" {
     name = "eth1"
     type = "nic"
     properties = {
-      network = "incusbr0"
+      network = "meshbr0"
     }
   }
 
@@ -49,7 +49,7 @@ resource "incus_instance" "syncstorage" {
     "environment.SYNC_TOKENSERVER__FXA_METRICS_HASH_SECRET" = sensitive(var.config.metrics_hash_secret)
     "environment.SYNC_TOKENSERVER__INIT_NODE_URL"           = "https://ffs.${var.public_domain}"
 
-    "user.access_interface" = "eth0"
+    "user.access_interface" = "eth1"
   }
 }
 

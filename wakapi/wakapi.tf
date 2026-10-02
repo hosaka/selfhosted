@@ -37,6 +37,14 @@ resource "incus_instance" "wakapi" {
     name = "eth0"
     type = "nic"
     properties = {
+      network = "incusbr0"
+    }
+  }
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
       network = "meshbr0"
     }
   }
@@ -60,7 +68,7 @@ resource "incus_instance" "wakapi" {
     "environment.WAKAPI_OIDC_PROVIDERS_0_ENDPOINT"      = "https://auth.${var.public_domain}"
     "environment.TZ"                                    = var.timezone
 
-    "user.access_interface" = "eth0"
+    "user.access_interface" = "eth1"
   }
 }
 

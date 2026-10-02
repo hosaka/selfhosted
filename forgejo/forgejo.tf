@@ -27,6 +27,14 @@ resource "incus_instance" "forgejo_anubis" {
     name = "eth0"
     type = "nic"
     properties = {
+      network = "incusbr0"
+    }
+  }
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
       network = "meshbr0"
     }
   }
@@ -40,7 +48,7 @@ resource "incus_instance" "forgejo_anubis" {
     "environment.SERVE_ROBOTS_TXT" = "true"
     "environment.DIFFICULTY"       = "6"
 
-    "user.access_interface" = "eth0"
+    "user.access_interface" = "eth1"
   }
 }
 
@@ -80,7 +88,7 @@ resource "incus_instance" "forgejo" {
       db_name         = var.config.db_name
       db_username     = var.config.db_username
       db_password     = sensitive(var.config.db_password)
-      db_host         = incus_instance.forgejo_database.name
+      db_host         = incus_instance.forgejo_database.ipv4_address
       smtp_address    = var.config.smtp_address
       smtp_port       = var.config.smtp_port
       mailer_from     = var.config.mailer_from
@@ -112,7 +120,7 @@ resource "incus_instance" "forgejo" {
     name = "eth0"
     type = "nic"
     properties = {
-      network = "meshbr0"
+      network = "incusbr0"
     }
   }
 
@@ -120,7 +128,7 @@ resource "incus_instance" "forgejo" {
     name = "eth1"
     type = "nic"
     properties = {
-      network = "incusbr0"
+      network = "meshbr0"
     }
   }
 
@@ -133,7 +141,7 @@ resource "incus_instance" "forgejo" {
     "environment.USER_GID"  = "1000"
     "environment.GNUPGHOME" = "/var/lib/gitea/.gnupg"
 
-    "user.access_interface" = "eth0"
+    "user.access_interface" = "eth1"
   }
 
   exec = {

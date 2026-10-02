@@ -34,6 +34,23 @@ resource "incus_profile" "default" {
   ]
 }
 
+resource "incus_profile" "mesh" {
+  name = "mesh"
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
+      network = "meshbr0"
+    }
+  }
+
+  depends_on = [
+    null_resource.post_projects,
+    null_resource.post_networks,
+  ]
+}
+
 resource "incus_profile" "internal_default" {
   name        = "default"
   description = "Default cluster internal profile"

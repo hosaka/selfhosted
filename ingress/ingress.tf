@@ -66,6 +66,14 @@ resource "incus_instance" "frpc" {
     name = "eth0"
     type = "nic"
     properties = {
+      network = "incusbr0"
+    }
+  }
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
       network = "meshbr0"
     }
   }
@@ -76,6 +84,8 @@ resource "incus_instance" "frpc" {
 
   config = {
     "oci.entrypoint" = "/bin/sh -c 'while [ ! -f /etc/frp/frpc.toml ]; do sleep 1; done; exec /usr/bin/frpc --config /etc/frp/frpc.toml'"
+
+    "user.access_interface" = "eth1"
   }
 }
 
@@ -115,7 +125,8 @@ resource "incus_instance" "caddy" {
     name = "eth0"
     type = "nic"
     properties = {
-      network = "meshbr0"
+      hwaddr  = "10:66:6a:08:77:c0"
+      network = "lan"
     }
   }
 
@@ -127,7 +138,7 @@ resource "incus_instance" "caddy" {
     name = "eth1"
     type = "nic"
     properties = {
-      network = "lan"
+      network = "meshbr0"
     }
   }
 
@@ -140,7 +151,8 @@ resource "incus_instance" "caddy" {
   }
 
   config = {
-    "environment.TZ" = var.timezone
+    "environment.TZ"        = var.timezone
+    "user.access_interface" = "eth1"
   }
 }
 

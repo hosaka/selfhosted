@@ -15,6 +15,10 @@ transport.poolCount = 10
 
 loginFailExit = false
 
+log.to = "/tmp/frpc.log"
+log.level = "info"
+log.maxDays = 3
+
 [[proxies]]
 name = "https-cluster"
 type = "https"

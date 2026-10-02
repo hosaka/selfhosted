@@ -53,6 +53,14 @@ resource "incus_instance" "snikket_server" {
     name = "eth0"
     type = "nic"
     properties = {
+      network = "incusbr0"
+    }
+  }
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
       network = "meshbr0"
     }
   }
@@ -77,7 +85,7 @@ resource "incus_instance" "snikket_server" {
     # "environment.SNIKKET_TWEAK_REQUIRE_SASL2" = "1"
     "environment.SNIKKET_UPDATE_CHECK" = "0"
 
-    "user.access_interface" = "eth0"
+    "user.access_interface" = "eth1"
   }
 }
 

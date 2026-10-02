@@ -30,6 +30,14 @@ resource "incus_instance" "vaultwarden" {
     name = "eth0"
     type = "nic"
     properties = {
+      network = "incusbr0"
+    }
+  }
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
       network = "meshbr0"
     }
   }
@@ -66,7 +74,7 @@ resource "incus_instance" "vaultwarden" {
     "environment.YUBICO_SECRET_KEY" = sensitive(var.config.yubico_secret_key)
     "environment.TZ"                = var.timezone
 
-    "user.access_interface" = "eth0"
+    "user.access_interface" = "eth1"
   }
 }
 

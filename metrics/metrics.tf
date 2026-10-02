@@ -102,7 +102,7 @@ resource "incus_instance" "grafana" {
     name = "eth0"
     type = "nic"
     properties = {
-      network = "meshbr0"
+      network = "incusbr0"
     }
   }
 
@@ -110,7 +110,7 @@ resource "incus_instance" "grafana" {
     name = "eth1"
     type = "nic"
     properties = {
-      network = "incusbr0"
+      network = "meshbr0"
     }
   }
 
@@ -119,7 +119,7 @@ resource "incus_instance" "grafana" {
   }
 
   config = {
-    "user.access_interface" = "eth0"
+    "user.access_interface" = "eth1"
   }
 }
 

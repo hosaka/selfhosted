@@ -15,7 +15,7 @@ resource "incus_instance" "atuin" {
     name = "eth0"
     type = "nic"
     properties = {
-      network = "meshbr0"
+      network = "incusbr0"
     }
   }
 
@@ -23,7 +23,7 @@ resource "incus_instance" "atuin" {
     name = "eth1"
     type = "nic"
     properties = {
-      network = "incusbr0"
+      network = "meshbr0"
     }
   }
 
@@ -38,7 +38,7 @@ resource "incus_instance" "atuin" {
 
     "oci.entrypoint" = "/usr/local/bin/atuin-server start"
 
-    "user.access_interface" = "eth0"
+    "user.access_interface" = "eth1"
   }
 }
 
