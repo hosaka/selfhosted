@@ -82,6 +82,36 @@ A [frp server](https://github.com/fatedier/frp) on a VPS is the entrypoint with 
 
 > I have previously ran Cloudflare Tunnel but decided to ditch it in favour of having more control over non HTTP traffic and more control over my traffic in general. Using Fast Reverse Proxy makes TCP/UDP much easier to work with and in most cases doesn't require connecting client to install any additional software. For the last CF Tunnel version see commit `b904227fc6`.
 
+#### meshbr0 vs incusbr0
+
+`meshbr0` spans all nodes, but each node acts as its own gateway on it. Outbound internet traffic through meshbr0 leaves via a random node, which breaks long-lived connections. This results in frpc's tunnel to the VPS dropping periodically.
+
+Rule: `meshbr0` is for container-to-container traffic only (NAT and IPv6 off). Any instance that makes its own outbound connections gets a second NIC on `incusbr0`, which routes out through its own node:
+
+```hcl
+device {
+  name = "eth0"
+  type = "nic"
+  properties = { name = "eth0", network = "incusbr0" }  # default route
+}
+
+device {
+  name = "eth1"
+  type = "nic"
+  properties = {
+    name           = "eth1"     # required for ipv4.gateway to apply
+    network        = "meshbr0"
+    "ipv4.gateway" = "none"     # no default route via the mesh (Incus >= 7.2)
+  }
+}
+
+config = {
+  "user.access_interface" = "eth1"  # ipv4_address stays the mesh IP
+}
+```
+
+Keep `incusbr0` as `eth0`: the Incus DHCP client gives the default route to the alphabetically first interface, so the ordering still works if `ipv4.gateway` is ever dropped. Instances that only answer requests from Caddy and make no outbound connections can stay mesh-only.
+
 ### Configuration
 
 All applications are configured with a single [secrets.default.tfvars](secrets.default.tfvars). This file is encrypted using [SOPS](https://getsops.io/docs/) with [age](https://age-encryption.org/) and must be decrypted first before it can be used:
