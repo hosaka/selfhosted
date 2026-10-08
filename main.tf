@@ -127,14 +127,14 @@ module "paperless" {
 # }
 
 # module "slskd" {
-#   source        = "./slskd"
-#   config        = var.config.slskd
-#   target        = var.cluster.node-1.target
-#   media_pool    = incus_storage_volume.media.pool
-#   media_name    = incus_storage_volume.media.name
-#   public_domain = var.public_domain
-#   timezone      = var.timezone
-#   depends_on    = [null_resource.post_server, module.linstor]
+#   source         = "./slskd"
+#   config         = var.config.slskd
+#   target         = var.cluster.node-4.target
+#   media_pool     = incus_storage_volume.media.pool
+#   media_source   = incus_storage_volume.media.name
+#   public_domain  = var.public_domain
+#   private_domain = var.private_domain
+#   depends_on     = [null_resource.post_server, module.linstor]
 # }
 
 module "snikket" {
