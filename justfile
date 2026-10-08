@@ -177,7 +177,7 @@ logs instance: (onpath 'incus')
 
 [doc('bring an instance down')]
 stop instance: (onpath 'incus')
-    incust stop {{ instance }}
+    incus stop {{ instance }}
 
 [doc('restart an instance')]
 restart instance: (onpath 'incus')
