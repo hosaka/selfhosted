@@ -1,0 +1,83 @@
+variable "kavita_version" {
+  type    = string
+  default = "0.9.0"
+}
+
+locals {
+  kavita_ports = {
+    webui = 5000
+  }
+}
+
+resource "incus_storage_volume" "kavita_config" {
+  name = "kavita-config"
+  pool = "linstor"
+}
+
+resource "incus_instance" "kavita" {
+  name = "kavita"
+  type = "container"
+
+  target   = var.target
+  profiles = ["default"]
+  image    = "ghcr:kareadita/kavita:${var.kavita_version}"
+
+  device {
+    name = "config"
+    type = "disk"
+    properties = {
+      path   = "/kavita/config"
+      pool   = incus_storage_volume.kavita_config.pool
+      source = incus_storage_volume.kavita_config.name
+    }
+  }
+
+  device {
+    name = "books"
+    type = "disk"
+    properties = {
+      path     = "/data/media"
+      pool     = var.media_pool
+      source   = "${var.media_source}/collection/books"
+      readonly = "true"
+    }
+  }
+
+  device {
+    name = "eth0"
+    type = "nic"
+    properties = {
+      network = "incusbr0"
+    }
+  }
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
+      network = "meshbr0"
+    }
+  }
+
+  wait_for {
+    type = "ipv4"
+  }
+
+  config = {
+    "environment.TZ" = var.timezone
+
+    "user.access_interface" = "eth1"
+  }
+}
+
+output "ingress" {
+  value = {
+    name  = "kavita"
+    caddy = <<-EOT
+			kavita.${var.private_domain} {
+				encode gzip
+				reverse_proxy ${incus_instance.kavita.ipv4_address}:${local.kavita_ports.webui}
+			}
+    EOT
+  }
+}
