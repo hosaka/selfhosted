@@ -130,6 +130,8 @@ module "paperless" {
 #   source        = "./slskd"
 #   config        = var.config.slskd
 #   target        = var.cluster.node-1.target
+#   media_pool    = incus_storage_volume.media.pool
+#   media_name    = incus_storage_volume.media.name
 #   public_domain = var.public_domain
 #   timezone      = var.timezone
 #   depends_on    = [null_resource.post_server, module.linstor]

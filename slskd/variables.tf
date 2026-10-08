@@ -7,6 +7,7 @@ variable "config" {
     umask               = optional(string, "002")
   })
 }
+
 variable "target" {
   type = string
 }
@@ -17,6 +18,14 @@ variable "timezone" {
 }
 
 variable "public_domain" {
+  type = string
+}
+
+variable "media_pool" {
+  type = string
+}
+
+variable "media_source" {
   type = string
 }
 
