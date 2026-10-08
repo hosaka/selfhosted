@@ -38,6 +38,7 @@ module "ingress" {
     module.metrics.ingress,
     module.notify.ingress,
     module.paperless.ingress,
+    # module.qbittorrent.ingress,
     # module.sabnzbd.ingress,
     # module.slskd.ingress,
     module.snikket.ingress,
@@ -118,6 +119,20 @@ module "paperless" {
   timezone       = var.timezone
   depends_on     = [null_resource.post_server, module.linstor]
 }
+
+# module "qbittorrent" {
+#   source = "./qbittorrent"
+#   config = merge(var.config.qbittorrent, {
+#     # caddy and qbitmanage reach the webui over the mesh, which must bypass the VPN killswitch
+#     vpn_lan_network = format("10.%d.%d.0/24", random_integer.meshbr0-v4-subnet-2.result, random_integer.meshbr0-v4-subnet-3.result)
+#   })
+#   target         = var.cluster.node-4.target
+#   media_pool     = incus_storage_volume.media.pool
+#   media_source   = incus_storage_volume.media.name
+#   private_domain = var.private_domain
+#   timezone       = var.timezone
+#   depends_on     = [null_resource.post_server, module.linstor]
+# }
 
 # module "sabnzbd" {
 #   source         = "./sabnzbd"

@@ -1,0 +1,109 @@
+qbt:
+  host: ${qbittorrent_host}
+  user:
+  pass:
+
+commands:
+  dry_run: false
+  cross_seed: false
+  recheck: true
+  cat_update: false
+  tag_update: true
+  rem_unregistered: false
+  tag_tracker_error: true
+  rem_orphaned: false
+  tag_nohardlinks: true
+  skip_cleanup: true
+
+  share_limits: false
+  skip_qb_version_check: false
+settings:
+  force_auto_tmm: true
+  nohardlinks_tag: nohl
+  tracker_error_tag: issue
+  ignoreTags_OnUpdate:
+    - nohl
+    - issue
+    - cross-seed
+
+  share_limits_tag: ~share_limit
+directory:
+  root_dir: /data/media/downloads/torrent
+  recycle_bin: /data/media/downloads/torrent/.recycle
+  cross_seed:
+  remote_dir: /data/media/downloads/torrent
+  torrents_dir:
+  orphaned_dir:
+
+cat:
+  games: /data/media/downloads/torrent/games
+  movies: /data/media/downloads/torrent/movies
+  music: /data/media/downloads/torrent/music
+  series: /data/media/downloads/torrent/series
+  software: /data/media/downloads/torrent/software
+
+tracker:
+  t-ru.org:
+    tag:
+      - t-ru
+  jptv.club:
+    tag:
+      - jptv
+  jptv4.us:
+    tag:
+      - jptv
+  eiga.moi:
+    tag:
+      - jptv
+  jptvts.us:
+    tag:
+      - jptv
+  other:
+    tag: other
+    max_ratio: 1.0
+
+nohardlinks:
+  - books
+  - movies
+  - music
+  - series
+
+share_limits:
+  default:
+    priority: 1
+    max_ratio: 1
+    categories:
+      - books
+      - movies
+      - music
+      - series
+
+  uploads:
+    priority: 1
+    include_any_tags: -uploads
+
+webhooks:
+  error:
+  run_start:
+  run_end:
+  function:
+    cross_seed:
+    recheck:
+    cat_update:
+    tag_update:
+    rem_unregistered:
+    tag_tracker_error:
+    rem_orphaned:
+    tag_nohardlinks:
+    cleanup_dirs:
+    share_limits:
+
+recyclebin:
+  enabled: true
+  empty_after_x_days: 60
+  save_torrents: false
+  split_by_category: false
+
+orphaned:
+  empty_after_x_days: 60
+  exclude_patterns:

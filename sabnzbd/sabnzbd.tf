@@ -78,9 +78,9 @@ output "ingress" {
   value = {
     name  = "sabnzbd"
     caddy = <<-EOT
-			nzb.${var.private_domain} {
-				reverse_proxy ${incus_instance.sabnzbd.ipv4_address}:${local.sabnzbd_ports.webui}
-			}
+    nzb.${var.private_domain} {
+      reverse_proxy ${incus_instance.sabnzbd.ipv4_address}:${local.sabnzbd_ports.webui}
+    }
     EOT
   }
 }
