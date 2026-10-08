@@ -42,6 +42,7 @@ module "ingress" {
     module.paperless.ingress,
     # module.qbittorrent.ingress,
     # module.sabnzbd.ingress,
+    # module.servarr.ingress,
     # module.slskd.ingress,
     module.snikket.ingress,
     module.syncstorage.ingress,
@@ -174,6 +175,17 @@ module "paperless" {
 #   public_domain = var.public_domain
 #   timezone      = var.timezone
 #   depends_on    = [null_resource.post_server, module.linstor]
+# }
+
+# module "servarr" {
+#   source         = "./servarr"
+#   config         = var.config.servarr
+#   target         = var.cluster.node-4.target
+#   media_pool     = incus_storage_volume.media.pool
+#   media_source   = incus_storage_volume.media.name
+#   private_domain = var.private_domain
+#   timezone       = var.timezone
+#   depends_on     = [null_resource.post_server, module.linstor]
 # }
 
 # module "slskd" {
