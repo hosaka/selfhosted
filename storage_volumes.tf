@@ -85,6 +85,24 @@ resource "incus_storage_volume" "logs" {
 #   ]
 # }
 
+# resource "incus_storage_volume" "voidrepo" {
+#   name         = "voidrepo"
+#   description  = "Void Linux repository mirror"
+#   target       = "node-4"
+#   pool         = incus_storage_pool.nas.name
+#   type         = "custom"
+#   content_type = "filesystem"
+#
+#   config = {
+#     # shared between voidrepo-sync and voidrepo
+#     "security.shifted" = "true"
+#   }
+#
+#   depends_on = [
+#     null_resource.post_storage_pools,
+#   ]
+# }
+
 resource "null_resource" "post_storage_volumes" {
   depends_on = [
     incus_storage_volume.backups,
@@ -92,6 +110,7 @@ resource "null_resource" "post_storage_volumes" {
     incus_storage_volume.logs,
     # incus_storage_volume.immich,
     # incus_storage_volume.media,
+    # incus_storage_volume.voidrepo,
   ]
 }
 
