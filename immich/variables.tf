@@ -1,0 +1,35 @@
+variable "config" {
+  type = object({
+    log_level   = optional(string, "log")
+    db_name     = optional(string, "immich")
+    db_username = optional(string, "postgres")
+    db_password = string
+    # unused for now, oauth is configured in the admin settings and stored in the database
+    oidc_client_secret = string
+  })
+}
+
+variable "target" {
+  type = string
+}
+
+variable "timezone" {
+  type    = string
+  default = "UTC"
+}
+
+variable "public_domain" {
+  type = string
+}
+
+variable "private_domain" {
+  type = string
+}
+
+variable "storage_pool" {
+  type = string
+}
+
+variable "storage_source" {
+  type = string
+}

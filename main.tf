@@ -35,6 +35,7 @@ module "ingress" {
     module.auth.ingress,
     module.atuin.ingress,
     module.forgejo.ingress,
+    # module.immich.ingress,
     # module.jellyfin.ingress,
     # module.kavita.ingress,
     module.metrics.ingress,
@@ -92,6 +93,18 @@ module "forgejo" {
 #   target     = var.cluster.node-1.target
 #   timezone   = var.timezone
 #   depends_on = [null_resource.post_server, module.linstor]
+# }
+
+# module "immich" {
+#   source         = "./immich"
+#   config         = var.config.immich
+#   target         = var.cluster.node-4.target
+#   storage_pool   = incus_storage_volume.immich.pool
+#   storage_source = incus_storage_volume.immich.name
+#   public_domain  = var.public_domain
+#   private_domain = var.private_domain
+#   timezone       = var.timezone
+#   depends_on     = [null_resource.post_server, module.linstor]
 # }
 
 # module "jellyfin" {
