@@ -35,6 +35,7 @@ module "ingress" {
     module.auth.ingress,
     module.atuin.ingress,
     module.forgejo.ingress,
+    # module.homeassistant.ingress,
     # module.immich.ingress,
     # module.jellyfin.ingress,
     # module.kavita.ingress,
@@ -89,11 +90,12 @@ module "forgejo" {
 }
 
 # module "homeassistant" {
-#   source     = "./homeassistant"
-#   config     = var.config.homeassistant
-#   target     = var.cluster.node-1.target
-#   timezone   = var.timezone
-#   depends_on = [null_resource.post_server, module.linstor]
+#   source         = "./homeassistant"
+#   config         = var.config.homeassistant
+#   target         = var.cluster.node-1.target
+#   private_domain = var.private_domain
+#   timezone       = var.timezone
+#   depends_on     = [null_resource.post_server, module.linstor]
 # }
 
 # module "immich" {

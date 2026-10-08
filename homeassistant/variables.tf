@@ -11,3 +11,6 @@ variable "timezone" {
   default = "UTC"
 }
 
+variable "private_domain" {
+  type = string
+}
