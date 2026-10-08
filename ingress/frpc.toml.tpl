@@ -3,7 +3,7 @@ serverPort = 7000
 auth.token = "${frp_auth_token}"
 
 webServer.addr = "0.0.0.0"
-webServer.port = 7400
+webServer.port = ${frpc_ports.webui}
 
 # we have a bunch of UDP proxies and need a bigger connection pool
 # the frps side also sets maxPoolCount for clients, this should be less than the max
@@ -24,7 +24,7 @@ name = "https-cluster"
 type = "https"
 customDomains = [${join(", ", [for d in public_domains : format("%q", d)])}]
 localIP = "${caddy_ip}"
-localPort = 443
+localPort = ${caddy_ports.https}
 transport.proxyProtocolVersion = "v2"
 
 [[proxies]]
@@ -32,7 +32,7 @@ name = "http-cluster"
 type = "http"
 customDomains = [${join(", ", [for d in public_domains : format("%q", d)])}]
 localIP = "${caddy_ip}"
-localPort = 80
+localPort = ${caddy_ports.http}
 transport.proxyProtocolVersion = "v2"
 
 %{ for s in services ~}

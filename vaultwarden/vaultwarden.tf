@@ -3,6 +3,12 @@ variable "vaultwarden_version" {
   default = "1.37.2"
 }
 
+locals {
+  vaultwarden_ports = {
+    webui = 80
+  }
+}
+
 resource "incus_storage_volume" "vaultwarden_data" {
   name = "vaultwarden-data"
   pool = "linstor"
@@ -111,7 +117,7 @@ output "ingress" {
 				respond @admin "401 - {remote_host} is not an allowed IP" 401
 
 				# proxy everything to Rocket
-				reverse_proxy ${incus_instance.vaultwarden.ipv4_address}:80 {
+				reverse_proxy ${incus_instance.vaultwarden.ipv4_address}:${local.vaultwarden_ports.webui} {
 					# send the true remote IP to Rocket, so fail2ban can ban collect IPs from the log
 					header_up X-Real-IP {remote_host}
 				}

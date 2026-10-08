@@ -3,6 +3,14 @@ variable "paperless_version" {
   default = "3.0.4"
 }
 
+locals {
+  paperless_ports = {
+    webui  = 8000
+    db     = 5432
+    valkey = 6379
+  }
+}
+
 resource "incus_storage_volume" "paperless_data" {
   name = "paperless-data"
   pool = "linstor"
@@ -104,7 +112,7 @@ resource "incus_instance" "paperless" {
     "environment.PAPERLESS_ADMIN_USER"           = sensitive(var.config.admin_user)
     "environment.PAPERLESS_ADMIN_PASSWORD"       = sensitive(var.config.admin_password)
 
-    "environment.PAPERLESS_REDIS"     = "redis://${incus_instance.paperless_valkey.ipv4_address}:6379"
+    "environment.PAPERLESS_REDIS"     = "redis://${incus_instance.paperless_valkey.ipv4_address}:${local.paperless_ports.valkey}"
     "environment.PAPERLESS_DBHOST"    = incus_instance.paperless_database.ipv4_address
     "environment.PAPERLESS_DBUSER"    = var.config.db_username
     "environment.PAPERLESS_DBPASS"    = sensitive(var.config.db_password)
@@ -220,7 +228,7 @@ output "ingress" {
     ]
     caddy = <<-EOT
 			paperless.${var.private_domain}, paperless.${var.public_domain} {
-				reverse_proxy ${incus_instance.paperless.ipv4_address}:8000
+				reverse_proxy ${incus_instance.paperless.ipv4_address}:${local.paperless_ports.webui}
 				@admin {
 					path /admin*
 					not remote_ip private_ranges

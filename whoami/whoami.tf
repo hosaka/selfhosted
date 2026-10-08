@@ -3,6 +3,12 @@ variable "whoami_version" {
   default = "1.12.0"
 }
 
+locals {
+  whoami_ports = {
+    http = 80
+  }
+}
+
 resource "incus_instance" "whoami" {
   name = "whoami"
   type = "container"
@@ -32,7 +38,7 @@ output "ingress" {
     ]
     caddy = <<-EOT
 		whoami.${var.private_domain}, whoami.${var.public_domain} {
-			reverse_proxy ${incus_instance.whoami.ipv4_address}:80
+			reverse_proxy ${incus_instance.whoami.ipv4_address}:${local.whoami_ports.http}
 		}
     EOT
   }

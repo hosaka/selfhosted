@@ -7,6 +7,8 @@ locals {
   immich_ports = {
     webui            = 2283
     machine_learning = 3003
+    db               = 5432
+    valkey           = 6379
   }
 }
 

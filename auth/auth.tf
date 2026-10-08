@@ -9,6 +9,17 @@ variable "lldap_version" {
 }
 
 locals {
+  authelia_ports = {
+    api    = 9091
+    db     = 5432
+    valkey = 6379
+  }
+
+  lldap_ports = {
+    ldap  = 3890
+    webui = 17170
+  }
+
   authelia_config = templatefile("${path.module}/configuration.yml.tpl", {
     public_domain  = var.public_domain
     private_domain = var.private_domain
@@ -20,6 +31,7 @@ locals {
     jwt_secret             = sensitive(var.config.jwt_secret)
     jwks_key               = sensitive(indent(10, trimspace(file("${path.module}/private.pem"))))
     lldap_address          = incus_instance.lldap.ipv4_address
+    lldap_port             = local.lldap_ports.ldap
     lldap_base_dn          = var.config.lldap_base_dn
     lldap_password         = sensitive(var.config.lldap_password)
     session_secret         = sensitive(var.config.session_secret)
@@ -28,6 +40,7 @@ locals {
     smtp_sender            = var.config.smtp_sender
     smtp_username          = sensitive(var.config.smtp_username)
     valkey_address         = incus_instance.authelia_valkey.ipv4_address
+    valkey_port            = local.authelia_ports.valkey
     storage_encryption_key = sensitive(var.config.storage_encryption_key)
 
     # clients
@@ -274,10 +287,10 @@ output "ingress" {
     ]
     caddy = <<-EOT
 			auth.${var.public_domain} {
-				reverse_proxy ${incus_instance.authelia.ipv4_address}:9091
+				reverse_proxy ${incus_instance.authelia.ipv4_address}:${local.authelia_ports.api}
 			}
 			users.${var.private_domain} {
-				reverse_proxy ${incus_instance.lldap.ipv4_address}:17170
+				reverse_proxy ${incus_instance.lldap.ipv4_address}:${local.lldap_ports.webui}
 			}
     EOT
   }

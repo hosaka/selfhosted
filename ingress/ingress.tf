@@ -20,6 +20,15 @@ variable "services" {
 }
 
 locals {
+  frpc_ports = {
+    webui = 7400
+  }
+
+  caddy_ports = {
+    http  = 80
+    https = 443
+  }
+
   public_domains = distinct(concat(
     [var.public_domain],
     flatten([for s in var.services : s.domains])
@@ -38,6 +47,8 @@ locals {
     frp_server_addr = var.config.frp_server_addr
     frp_auth_token  = sensitive(var.config.frp_auth_token)
     caddy_ip        = incus_instance.caddy.ipv4_address
+    caddy_ports     = local.caddy_ports
+    frpc_ports      = local.frpc_ports
     public_domains  = local.public_domains
     services        = var.services
   })

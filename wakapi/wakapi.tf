@@ -3,6 +3,12 @@ variable "wakapi_version" {
   default = "2.17.5"
 }
 
+locals {
+  wakapi_ports = {
+    api = 3000
+  }
+}
+
 resource "incus_storage_volume" "wakapi_data" {
   name = "wakapi-data"
   pool = "linstor"
@@ -80,7 +86,7 @@ output "ingress" {
     ]
     caddy = <<-EOT
 			waka.${var.public_domain} {
-				reverse_proxy ${incus_instance.wakapi.ipv4_address}:3000
+				reverse_proxy ${incus_instance.wakapi.ipv4_address}:${local.wakapi_ports.api}
 			}
     EOT
   }

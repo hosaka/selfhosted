@@ -1,4 +1,8 @@
 locals {
+  linstor_controller_ports = {
+    api = 3370
+  }
+
   satellite_execs = merge([
     for name, member in var.members : {
 
@@ -53,7 +57,7 @@ resource "incus_instance" "linstor_controller" {
 # Configure Incus to be able to communicate with the Linstor controller.
 resource "incus_server" "linstor_controller" {
   config = {
-    "storage.linstor.controller_connection" = "http://${incus_instance.linstor_controller.ipv4_address}:3370"
+    "storage.linstor.controller_connection" = "http://${incus_instance.linstor_controller.ipv4_address}:${local.linstor_controller_ports.api}"
   }
 }
 

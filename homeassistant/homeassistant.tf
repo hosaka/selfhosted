@@ -8,6 +8,13 @@ variable "mosquitto_version" {
   default = "2.0.22"
 }
 
+locals {
+  homeassistant_ports = {
+    webui = 8123
+    mqtt  = 1883
+  }
+}
+
 resource "incus_storage_volume" "homeassistant_data" {
   name = "homeassistant-data"
   pool = "remote"

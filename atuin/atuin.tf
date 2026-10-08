@@ -3,6 +3,13 @@ variable "atuin_version" {
   default = "18.18.0"
 }
 
+locals {
+  atuin_ports = {
+    api = 8888
+    db  = 5432
+  }
+}
+
 resource "incus_instance" "atuin" {
   name = "atuin"
   type = "container"
@@ -101,7 +108,7 @@ output "ingress" {
     ]
     caddy = <<-EOT
 			atuin.${var.public_domain} {
-				reverse_proxy ${incus_instance.atuin.ipv4_address}:8888
+				reverse_proxy ${incus_instance.atuin.ipv4_address}:${local.atuin_ports.api}
 			}
     EOT
   }

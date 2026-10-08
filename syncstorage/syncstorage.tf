@@ -5,6 +5,13 @@ variable "syncstorage_version" {
 
 # todo: needs to actually wait for syncstorage_database to be healthy
 
+locals {
+  syncstorage_ports = {
+    api = 8000
+    db  = 5432
+  }
+}
+
 resource "incus_instance" "syncstorage" {
   name = "syncstorage"
   type = "container"
@@ -36,11 +43,11 @@ resource "incus_instance" "syncstorage" {
   config = {
     "environment.RUST_LOG"                                  = "info"
     "environment.SYNC_HOST"                                 = "0.0.0.0"
-    "environment.SYNC_PORT"                                 = "8000"
+    "environment.SYNC_PORT"                                 = "${local.syncstorage_ports.api}"
     "environment.SYNC_HUMAN_LOGS"                           = "true"
     "environment.SYNC_MASTER_SECRET"                        = sensitive(var.config.master_secret)
-    "environment.SYNC_SYNCSTORAGE__DATABASE_URL"            = "postgres://${var.config.db_username}:${sensitive(var.config.db_password)}@${incus_instance.syncstorage_database.ipv4_address}:5432/${var.config.db_name}"
-    "environment.SYNC_TOKENSERVER__DATABASE_URL"            = "postgres://${var.config.db_username}:${sensitive(var.config.db_password)}@${incus_instance.syncstorage_database.ipv4_address}:5432/${var.config.db_name}"
+    "environment.SYNC_SYNCSTORAGE__DATABASE_URL"            = "postgres://${var.config.db_username}:${sensitive(var.config.db_password)}@${incus_instance.syncstorage_database.ipv4_address}:${local.syncstorage_ports.db}/${var.config.db_name}"
+    "environment.SYNC_TOKENSERVER__DATABASE_URL"            = "postgres://${var.config.db_username}:${sensitive(var.config.db_password)}@${incus_instance.syncstorage_database.ipv4_address}:${local.syncstorage_ports.db}/${var.config.db_name}"
     "environment.SYNC_TOKENSERVER__ENABLED"                 = "true"
     "environment.SYNC_TOKENSERVER__RUN_MIGRATIONS"          = "true"
     "environment.SYNC_TOKENSERVER__NODE_TYPE"               = "postgres"
@@ -112,7 +119,7 @@ output "ingress" {
     ]
     caddy = <<-EOT
 			ffs.${var.public_domain} {
-				reverse_proxy ${incus_instance.syncstorage.ipv4_address}:8000
+				reverse_proxy ${incus_instance.syncstorage.ipv4_address}:${local.syncstorage_ports.api}
 			}
     EOT
   }

@@ -59,7 +59,7 @@ SECRET_KEY = ${secret_key}
 
 [server]
 APP_DATA_PATH = /var/lib/gitea
-HTTP_PORT = 3000
+HTTP_PORT = ${http_port}
 DISABLE_SSH = false
 BUILTIN_SSH_SERVER_USER = git
 DOMAIN = code.${public_domain}
@@ -67,7 +67,7 @@ LFS_START_SERVER = true
 LFS_JWT_SECRET = ${lfs_jwt_secret}
 ROOT_URL = https://code.${public_domain}
 SSH_DOMAIN = git.${public_domain}
-SSH_LISTEN_PORT = 2222
+SSH_LISTEN_PORT = ${ssh_port}
 SSH_PORT = 22
 START_SSH_SERVER = true
 

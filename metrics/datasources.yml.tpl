@@ -9,7 +9,7 @@ datasources:
     type: prometheus
     access: proxy
     orgId: 1
-    url: http://${prometheus_address}:9090
+    url: http://${prometheus_address}:${prometheus_port}
     editable: false
     isDefault: true
     basicAuth: false
@@ -19,7 +19,7 @@ datasources:
     type: loki
     access: proxy
     orgId: 1
-    url: http://${loki_address}:3100
+    url: http://${loki_address}:${loki_port}
     editable: false
     basicAuth: false
     version: 1

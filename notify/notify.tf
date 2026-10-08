@@ -8,6 +8,12 @@ variable "diun_version" {
   default = "4.33"
 }
 
+locals {
+  gotify_ports = {
+    webui = 80
+  }
+}
+
 resource "incus_storage_volume" "gotify_data" {
   name = "gotify-data"
   pool = "linstor"
@@ -146,7 +152,7 @@ output "ingress" {
     ]
     caddy = <<-EOT
 			gotify.${var.public_domain} {
-				reverse_proxy ${incus_instance.gotify.ipv4_address}:80
+				reverse_proxy ${incus_instance.gotify.ipv4_address}:${local.gotify_ports.webui}
 			}
     EOT
   }

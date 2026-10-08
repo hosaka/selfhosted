@@ -8,6 +8,18 @@ variable "forgejo_version" {
   default = "16.0.1"
 }
 
+locals {
+  forgejo_ports = {
+    webui = 3000
+    ssh   = 2222
+    db    = 5432
+  }
+
+  forgejo_anubis_ports = {
+    proxy = 8923
+  }
+}
+
 resource "incus_instance" "forgejo_anubis" {
   name = "forgejo-anubis"
   type = "container"
@@ -44,7 +56,7 @@ resource "incus_instance" "forgejo_anubis" {
   }
 
   config = {
-    "environment.TARGET"           = "http://${incus_instance.forgejo.ipv4_address}:3000"
+    "environment.TARGET"           = "http://${incus_instance.forgejo.ipv4_address}:${local.forgejo_ports.webui}"
     "environment.SERVE_ROBOTS_TXT" = "true"
     "environment.DIFFICULTY"       = "6"
 
@@ -84,6 +96,8 @@ resource "incus_instance" "forgejo" {
   file {
     content = templatefile("${path.module}/app.ini.tpl", {
       public_domain = var.public_domain
+      http_port     = local.forgejo_ports.webui
+      ssh_port      = local.forgejo_ports.ssh
 
       db_name         = var.config.db_name
       db_username     = var.config.db_username
@@ -224,27 +238,27 @@ output "ingress" {
     ]
     caddy_apex = <<-EOT
 			handle_path /sh/dotinstall {
-				reverse_proxy ${incus_instance.forgejo.ipv4_address}:3000
+				reverse_proxy ${incus_instance.forgejo.ipv4_address}:${local.forgejo_ports.webui}
 				rewrite * /hosaka/.dotfiles/raw/branch/main/.local/bin/dotinstall
 			}
 			handle_path /public.pgp {
-				reverse_proxy ${incus_instance.forgejo.ipv4_address}:3000
+				reverse_proxy ${incus_instance.forgejo.ipv4_address}:${local.forgejo_ports.webui}
 				rewrite * /hosaka.gpg
 			}
 			handle_path /void/* {
-				reverse_proxy ${incus_instance.forgejo.ipv4_address}:3000
+				reverse_proxy ${incus_instance.forgejo.ipv4_address}:${local.forgejo_ports.webui}
 				rewrite * /api/packages/hosaka/generic/vast-packages/{path}
 			}
     EOT
     caddy      = <<-EOT
 			code.${var.public_domain} {
-				reverse_proxy ${incus_instance.forgejo_anubis.ipv4_address}:8923 {
+				reverse_proxy ${incus_instance.forgejo_anubis.ipv4_address}:${local.forgejo_anubis_ports.proxy} {
 					header_up X-Real-IP {remote_host}
 					header_up X-Http-Version {http.request.proto}
 				}
 			}
 			code.${var.private_domain} {
-				reverse_proxy ${incus_instance.forgejo.ipv4_address}:3000
+				reverse_proxy ${incus_instance.forgejo.ipv4_address}:${local.forgejo_ports.webui}
 			}
     EOT
     frpc       = <<-EOT
@@ -254,7 +268,7 @@ output "ingress" {
       multiplexer = "httpconnect"
       customDomains = ["git.${var.public_domain}"]
       localIP = "${incus_instance.forgejo.ipv4_address}"
-      localPort = 2222
+      localPort = ${local.forgejo_ports.ssh}
     EOT
   }
 }

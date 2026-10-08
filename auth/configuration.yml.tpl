@@ -18,7 +18,7 @@ authentication_backend:
 
   ldap:
     implementation: lldap
-    address: "ldap://${lldap_address}:3890"
+    address: "ldap://${lldap_address}:${lldap_port}"
     base_dn: "${lldap_base_dn}"
 
     # "uid" should be the username you created for authentication with the "lldap_strict_readonly" permission
@@ -37,7 +37,7 @@ session:
       # default_redirection_url: "https://home.${public_domain}"
   redis:
     host: "${valkey_address}"
-    port: 6379
+    port: ${valkey_port}
 
 storage:
   encryption_key: "${storage_encryption_key}"

@@ -14,6 +14,12 @@ variable "loki_version" {
 }
 
 locals {
+  metrics_ports = {
+    webui      = 3000
+    prometheus = 9090
+    loki       = 3100
+  }
+
   metrics_targets = {
     for name, member in var.members :
     name => "${split(":", trimprefix(member.address, "https://"))[0]}:${var.config.port}"
@@ -61,7 +67,9 @@ resource "incus_instance" "grafana" {
   file {
     content = templatefile("${path.module}/datasources.yml.tpl", {
       prometheus_address = incus_instance.prometheus.ipv4_address
+      prometheus_port    = local.metrics_ports.prometheus
       loki_address       = incus_instance.loki.ipv4_address
+      loki_port          = local.metrics_ports.loki
     })
     uid                = 472
     gid                = 0
@@ -275,7 +283,7 @@ resource "incus_instance" "loki" {
 resource "incus_server" "loki" {
   config = {
     "logging.loki.target.type"    = "loki"
-    "logging.loki.target.address" = "http://${incus_instance.loki.ipv4_address}:3100"
+    "logging.loki.target.address" = "http://${incus_instance.loki.ipv4_address}:${local.metrics_ports.loki}"
   }
 }
 
@@ -287,7 +295,7 @@ output "ingress" {
     ]
     caddy = <<-EOT
 			metrics.${var.public_domain} {
-				reverse_proxy ${incus_instance.grafana.ipv4_address}:3000
+				reverse_proxy ${incus_instance.grafana.ipv4_address}:${local.metrics_ports.webui}
 			}
     EOT
   }
