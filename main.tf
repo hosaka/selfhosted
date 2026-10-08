@@ -35,6 +35,7 @@ module "ingress" {
     module.auth.ingress,
     module.atuin.ingress,
     module.forgejo.ingress,
+    # module.jellyfin.ingress,
     # module.kavita.ingress,
     module.metrics.ingress,
     # module.navidrome.ingress,
@@ -91,6 +92,17 @@ module "forgejo" {
 #   target     = var.cluster.node-1.target
 #   timezone   = var.timezone
 #   depends_on = [null_resource.post_server, module.linstor]
+# }
+
+# module "jellyfin" {
+#   source         = "./jellyfin"
+#   config         = var.config.jellyfin
+#   target         = var.cluster.node-4.target
+#   media_pool     = incus_storage_volume.media.pool
+#   media_source   = incus_storage_volume.media.name
+#   private_domain = var.private_domain
+#   timezone       = var.timezone
+#   depends_on     = [null_resource.post_server, module.linstor]
 # }
 
 # module "kavita" {
