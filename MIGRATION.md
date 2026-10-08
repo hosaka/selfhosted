@@ -15,7 +15,7 @@ There are currently 5x HDDs and 2x SSDs in the NAS. The HDDs are in a ZFS raidz1
 1. Bring an additional HDD big enough to backup all the current data.
 2. Create a ZFS snapshot and `zfs send | zfs recv` it to a backup drive.
 3. Wipe Alpine Linux, replace it with an IncusOS and join the cluster.
-4. Create an encrypted *ZFS pool* via IncusOS APIs with a single *ZFS volume*, so `hdd/incus`.
+4. Create an encrypted *ZFS pool* via IncusOS APIs with a single *ZFS volume*.
 5. Create Incus *storage pool* on the new volume and one *storage volume* per old ZFS volume.
 6. Migrate **old** ZFS volumes from a backup drive onto the new Incus *storage volumes*.
 
@@ -49,29 +49,29 @@ zpool export temp
 
 #### Migrating to Incus
 
-Prepare an IncusOS image for the joining NAS using `flasher-tool` directly or the `just image nas` recipe and flash it. Boot the OS, wait for it to install/reboot and a new remote with the correct IP address:
+Prepare an IncusOS image for the joining NAS using `flasher-tool` directly or the `just image node-4` recipe and flash it. Boot the OS, wait for it to install/reboot and a new remote with the correct IP address:
 ```bash
-incus remote add nas <nas-lan-ip>
+incus remote add node-4 <nas-lan-ip>
 ```
 
-Before the `nas` can join the cluster, linstor needs to be configured:
+Before the `node-4` can join the cluster, linstor needs to be configured:
 ```bash
-incus remote switch nas
+incus remote switch node-4
 # set .config.enabled = true
 incus admin os service edit linstor
 incus config set storage.linstor.controller_connection http://<linstor-controller-ip>:3370
 # pre-register the satellite on the linstor-controller
-incus exec --project=internal linstor-controller -- linstor node create nas <nas-lan-ip> --node-type satellite
-incus exec --project=internal linstor-controller -- linstor node list # nas should be Online
+incus exec --project=internal cluster:linstor-controller -- linstor node create node-4 <nas-lan-ip> --node-type satellite
+incus exec --project=internal cluster:linstor-controller -- linstor node list # node-4 should be Online
 ```
 
 Join the cluster:
 ```bash
-incus cluster join cluster: nas:
+incus cluster join cluster: node-4:
 incus remote switch cluster
-incus remote remove nas
+incus remote remove node-4
 # during the prompts
-# member name: nas
+# member name: node-4
 # linstor pool source: <Enter>
 # meshbr0 tunnel.mesh.interface: uplink
 # lan parent: uplink
@@ -79,55 +79,52 @@ incus remote remove nas
 
 Wipe all the HDDs apart from the backup one. Double, triple check device ids!
 ```bash
-incus admin os system storage wipe-drive -d '{"id":"/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi1"}' --target nas
+incus admin os system storage wipe-drive -d '{"id":"/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi1"}' --target node-4
 # repeat for each drive
 ```
 
-Create a ZFS pool on the `nas` node:
+Create a ZFS pool on the `node-4` node:
 ```bash
-incus admin os system storage edit --target nas
+incus admin os system storage edit --target node-4
 ```
 
 We need a raidz1 type here which allows one out of five failure for the HDDs. The result should look similar to:
 ```yaml
 config:
   pools:
-    - name: hdd
+    - name: nas
       type: zfs-raidz1
       devices:
         - /dev/disk/by-id/all-five-hdds-to-be-used
 ```
 
-Create a new ZFS volume called `incus` on the new `hdd` pool:
+Save the recovery key and configure scrub:
 ```bash
-incus admin os system storage create-volume -d '{"pool":"hdd","name":"incus","use":"incus"}' --target nas
+incus admin os system security show --target node-4
+# add scrub_schedule: "0 0 * * 6" to the pool config
 ```
 
-Create a new ZFS volume called `hdd` on the existing `local` pool on each node in the cluster:
+Create a new ZFS volume called `incus` on the new `nas` pool:
 ```bash
-incus admin os system storage create-volume -d '{"pool":"local","name":"hdd","use":"incus"}' --target node-n
+incus admin os system storage create-volume -d '{"pool":"nas","name":"incus","use":"incus"}' --target node-4
 ```
 
-Create an new `hdd` Incus storage pool. Notice that the `source` property is different for the NAS node:
+Create a new ZFS volume called `nas` on the existing `local` pool on each node in the cluster, apart from node-4:
 ```bash
-incus storage create hdd zfs source=local/hdd --target node-1
-incus storage create hdd zfs source=local/hdd --target node-2
-incus storage create hdd zfs source=local/hdd --target node-3
-incus storage create hdd zfs source=hdd/incus --target nas
-incus storage create hdd zfs
+incus admin os system storage create-volume -d '{"pool":"local","name":"nas","use":"incus","quota_in_bytes":67108864}' --target <node-1~3>
 ```
 
-Create a storage volume for each of the volume that is present on the backed up ZFS pool:
+Add `node-4` to the cluster members in tofu, then create the `nas` Incus storage pool and its volumes:
+
 ```bash
-incus storage volume create hdd media --target nas security.shifted=true
-incus storage volume create hdd immich --target nas
-incus storage volume create hdd voidrepo --target nas
-# etc.
+tofu plan
+tofu apply -target=null_resource.post_storage_volumes
+incus storage volume list hdd
 ```
 
 Create a helper VM that will facilitate the data migration:
 ```bash
-incus init images:ubuntu/24.04 helper --vm --target nas
+incus init images:ubuntu/24.04 helper --vm --target node-4
 incus config device add helper temp disk source=/dev/disk/by-id/backup-disk-id
 incus config device add helper media disk pool=hdd source=media path=/mnt/media
 # ...same for immich, voidrepo
@@ -136,8 +133,9 @@ incus shell helper
 apt update
 apt install -y zfsutils-linux rsync
 zpool import -o readonly=on temp && zfs mount -a
+# for every volume that is being migrated
+findmnt /mnt/immich
 rsync -aHAX --numeric-ids --info=progress2 /mnt/pool/immich/ /mnt/immich/
-# repeat for every volume that is being migrated
 ```
 
 Restore the services and their `/data` as well as databases before enabling them one by one with `tofu apply`.
