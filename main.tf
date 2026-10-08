@@ -45,6 +45,7 @@ module "ingress" {
     module.paperless.ingress,
     # module.qbittorrent.ingress,
     # module.sabnzbd.ingress,
+    # module.searxng.ingress,
     # module.servarr.ingress,
     # module.slskd.ingress,
     module.snikket.ingress,
@@ -197,12 +198,14 @@ module "paperless" {
 # }
 
 # module "searxng" {
-#   source        = "./searxng"
-#   config        = var.config.searxng
-#   target        = var.cluster.node-1.target
-#   public_domain = var.public_domain
-#   timezone      = var.timezone
-#   depends_on    = [null_resource.post_server, module.linstor]
+#   source         = "./searxng"
+#   config = merge(var.config.searxng, {
+#     trusted_proxies = format("10.%d.%d.0/24", random_integer.meshbr0-v4-subnet-2.result, random_integer.meshbr0-v4-subnet-3.result)
+#   })
+#   target         = var.cluster.node-1.target
+#   public_domain  = var.public_domain
+#   private_domain = var.private_domain
+#   depends_on     = [null_resource.post_server, module.linstor]
 # }
 
 # module "servarr" {
