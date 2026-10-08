@@ -38,6 +38,8 @@ module "ingress" {
     module.metrics.ingress,
     module.notify.ingress,
     module.paperless.ingress,
+    # module.sabnzbd.ingress,
+    # module.slskd.ingress,
     module.snikket.ingress,
     module.syncstorage.ingress,
     module.vaultwarden.ingress,
@@ -116,6 +118,16 @@ module "paperless" {
   timezone       = var.timezone
   depends_on     = [null_resource.post_server, module.linstor]
 }
+
+# module "sabnzbd" {
+#   source         = "./sabnzbd"
+#   target         = var.cluster.node-4.target
+#   media_pool     = incus_storage_volume.media.pool
+#   media_source   = incus_storage_volume.media.name
+#   private_domain = var.private_domain
+#   timezone       = var.timezone
+#   depends_on     = [null_resource.post_server, module.linstor]
+# }
 
 # module "searxng" {
 #   source        = "./searxng"
