@@ -19,7 +19,7 @@ resource "incus_instance" "vaultwarden" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "mesh"]
   image    = "ghcr:dani-garcia/vaultwarden:${var.vaultwarden_version}-alpine"
 
   device {
@@ -29,22 +29,6 @@ resource "incus_instance" "vaultwarden" {
       path   = "/data"
       pool   = incus_storage_volume.vaultwarden_data.pool
       source = incus_storage_volume.vaultwarden_data.name
-    }
-  }
-
-  device {
-    name = "eth0"
-    type = "nic"
-    properties = {
-      network = "incusbr0"
-    }
-  }
-
-  device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      network = "meshbr0"
     }
   }
 

@@ -36,7 +36,7 @@ resource "incus_instance" "snikket_server" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "mesh"]
   image    = "docker:snikket/snikket-server:${var.snikket_version}"
 
   device {
@@ -46,22 +46,6 @@ resource "incus_instance" "snikket_server" {
       path   = "/snikket"
       pool   = incus_storage_volume.snikket_data.pool
       source = incus_storage_volume.snikket_data.name
-    }
-  }
-
-  device {
-    name = "eth0"
-    type = "nic"
-    properties = {
-      network = "incusbr0"
-    }
-  }
-
-  device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      network = "meshbr0"
     }
   }
 

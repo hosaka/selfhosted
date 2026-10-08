@@ -15,7 +15,7 @@ resource "incus_instance" "searxng" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "mesh"]
   image    = "ghcr:searxng/searxng:${var.searxng_version}"
 
   file {
@@ -32,22 +32,6 @@ resource "incus_instance" "searxng" {
     target_path        = "/etc/searxng/limiter.toml"
     mode               = "0600"
     create_directories = true
-  }
-
-  device {
-    name = "eth0"
-    type = "nic"
-    properties = {
-      network = "incusbr0"
-    }
-  }
-
-  device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      network = "meshbr0"
-    }
   }
 
   wait_for {

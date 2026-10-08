@@ -17,24 +17,8 @@ resource "incus_instance" "recyclarr" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "mesh"]
   image    = "ghcr:recyclarr/recyclarr:${var.recyclarr_version}"
-
-  device {
-    name = "eth0"
-    type = "nic"
-    properties = {
-      network = "incusbr0"
-    }
-  }
-
-  device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      network = "meshbr0"
-    }
-  }
 
   file {
     content            = local.recyclarr_config

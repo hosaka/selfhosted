@@ -31,7 +31,7 @@ resource "incus_instance" "slskd" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "mesh"]
   image    = "ghcr:slskd/slskd:${var.slskd_version}"
 
   device {
@@ -51,22 +51,6 @@ resource "incus_instance" "slskd" {
       path   = "/data/media"
       pool   = var.media_pool
       source = var.media_source
-    }
-  }
-
-  device {
-    name = "eth0"
-    type = "nic"
-    properties = {
-      network = "incusbr0"
-    }
-  }
-
-  device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      network = "meshbr0"
     }
   }
 

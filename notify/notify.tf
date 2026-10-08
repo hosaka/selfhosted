@@ -26,7 +26,7 @@ resource "incus_instance" "gotify" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "mesh"]
   image    = "ghcr:gotify/server:${var.gotify_version}"
 
   device {
@@ -36,22 +36,6 @@ resource "incus_instance" "gotify" {
       path   = "/app/data"
       pool   = incus_storage_volume.gotify_data.pool
       source = incus_storage_volume.gotify_data.name
-    }
-  }
-
-  device {
-    name = "eth0"
-    type = "nic"
-    properties = {
-      network = "incusbr0"
-    }
-  }
-
-  device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      network = "meshbr0"
     }
   }
 
@@ -82,7 +66,7 @@ resource "incus_instance" "diun" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "mesh"]
   image    = "ghcr:crazy-max/diun:${var.diun_version}"
 
   device {
@@ -92,22 +76,6 @@ resource "incus_instance" "diun" {
       path   = "/data"
       pool   = incus_storage_volume.diun_data.pool
       source = incus_storage_volume.diun_data.name
-    }
-  }
-
-  device {
-    name = "eth0"
-    type = "nic"
-    properties = {
-      network = "incusbr0"
-    }
-  }
-
-  device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      network = "meshbr0"
     }
   }
 

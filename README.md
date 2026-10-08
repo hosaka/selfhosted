@@ -86,29 +86,35 @@ A [frp server](https://github.com/fatedier/frp) on a VPS is the entrypoint with 
 
 `meshbr0` spans all nodes, but each node acts as its own gateway on it. Outbound internet traffic through meshbr0 leaves via a random node, which breaks long-lived connections. This results in frpc's tunnel to the VPS dropping periodically.
 
-Rule: `meshbr0` is for container-to-container traffic only (NAT and IPv6 off). Any instance that makes its own outbound connections gets a second NIC on `incusbr0`, which routes out through its own node:
+Rule: `meshbr0` is for container-to-container traffic only (NAT and IPv6 off). Any instance that makes its own outbound connections keeps `eth0` on `incusbr0` (from the `default` profile), which routes out through its own node, and gets its mesh NIC from the `mesh` profile:
 
 ```hcl
-device {
-  name = "eth0"
-  type = "nic"
-  properties = { name = "eth0", network = "incusbr0" }  # default route
-}
+# profiles.tf
+resource "incus_profile" "mesh" {
+  name = "mesh"
 
-device {
-  name = "eth1"
-  type = "nic"
-  properties = {
-    name           = "eth1"     # required for ipv4.gateway to apply
-    network        = "meshbr0"
-    "ipv4.gateway" = "none"     # no default route via the mesh (Incus >= 7.2)
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
+      name           = "eth1"     # required for ipv4.gateway to apply
+      network        = "meshbr0"
+      "ipv4.gateway" = "none"     # no default route via the mesh (Incus >= 7.2, OCI only)
+    }
   }
 }
 
-config = {
-  "user.access_interface" = "eth1"  # ipv4_address stays the mesh IP
+# in a service module
+resource "incus_instance" "example" {
+  profiles = ["default", "mesh"]
+
+  config = {
+    "user.access_interface" = "eth1"  # ipv4_address stays the mesh IP
+  }
 }
 ```
+
+An instance can still override a profile NIC by defining a device with the same name, e.g. Caddy keeps its own `eth0` on `lan` with a pinned `hwaddr`. Keep `user.access_interface` on the instance itself.
 
 Keep `incusbr0` as `eth0`: the Incus DHCP client gives the default route to the alphabetically first interface, so the ordering still works if `ipv4.gateway` is ever dropped. Instances that only answer requests from Caddy and make no outbound connections can stay mesh-only.
 

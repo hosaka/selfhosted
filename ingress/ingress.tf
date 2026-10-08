@@ -59,7 +59,7 @@ resource "incus_instance" "frpc" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "mesh"]
   image    = "ghcr:fatedier/frpc:v${var.frpc_version}"
 
   lifecycle {
@@ -71,22 +71,6 @@ resource "incus_instance" "frpc" {
     target_path        = "/etc/frp/frpc.toml"
     mode               = "0600"
     create_directories = true
-  }
-
-  device {
-    name = "eth0"
-    type = "nic"
-    properties = {
-      network = "incusbr0"
-    }
-  }
-
-  device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      network = "meshbr0"
-    }
   }
 
   wait_for {
@@ -115,7 +99,7 @@ resource "incus_instance" "caddy" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "mesh"]
   image    = "ghcr:hotio/caddy:release-${var.caddy_version}"
 
   lifecycle {
@@ -145,14 +129,6 @@ resource "incus_instance" "caddy" {
   # add the ipv4 on this NIC to DHCP leases on the router and point
   # all the *.${var.private_domain} traffic to this address in order
   # to correctly resolve LAN-only access
-  device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      network = "meshbr0"
-    }
-  }
-
   file {
     content     = local.caddyfile
     target_path = "/config/Caddyfile"

@@ -24,7 +24,7 @@ resource "incus_instance" "jellyfin" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "mesh"]
   image    = "ghcr:hotio/jellyfin:release-${var.jellyfin_version}"
 
   device {
@@ -54,22 +54,6 @@ resource "incus_instance" "jellyfin" {
     properties = {
       gputype = "physical"
       gid     = "1000"
-    }
-  }
-
-  device {
-    name = "eth0"
-    type = "nic"
-    properties = {
-      network = "incusbr0"
-    }
-  }
-
-  device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      network = "meshbr0"
     }
   }
 

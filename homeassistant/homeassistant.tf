@@ -25,7 +25,7 @@ resource "incus_instance" "homeassistant" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "mesh"]
   image    = "ghcr:home-assistant/home-assistant:${var.homeassistant_version}"
 
   device {
@@ -35,22 +35,6 @@ resource "incus_instance" "homeassistant" {
       path   = "/config"
       pool   = incus_storage_volume.homeassistant_data.pool
       source = incus_storage_volume.homeassistant_data.name
-    }
-  }
-
-  device {
-    name = "eth0"
-    type = "nic"
-    properties = {
-      network = "incusbr0"
-    }
-  }
-
-  device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      network = "meshbr0"
     }
   }
 

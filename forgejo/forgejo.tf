@@ -25,7 +25,7 @@ resource "incus_instance" "forgejo_anubis" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "mesh"]
   image    = "ghcr:techarohq/anubis:v${var.anubis_version}"
 
   file {
@@ -33,22 +33,6 @@ resource "incus_instance" "forgejo_anubis" {
     target_path        = "/data/botPolicies.yaml"
     mode               = "0600"
     create_directories = true
-  }
-
-  device {
-    name = "eth0"
-    type = "nic"
-    properties = {
-      network = "incusbr0"
-    }
-  }
-
-  device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      network = "meshbr0"
-    }
   }
 
   wait_for {
@@ -80,7 +64,7 @@ resource "incus_instance" "forgejo" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "mesh"]
   image    = "codeberg:forgejo/forgejo:${var.forgejo_version}-rootless"
 
   device {
@@ -128,22 +112,6 @@ resource "incus_instance" "forgejo" {
     gid                = 1000
     mode               = "0600"
     create_directories = true
-  }
-
-  device {
-    name = "eth0"
-    type = "nic"
-    properties = {
-      network = "incusbr0"
-    }
-  }
-
-  device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      network = "meshbr0"
-    }
   }
 
   wait_for {

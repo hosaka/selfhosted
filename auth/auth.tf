@@ -70,7 +70,7 @@ resource "incus_instance" "authelia" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "mesh"]
   image    = "ghcr:authelia/authelia:${var.authelia_version}"
 
   file {
@@ -78,22 +78,6 @@ resource "incus_instance" "authelia" {
     target_path        = "/config/configuration.yml"
     mode               = "0600"
     create_directories = true
-  }
-
-  device {
-    name = "eth0"
-    type = "nic"
-    properties = {
-      network = "incusbr0"
-    }
-  }
-
-  device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      network = "meshbr0"
-    }
   }
 
   wait_for {
@@ -221,7 +205,7 @@ resource "incus_instance" "lldap" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "mesh"]
   image    = "ghcr:lldap/lldap:v${var.lldap_version}-alpine"
 
   device {
@@ -231,22 +215,6 @@ resource "incus_instance" "lldap" {
       path   = "/data"
       pool   = incus_storage_volume.lldap_data.pool
       source = incus_storage_volume.lldap_data.name
-    }
-  }
-
-  device {
-    name = "eth0"
-    type = "nic"
-    properties = {
-      network = "incusbr0"
-    }
-  }
-
-  device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      network = "meshbr0"
     }
   }
 

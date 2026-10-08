@@ -33,7 +33,7 @@ resource "incus_instance" "qbittorrent" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "mesh"]
   image    = "ghcr:hotio/qbittorrent:release-${var.qbittorrent_version}"
 
   device {
@@ -53,22 +53,6 @@ resource "incus_instance" "qbittorrent" {
       path   = "/data/media"
       pool   = var.media_pool
       source = var.media_source
-    }
-  }
-
-  device {
-    name = "eth0"
-    type = "nic"
-    properties = {
-      network = "incusbr0"
-    }
-  }
-
-  device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      network = "meshbr0"
     }
   }
 
@@ -109,7 +93,7 @@ resource "incus_instance" "qbitmanage" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "mesh"]
   image    = "ghcr:hotio/qbitmanage:release-${var.qbitmanage_version}"
 
   device {
@@ -119,22 +103,6 @@ resource "incus_instance" "qbitmanage" {
       path   = "/data/media"
       pool   = var.media_pool
       source = var.media_source
-    }
-  }
-
-  device {
-    name = "eth0"
-    type = "nic"
-    properties = {
-      network = "incusbr0"
-    }
-  }
-
-  device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      network = "meshbr0"
     }
   }
 

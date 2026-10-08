@@ -17,7 +17,7 @@ resource "incus_instance" "immich" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "mesh"]
   image    = "ghcr:immich-app/immich-server:v${var.immich_version}"
 
   device {
@@ -36,22 +36,6 @@ resource "incus_instance" "immich" {
     type = "gpu"
     properties = {
       gputype = "physical"
-    }
-  }
-
-  device {
-    name = "eth0"
-    type = "nic"
-    properties = {
-      network = "incusbr0"
-    }
-  }
-
-  device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      network = "meshbr0"
     }
   }
 

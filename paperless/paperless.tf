@@ -36,7 +36,7 @@ resource "incus_instance" "paperless" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "mesh"]
   image    = "ghcr:paperless-ngx/paperless-ngx:${var.paperless_version}"
 
   device {
@@ -56,22 +56,6 @@ resource "incus_instance" "paperless" {
       path   = "/usr/src/paperless/media"
       pool   = incus_storage_volume.paperless_media.pool
       source = incus_storage_volume.paperless_media.name
-    }
-  }
-
-  device {
-    name = "eth0"
-    type = "nic"
-    properties = {
-      network = "incusbr0"
-    }
-  }
-
-  device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      network = "meshbr0"
     }
   }
 

@@ -61,7 +61,7 @@ resource "incus_instance" "grafana" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "mesh"]
   image    = "docker:grafana/grafana:${var.grafana_version}"
 
   file {
@@ -103,22 +103,6 @@ resource "incus_instance" "grafana" {
       path   = "/var/lib/grafana"
       pool   = incus_storage_volume.grafana_data.pool
       source = incus_storage_volume.grafana_data.name
-    }
-  }
-
-  device {
-    name = "eth0"
-    type = "nic"
-    properties = {
-      network = "incusbr0"
-    }
-  }
-
-  device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      network = "meshbr0"
     }
   }
 
