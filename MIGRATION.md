@@ -8,6 +8,76 @@ With an existing NAS running docker compose I need a way to migrate all the serv
 - [x] Figure out a way for migrating services with a simple "disable on NAS, enable on Incus" process, after the service data is copied onto the cluster.
 - [ ] Services that utilize HDD storage can not be immediately migrated and require some downtime, this involves backing up an existing ZFS pool onto a separate drive that is big enough to hold everything.
 
+Order per service: **write the module → apply (without ingress) → stop the app → copy cert → restore data → start → add ingress → stop on NAS.**
+
+### 0. Module prep
+- Set `initial.uid`/`initial.gid` to the image's user: postgres alpine `70`, valkey `999:1000`, hotio and most others `1000`
+- Postgres 18: mount the volume at `/var/lib/postgresql`, not `.../data`.
+- Set an explicit `size` on `linstor` volumes if they need to exceed 10GiB (which is a default).
+- Don't add the module's `ingress` to the services list yet.
+
+### 1. Apply, then stop the app
+```bash
+tofu apply -var-file=env-prod.tfvars
+incus stop <app>              # leave <app>-database running
+```
+
+### 2. Caddy certs
+Copy only `certificates/<domain>`, not `acme/`. The cluster Caddy has its own accounts.
+```bash
+# NAS
+doas tar czf /tmp/certs.tar.gz \
+  -C /var/lib/docker/volumes/box_caddy-config/_data/caddy/certificates \
+  acme-v02.api.letsencrypt.org-directory/<domain>
+gzip -t /tmp/certs.tar.gz
+
+# workstation
+scp nas:/tmp/certs.tar.gz /tmp/ && gzip -t /tmp/certs.tar.gz
+mkdir -p /tmp/certs && tar xzf /tmp/certs.tar.gz -C /tmp/certs
+incus file push -r /tmp/certs/acme-v02.api.letsencrypt.org-directory/<domain> caddy/config/caddy/certificates/acme-v02.api.letsencrypt.org-directory/
+incus exec caddy -- chown -R 1000:1000 /config/caddy/certificates
+```
+
+If the cluster Caddy has already issued its own cert for the domain (e.g. a ZeroSSL dir), delete that directory.
+
+### 3a. Postgres
+```bash
+# NAS
+docker compose stop <app>
+docker compose exec -T <app>-database pg_dump -U <user> -Fc <db> > /tmp/<app>.dump
+
+# cluster
+incus file push /tmp/<app>.dump <app>-database/tmp/dump
+incus exec <app>-database -- pg_restore -U <user> -d <db> --clean --if-exists --no-owner /tmp/dump
+```
+
+`--clean --if-exists` replaces the schema the app created on its first boot. A
+custom-format dump from 14 restores into 18 without issues.
+
+### 3b. Data volumes (via a helper container, never `file push` to a stopped instance)
+`incus file push` into a stopped instance lands in its rootfs, not the volume: custom volumes aren't mounted while the instance is stopped.
+
+```bash
+# NAS
+docker compose stop <app>
+docker run --rm -v <project>_<app>-data:/data -v /tmp:/backup alpine \
+  tar czf /backup/<app>.tar.gz -C /data .
+
+# cluster
+incus launch images:alpine helper --target <node>
+incus config device add helper vol disk pool=linstor source=<app>-data path=/mnt
+incus file push /tmp/<app>.tar.gz helper/tmp/
+incus exec helper -- sh -c 'rm -rf /mnt/* && tar xzf /tmp/<app>.tar.gz -C /mnt'
+incus delete -f helper
+```
+
+### 4. Start, verify, add ingress
+```bash
+incus start <app>
+```
+
+Check the instance logs. Then add `module.<app>.ingress` to the services list and apply. Caddy reloads, and frpc registers the exact domain, which takes precedence over the NAS wildcard, so traffic switches over. Remove the service from the NAS compose afterwards.
+
 ## NAS Migration
 
 There are currently 5x HDDs and 2x SSDs in the NAS. The HDDs are in a ZFS raidz1 and SDDs are in BTRFS raid1. The procedure of migrating the NAS OS and the ZFS pool it carries is roughly:
@@ -19,9 +89,7 @@ There are currently 5x HDDs and 2x SSDs in the NAS. The HDDs are in a ZFS raidz1
 5. Create Incus *storage pool* on the new volume and one *storage volume* per old ZFS volume.
 6. Migrate **old** ZFS volumes from a backup drive onto the new Incus *storage volumes*.
 
-### Step by Step
-
-#### Preparing Data Snapshot
+### Preparing Data Snapshot
 
 Stop the stack.
 
@@ -47,7 +115,7 @@ zpool scrub temp
 zpool export temp
 ```
 
-#### Migrating to Incus
+### Migrating to Incus
 
 Prepare an IncusOS image for the joining NAS using `flasher-tool` directly or the `just image node-4` recipe and flash it. Boot the OS, wait for it to install/reboot and a new remote with the correct IP address:
 ```bash
@@ -119,15 +187,17 @@ Add `node-4` to the cluster members in tofu, then create the `nas` Incus storage
 ```bash
 tofu plan
 tofu apply -target=null_resource.post_storage_volumes
-incus storage volume list hdd
+incus storage volume list nas
 ```
 
 Create a helper VM that will facilitate the data migration:
 ```bash
 incus init images:ubuntu/24.04 helper --vm --target node-4
+
+# for every volume that is being migrated (media, immich etc.,)
 incus config device add helper temp disk source=/dev/disk/by-id/backup-disk-id
-incus config device add helper media disk pool=hdd source=media path=/mnt/media
-# ...same for immich, voidrepo
+incus config device add helper media disk pool=nas source=media path=/mnt/media
+
 incus start helper
 incus shell helper
 apt update
