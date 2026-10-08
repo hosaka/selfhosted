@@ -36,6 +36,7 @@ module "ingress" {
     module.atuin.ingress,
     module.forgejo.ingress,
     module.metrics.ingress,
+    # module.navidrome.ingress,
     module.notify.ingress,
     module.paperless.ingress,
     # module.qbittorrent.ingress,
@@ -99,6 +100,17 @@ module "metrics" {
   timezone      = var.timezone
   depends_on    = [null_resource.post_server, module.linstor]
 }
+
+# module "navidrome" {
+#   source         = "./navidrome"
+#   config         = var.config.navidrome
+#   target         = var.cluster.node-4.target
+#   media_pool     = incus_storage_volume.media.pool
+#   media_source   = incus_storage_volume.media.name
+#   public_domain  = var.public_domain
+#   private_domain = var.private_domain
+#   depends_on     = [null_resource.post_server, module.linstor]
+# }
 
 module "notify" {
   source         = "./notify"
