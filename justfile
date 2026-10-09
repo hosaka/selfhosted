@@ -30,9 +30,10 @@ images format='img':
     @just image node-1 {{ format }}
     @just image node-2 {{ format }}
     @just image node-3 {{ format }}
+    @just image node-4 {{ format }}
 
 [arg('format', pattern='iso|img', help='File format to generate')]
-[arg('node', pattern='node-1|node-2|node-3', help='Node to build the image for')]
+[arg('node', pattern='node-1|node-2|node-3|node-4', help='Node to build the image for')]
 [doc('prepare an image with IncusOS')]
 image node format='img': _flasher-tool (onpath 'tar')
     tar --directory=incus/ -cvf seed-{{ node }}.tar \
