@@ -55,6 +55,23 @@ resource "incus_storage_volume" "logs" {
   ]
 }
 
+# resource "incus_storage_volume" "immich" {
+#   name         = "immich"
+#   description  = "Immich photo and video library"
+#   target       = "node-4"
+#   pool         = incus_storage_pool.nas.name
+#   type         = "custom"
+#   content_type = "filesystem"
+#
+#   config = {
+#     "zfs.blocksize" = "1MiB"
+#   }
+#
+#   depends_on = [
+#     null_resource.post_storage_pools,
+#   ]
+# }
+
 # resource "incus_storage_volume" "media" {
 #   name         = "media"
 #   description  = "Shared media library"
@@ -65,6 +82,7 @@ resource "incus_storage_volume" "logs" {
 #
 #   config = {
 #     "security.shifted" = "true"
+#     "zfs.blocksize"    = "1MiB"
 #   }
 #
 #   depends_on = [
@@ -72,9 +90,9 @@ resource "incus_storage_volume" "logs" {
 #   ]
 # }
 
-# resource "incus_storage_volume" "immich" {
-#   name         = "immich"
-#   description  = "Immich photo and video library"
+# resource "incus_storage_volume" "private" {
+#   name         = "private"
+#   description  = "Family files from the old SMB share, not attached to any service yet"
 #   target       = "node-4"
 #   pool         = incus_storage_pool.nas.name
 #   type         = "custom"
@@ -85,18 +103,13 @@ resource "incus_storage_volume" "logs" {
 #   ]
 # }
 
-# resource "incus_storage_volume" "voidrepo" {
-#   name         = "voidrepo"
-#   description  = "Void Linux repository mirror"
+# resource "incus_storage_volume" "private" {
+#   name         = "private"
+#   description  = "Family files from the old SMB share, not attached to any service yet"
 #   target       = "node-4"
 #   pool         = incus_storage_pool.nas.name
 #   type         = "custom"
 #   content_type = "filesystem"
-#
-#   config = {
-#     # shared between voidrepo-sync and voidrepo
-#     "security.shifted" = "true"
-#   }
 #
 #   depends_on = [
 #     null_resource.post_storage_pools,
@@ -110,6 +123,7 @@ resource "null_resource" "post_storage_volumes" {
     incus_storage_volume.logs,
     # incus_storage_volume.immich,
     # incus_storage_volume.media,
+    # incus_storage_volume.private,
     # incus_storage_volume.voidrepo,
   ]
 }
