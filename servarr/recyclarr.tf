@@ -7,6 +7,16 @@ locals {
   })
 }
 
+resource "incus_storage_volume" "recyclarr_config" {
+  name = "recyclarr-config"
+  pool = "linstor"
+
+  config = {
+    "initial.uid" = "1000"
+    "initial.gid" = "1000"
+  }
+}
+
 resource "incus_instance" "recyclarr" {
   name = "recyclarr"
   type = "container"
@@ -14,6 +24,16 @@ resource "incus_instance" "recyclarr" {
   target   = var.target
   profiles = ["default", "mesh"]
   image    = "ghcr:recyclarr/recyclarr:${var.versions.recyclarr}"
+
+  device {
+    name = "config"
+    type = "disk"
+    properties = {
+      path   = "/config"
+      pool   = incus_storage_volume.recyclarr_config.pool
+      source = incus_storage_volume.recyclarr_config.name
+    }
+  }
 
   file {
     content            = local.recyclarr_config
