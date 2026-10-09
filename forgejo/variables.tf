@@ -1,15 +1,31 @@
-variable "config" {
+variable "db_name" {
+  type    = string
+  default = "forgejo"
+}
+
+variable "smtp_port" {
+  type    = number
+  default = 465
+}
+
+variable "mailer_from" {
+  type    = string
+  default = null
+}
+
+variable "trusted_proxies" {
+  type    = string
+  default = "127.0.0.0/8,::1/128,10.0.0.0/8"
+}
+
+variable "secrets" {
   type = object({
-    db_name            = optional(string, "forgejo")
+    smtp_address       = string
     db_username        = optional(string, "postgres")
     db_password        = string
-    smtp_address       = string
-    smtp_port          = optional(number, 465)
-    mailer_from        = string
     mailer_user        = string
     mailer_password    = string
     internal_token     = string
-    trusted_proxies    = optional(string, "127.0.0.0/8,::1/128,10.0.0.0/8")
     secret_key         = string
     lfs_jwt_secret     = string
     oidc_client_id     = string
@@ -34,3 +50,9 @@ variable "private_domain" {
   type = string
 }
 
+variable "versions" {
+  type = object({
+    anubis  = string
+    forgejo = string
+  })
+}

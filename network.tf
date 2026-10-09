@@ -33,6 +33,9 @@ locals {
     (var.cluster.node-3.target) = var.cluster.uplink
     # node-4 may differ - keep the map structure for that reason
   }
+
+  # meshbr0 subnet, passed to services that need to trust or bypass mesh traffic
+  mesh_cidr = format("10.%d.%d.0/24", random_integer.meshbr0-v4-subnet-2.result, random_integer.meshbr0-v4-subnet-3.result)
 }
 
 // Generate random values for the meshbr0 IPv4 subnet.
@@ -80,7 +83,7 @@ resource "incus_network" "meshbr0" {
   description = "Internal mesh network bridge"
 
   config = {
-    "ipv4.address" = format("10.%d.%d.1/24", random_integer.meshbr0-v4-subnet-2.result, random_integer.meshbr0-v4-subnet-3.result)
+    "ipv4.address" = "${cidrhost(local.mesh_cidr, 1)}/24"
     "ipv4.nat"     = "false"
     "ipv6.address" = "none"
     # "ipv6.address"         = format("fd42:%x:%x:%x::/64", random_integer.meshbr0-v6-subnet-2.result, random_integer.meshbr0-v6-subnet-3.result, random_integer.meshbr0-v6-subnet-4.result)

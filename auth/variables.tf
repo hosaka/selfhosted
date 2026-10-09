@@ -1,7 +1,24 @@
-variable "config" {
+# lldap
+# defaults to "dc=<public_domain parts>", e.g. "dc=example,dc=com"
+variable "lldap_base_dn" {
+  type    = string
+  default = null
+}
+
+# authelia
+variable "smtp_sender" {
+  type    = string
+  default = null
+}
+
+variable "db_name" {
+  type    = string
+  default = "authelia"
+}
+
+variable "secrets" {
   type = object({
     # lldap
-    lldap_base_dn    = string
     lldap_user_pass  = string
     lldap_jwt_secret = string
     lldap_key_seed   = string
@@ -13,9 +30,7 @@ variable "config" {
     smtp_address           = string
     smtp_username          = string
     smtp_password          = string
-    smtp_sender            = string
     jwt_secret             = string
-    db_name                = optional(string, "authelia")
     db_username            = optional(string, "postgres")
     db_password            = string
 
@@ -58,3 +73,9 @@ variable "private_domain" {
   type = string
 }
 
+variable "versions" {
+  type = object({
+    authelia = string
+    lldap    = string
+  })
+}

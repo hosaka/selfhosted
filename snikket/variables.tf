@@ -1,7 +1,3 @@
-variable "config" {
-  type = object({
-  })
-}
 variable "target" {
   type = string
 }
@@ -15,3 +11,8 @@ variable "public_domain" {
   type = string
 }
 
+variable "versions" {
+  type = object({
+    snikket = string
+  })
+}

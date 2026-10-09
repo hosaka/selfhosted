@@ -1,6 +1,10 @@
-variable "config" {
+variable "port" {
+  type    = string
+  default = "8444"
+}
+
+variable "secrets" {
   type = object({
-    port               = optional(string, "8444")
     oidc_client_id     = string
     oidc_client_secret = string
   })
@@ -23,3 +27,10 @@ variable "public_domain" {
   type = string
 }
 
+variable "versions" {
+  type = object({
+    grafana    = string
+    prometheus = string
+    loki       = string
+  })
+}

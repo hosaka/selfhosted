@@ -1,4 +1,4 @@
-variable "config" {
+variable "secrets" {
   type = object({
     # unused for now, the SSO plugin keeps its own copy in /config
     # but let's hope that Jellyfin gets native OIDC support one day
@@ -25,4 +25,10 @@ variable "media_pool" {
 
 variable "media_source" {
   type = string
+}
+
+variable "versions" {
+  type = object({
+    jellyfin = string
+  })
 }

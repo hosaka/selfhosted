@@ -1,8 +1,3 @@
-variable "paperless_version" {
-  type    = string
-  default = "3.0.4"
-}
-
 locals {
   paperless_ports = {
     webui  = 8000
@@ -37,7 +32,7 @@ resource "incus_instance" "paperless" {
 
   target   = var.target
   profiles = ["default", "mesh"]
-  image    = "ghcr:paperless-ngx/paperless-ngx:${var.paperless_version}"
+  image    = "ghcr:paperless-ngx/paperless-ngx:${var.versions.paperless}"
 
   device {
     name = "data"
@@ -80,8 +75,8 @@ resource "incus_instance" "paperless" {
         APPS = [{
           provider_id = "authelia"
           name        = "Authelia"
-          client_id   = var.config.oidc_client_id
-          secret      = sensitive(var.config.oidc_client_secret)
+          client_id   = var.secrets.oidc_client_id
+          secret      = sensitive(var.secrets.oidc_client_secret)
           settings = {
             server_url        = "https://auth.${var.public_domain}"
             token_auth_method = "client_secret_basic"
@@ -92,15 +87,15 @@ resource "incus_instance" "paperless" {
     "environment.PAPERLESS_URL"                  = "https://paperless.${var.public_domain}"
     "environment.PAPERLESS_ALLOWED_HOSTS"        = "localhost,paperless.${var.public_domain}"
     "environment.PAPERLESS_CSRF_TRUSTED_ORIGINS" = "https://paperless.${var.public_domain}"
-    "environment.PAPERLESS_SECRET_KEY"           = sensitive(var.config.secret_key)
-    "environment.PAPERLESS_ADMIN_USER"           = sensitive(var.config.admin_user)
-    "environment.PAPERLESS_ADMIN_PASSWORD"       = sensitive(var.config.admin_password)
+    "environment.PAPERLESS_SECRET_KEY"           = sensitive(var.secrets.secret_key)
+    "environment.PAPERLESS_ADMIN_USER"           = sensitive(var.secrets.admin_user)
+    "environment.PAPERLESS_ADMIN_PASSWORD"       = sensitive(var.secrets.admin_password)
 
     "environment.PAPERLESS_REDIS"     = "redis://${incus_instance.paperless_valkey.ipv4_address}:${local.paperless_ports.valkey}"
     "environment.PAPERLESS_DBHOST"    = incus_instance.paperless_database.ipv4_address
-    "environment.PAPERLESS_DBUSER"    = var.config.db_username
-    "environment.PAPERLESS_DBPASS"    = sensitive(var.config.db_password)
-    "environment.PAPERLESS_DBNAME"    = var.config.db_name
+    "environment.PAPERLESS_DBUSER"    = var.secrets.db_username
+    "environment.PAPERLESS_DBPASS"    = sensitive(var.secrets.db_password)
+    "environment.PAPERLESS_DBNAME"    = var.db_name
     "environment.PAPERLESS_TIME_ZONE" = var.timezone
 
     "user.access_interface" = "eth1"
@@ -149,9 +144,9 @@ resource "incus_instance" "paperless_database" {
   }
 
   config = {
-    "environment.POSTGRES_DB"       = var.config.db_name
-    "environment.POSTGRES_USER"     = var.config.db_username
-    "environment.POSTGRES_PASSWORD" = sensitive(var.config.db_password)
+    "environment.POSTGRES_DB"       = var.db_name
+    "environment.POSTGRES_USER"     = var.secrets.db_username
+    "environment.POSTGRES_PASSWORD" = sensitive(var.secrets.db_password)
     "environment.PGTZ"              = var.timezone
 
     "user.access_interface" = "eth0"

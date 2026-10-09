@@ -1,11 +1,23 @@
-variable "config" {
+variable "smtp_from" {
+  type    = string
+  default = null
+}
+
+variable "smtp_port" {
+  type    = number
+  default = 465
+}
+
+variable "smtp_security" {
+  type    = string
+  default = "force_tls"
+}
+
+variable "secrets" {
   type = object({
     admin_token        = string
-    smtp_from          = string
     smtp_host          = string
     smtp_password      = string
-    smtp_port          = optional(number, 465)
-    smtp_security      = optional(string, "force_tls")
     smtp_username      = string
     oidc_client_id     = string
     oidc_client_secret = string
@@ -13,6 +25,7 @@ variable "config" {
     yubico_secret_key  = string
   })
 }
+
 variable "target" {
   type = string
 }
@@ -30,3 +43,8 @@ variable "private_domain" {
   type = string
 }
 
+variable "versions" {
+  type = object({
+    vaultwarden = string
+  })
+}

@@ -18,3 +18,9 @@ variable "media_pool" {
 variable "media_source" {
   type = string
 }
+
+variable "versions" {
+  type = object({
+    kavita = string
+  })
+}

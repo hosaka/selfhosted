@@ -1,6 +1,3 @@
-variable "config" {
-  type = object({})
-}
 
 variable "target" {
   type = string
@@ -13,4 +10,11 @@ variable "timezone" {
 
 variable "private_domain" {
   type = string
+}
+
+variable "versions" {
+  type = object({
+    homeassistant = string
+    mosquitto     = string
+  })
 }

@@ -1,8 +1,3 @@
-variable "snikket_version" {
-  type    = string
-  default = "stable.20260611"
-}
-
 locals {
   snikket_ports = {
     api     = 5280
@@ -37,7 +32,7 @@ resource "incus_instance" "snikket_server" {
 
   target   = var.target
   profiles = ["default", "mesh"]
-  image    = "docker:snikket/snikket-server:${var.snikket_version}"
+  image    = "docker:snikket/snikket-server:${var.versions.snikket}"
 
   device {
     name = "data"
@@ -79,7 +74,7 @@ resource "incus_instance" "snikket_server" {
 #
 #   target   = var.target
 #   profiles = ["default"]
-#   image    = "docker:snikket/snikket-cert-manager:${var.snikket_version}"
+#   image    = "docker:snikket/snikket-cert-manager:${var.versions.snikket}"
 #
 #   device {
 #     name = "data"
@@ -115,7 +110,7 @@ resource "incus_instance" "snikket_web" {
 
   target   = var.target
   profiles = ["default"]
-  image    = "docker:snikket/snikket-web-portal:${var.snikket_version}"
+  image    = "docker:snikket/snikket-web-portal:${var.versions.snikket}"
 
   device {
     name = "eth0"

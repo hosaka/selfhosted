@@ -1,13 +1,3 @@
-variable "gotify_version" {
-  type    = string
-  default = "3.0.0"
-}
-
-variable "diun_version" {
-  type    = string
-  default = "4.33"
-}
-
 locals {
   gotify_ports = {
     webui = 80
@@ -27,7 +17,7 @@ resource "incus_instance" "gotify" {
 
   target   = var.target
   profiles = ["default", "mesh"]
-  image    = "ghcr:gotify/server:${var.gotify_version}"
+  image    = "ghcr:gotify/server:${var.versions.gotify}"
 
   device {
     name = "data"
@@ -46,8 +36,8 @@ resource "incus_instance" "gotify" {
   config = {
     "environment.GOTIFY_OIDC_ENABLED"       = "true"
     "environment.GOTIFY_OIDC_ISSUER"        = "https://auth.${var.public_domain}"
-    "environment.GOTIFY_OIDC_CLIENTID"      = "${var.config.oidc_client_id}"
-    "environment.GOTIFY_OIDC_CLIENTSECRET"  = "${sensitive(var.config.oidc_client_secret)}"
+    "environment.GOTIFY_OIDC_CLIENTID"      = "${var.secrets.oidc_client_id}"
+    "environment.GOTIFY_OIDC_CLIENTSECRET"  = "${sensitive(var.secrets.oidc_client_secret)}"
     "environment.GOTIFY_OIDC_REDIRECTURL"   = "https://gotify.${var.public_domain}/auth/oidc/callback"
     "environment.GOTIFY_OIDC_AUTOREGISTER"  = "true"
     "environment.GOTIFY_OIDC_USERNAMECLAIM" = "preferred_username"
@@ -67,7 +57,7 @@ resource "incus_instance" "diun" {
 
   target   = var.target
   profiles = ["default", "mesh"]
-  image    = "ghcr:crazy-max/diun:${var.diun_version}"
+  image    = "ghcr:crazy-max/diun:${var.versions.diun}"
 
   device {
     name = "data"
@@ -93,17 +83,17 @@ resource "incus_instance" "diun" {
 
   config = {
     "environment.DIUN_NOTIF_GOTIFY_ENDPOINT"   = "http://${incus_instance.gotify.ipv4_address}"
-    "environment.DIUN_NOTIF_GOTIFY_TOKEN"      = "${sensitive(var.config.gotify_token)}"
+    "environment.DIUN_NOTIF_GOTIFY_TOKEN"      = "${sensitive(var.secrets.gotify_token)}"
     "environment.DIUN_WATCH_WORKERS"           = "10"
     "environment.DIUN_WATCH_SCHEDULE"          = "0 */6 * * *"
     "environment.DIUN_REGOPTS_0_NAME"          = "docker.io"
     "environment.DIUN_REGOPTS_0_SELECTOR"      = "image"
-    "environment.DIUN_REGOPTS_0_USERNAME"      = "${var.config.dockerhub_username}"
-    "environment.DIUN_REGOPTS_0_PASSWORD"      = "${sensitive(var.config.dockerhub_password)}"
+    "environment.DIUN_REGOPTS_0_USERNAME"      = "${var.secrets.dockerhub_username}"
+    "environment.DIUN_REGOPTS_0_PASSWORD"      = "${sensitive(var.secrets.dockerhub_password)}"
     "environment.DIUN_REGOPTS_1_NAME"          = "ghcr.io"
     "environment.DIUN_REGOPTS_1_SELECTOR"      = "image"
-    "environment.DIUN_REGOPTS_1_USERNAME"      = "${var.config.ghcr_username}"
-    "environment.DIUN_REGOPTS_1_PASSWORD"      = "${sensitive(var.config.ghcr_password)}"
+    "environment.DIUN_REGOPTS_1_USERNAME"      = "${var.secrets.ghcr_username}"
+    "environment.DIUN_REGOPTS_1_PASSWORD"      = "${sensitive(var.secrets.ghcr_password)}"
     "environment.DIUN_PROVIDERS_FILE_FILENAME" = "/config.yml"
 
     "oci.entrypoint" = "/bin/sh -c 'while [ ! -f /config.yml ]; do sleep 1; done; exec diun serve'"

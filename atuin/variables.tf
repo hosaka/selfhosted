@@ -1,6 +1,10 @@
-variable "config" {
+variable "db_name" {
+  type    = string
+  default = "atuin"
+}
+
+variable "secrets" {
   type = object({
-    db_name     = optional(string, "atuin")
     db_username = optional(string, "postgres")
     db_password = string
   })
@@ -23,3 +27,8 @@ variable "private_domain" {
   type = string
 }
 
+variable "versions" {
+  type = object({
+    atuin = string
+  })
+}

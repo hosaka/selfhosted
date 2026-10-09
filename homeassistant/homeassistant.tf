@@ -1,13 +1,3 @@
-variable "homeassistant_version" {
-  type    = string
-  default = "2026.7.4"
-}
-
-variable "mosquitto_version" {
-  type    = string
-  default = "2.0.22"
-}
-
 locals {
   homeassistant_ports = {
     webui = 8123
@@ -26,7 +16,7 @@ resource "incus_instance" "homeassistant" {
 
   target   = var.target
   profiles = ["default", "mesh"]
-  image    = "ghcr:home-assistant/home-assistant:${var.homeassistant_version}"
+  image    = "ghcr:home-assistant/home-assistant:${var.versions.homeassistant}"
 
   device {
     name = "config"
@@ -60,7 +50,7 @@ resource "incus_instance" "mosquitto" {
 
   target   = var.target
   profiles = ["default"]
-  image    = "docker:eclipse-mosquitto:${var.mosquitto_version}"
+  image    = "docker:eclipse-mosquitto:${var.versions.mosquitto}"
 
   file {
     content            = file("${path.module}/mosquitto.conf")

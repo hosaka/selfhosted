@@ -1,8 +1,3 @@
-variable "radarr_version" {
-  type    = string
-  default = "6.3.0.10514"
-}
-
 locals {
   radarr_ports = {
     webui = 7878
@@ -31,7 +26,7 @@ resource "incus_instance" "radarr" {
 
   target   = var.target
   profiles = ["default", "mesh"]
-  image    = "ghcr:hotio/radarr:release-${var.radarr_version}"
+  image    = "ghcr:hotio/radarr:release-${var.versions.radarr}"
 
   device {
     name = "config"
@@ -58,7 +53,7 @@ resource "incus_instance" "radarr" {
   }
 
   config = {
-    "environment.RADARR__AUTH__APIKEY" = sensitive(var.config.radarr_api_key)
+    "environment.RADARR__AUTH__APIKEY" = sensitive(var.secrets.radarr_api_key)
     "environment.TZ"                   = var.timezone
 
     "user.access_interface" = "eth1"

@@ -1,8 +1,3 @@
-variable "slskd_version" {
-  type    = string
-  default = "0.26.0"
-}
-
 locals {
   slskd_ports = {
     webui  = 5030
@@ -21,8 +16,8 @@ resource "incus_storage_volume" "slskd_data" {
   pool = "linstor"
 
   config = {
-    "initial.uid" = var.config.puid
-    "initial.gid" = var.config.pgid
+    "initial.uid" = var.puid
+    "initial.gid" = var.pgid
   }
 }
 
@@ -32,7 +27,7 @@ resource "incus_instance" "slskd" {
 
   target   = var.target
   profiles = ["default", "mesh"]
-  image    = "ghcr:slskd/slskd:${var.slskd_version}"
+  image    = "ghcr:slskd/slskd:${var.versions.slskd}"
 
   device {
     name = "data"
@@ -59,8 +54,8 @@ resource "incus_instance" "slskd" {
   }
 
   config = {
-    "oci.uid" = var.config.puid
-    "oci.gid" = var.config.pgid
+    "oci.uid" = var.puid
+    "oci.gid" = var.pgid
 
     "environment.SLSKD_NO_AUTH"              = "true"
     "environment.SLSKD_NO_HTTPS"             = "true"
@@ -72,17 +67,17 @@ resource "incus_instance" "slskd" {
     "environment.SLSKD_SLSK_PROXY_ENABLED"  = "true"
     "environment.SLSKD_SLSK_PROXY_ADDRESS"  = "frp.${var.public_domain}"
     "environment.SLSKD_SLSK_PROXY_PORT"     = "41080"
-    "environment.SLSKD_SLSK_PROXY_USERNAME" = var.config.slsk_proxy_username
-    "environment.SLSKD_SLSK_PROXY_PASSWORD" = sensitive(var.config.slsk_proxy_password)
-    "environment.SLSKD_SLSK_USERNAME"       = var.config.slsk_username
-    "environment.SLSKD_SLSK_PASSWORD"       = sensitive(var.config.slsk_password)
+    "environment.SLSKD_SLSK_PROXY_USERNAME" = var.secrets.slsk_proxy_username
+    "environment.SLSKD_SLSK_PROXY_PASSWORD" = sensitive(var.secrets.slsk_proxy_password)
+    "environment.SLSKD_SLSK_USERNAME"       = var.secrets.slsk_username
+    "environment.SLSKD_SLSK_PASSWORD"       = sensitive(var.secrets.slsk_password)
     "environment.SLSKD_DOWNLOADS_DIR"       = local.slskd_dirs.downloads
     "environment.SLSKD_INCOMPLETE_DIR"      = local.slskd_dirs.incomplete
     "environment.SLSKD_SHARED_DIR"          = local.slskd_dirs.shared
-    "environment.SLSKD_UMASK"               = var.config.umask
+    "environment.SLSKD_UMASK"               = var.umask
 
     # slskd refuses to start when the dirs are missing
-    "oci.entrypoint" = "/usr/bin/tini -- /bin/sh -c 'umask ${var.config.umask} && mkdir -p ${join(" ", values(local.slskd_dirs))} && exec /entrypoint.sh /slskd/slskd'"
+    "oci.entrypoint" = "/usr/bin/tini -- /bin/sh -c 'umask ${var.umask} && mkdir -p ${join(" ", values(local.slskd_dirs))} && exec /entrypoint.sh /slskd/slskd'"
 
     "user.access_interface" = "eth1"
   }

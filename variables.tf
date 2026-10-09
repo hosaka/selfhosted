@@ -10,8 +10,8 @@ variable "private_domain" {
   type = string
 }
 
-# Single object holding all configs for services.
-variable "config" {
+# Credentials for each module, see secrets.auto.tfvars (sops encrypted as secrets.default.tfvars).
+variable "secrets" {
   type = map(any)
 }
 
@@ -53,3 +53,7 @@ variable "cluster" {
   }
 }
 
+# Container image versions for each module, see versions.auto.tfvars.
+variable "versions" {
+  type = map(map(string))
+}

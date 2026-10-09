@@ -1,8 +1,3 @@
-variable "frigate_version" {
-  type    = string
-  default = "0.17.2"
-}
-
 locals {
   frigate_ports = {
     webui  = 5000
@@ -22,7 +17,7 @@ resource "incus_instance" "frigate" {
 
   target   = var.target
   profiles = ["default", "mesh"]
-  image    = "ghcr:blakeblackshear/frigate:${var.frigate_version}"
+  image    = "ghcr:blakeblackshear/frigate:${var.versions.frigate}"
 
   device {
     name = "config"
@@ -75,13 +70,13 @@ resource "incus_instance" "frigate" {
   file {
     content = templatefile("${path.module}/config.yml.tpl", {
       mqtt_host        = var.mqtt_host
-      mqtt_user        = var.config.mqtt_user
-      mqtt_password    = sensitive(var.config.mqtt_password)
-      camera_user      = var.config.camera_user
-      camera1_host     = var.config.camera1_host
-      camera1_password = sensitive(var.config.camera1_password)
-      camera2_host     = var.config.camera2_host
-      camera2_password = sensitive(var.config.camera2_password)
+      mqtt_user        = var.secrets.mqtt_user
+      mqtt_password    = sensitive(var.secrets.mqtt_password)
+      camera_user      = var.secrets.camera_user
+      camera1_host     = var.camera1_host
+      camera1_password = sensitive(var.secrets.camera1_password)
+      camera2_host     = var.camera2_host
+      camera2_password = sensitive(var.secrets.camera2_password)
     })
     target_path = "/config/config.yml"
     mode        = "0600"

@@ -1,8 +1,3 @@
-variable "navidrome_version" {
-  type    = string
-  default = "0.63.2"
-}
-
 locals {
   navidrome_ports = {
     webui = 4533
@@ -20,7 +15,7 @@ resource "incus_instance" "navidrome" {
 
   target   = var.target
   profiles = ["default", "mesh"]
-  image    = "ghcr:navidrome/navidrome:${var.navidrome_version}"
+  image    = "ghcr:navidrome/navidrome:${var.versions.navidrome}"
 
   device {
     name = "data"
@@ -54,8 +49,8 @@ resource "incus_instance" "navidrome" {
     "environment.ND_ENABLEINSIGHTSCOLLECTOR" = "true"
     # used to fetch artist images
     "environment.ND_LASTFM_ENABLED" = "true"
-    "environment.ND_LASTFM_APIKEY"  = sensitive(var.config.lastfm_apikey)
-    "environment.ND_LASTFM_SECRET"  = sensitive(var.config.lastfm_secret)
+    "environment.ND_LASTFM_APIKEY"  = sensitive(var.secrets.lastfm_apikey)
+    "environment.ND_LASTFM_SECRET"  = sensitive(var.secrets.lastfm_secret)
     # todo: enable external auth when it supports OIDC, ForwardAuth is a pain
     # see https://www.navidrome.org/docs/usage/integration/authentication/
 

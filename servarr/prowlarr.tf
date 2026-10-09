@@ -1,8 +1,3 @@
-variable "prowlarr_version" {
-  type    = string
-  default = "2.5.2.5491"
-}
-
 locals {
   prowlarr_ports = {
     webui = 9696
@@ -31,7 +26,7 @@ resource "incus_instance" "prowlarr" {
 
   target   = var.target
   profiles = ["default", "mesh"]
-  image    = "ghcr:hotio/prowlarr:release-${var.prowlarr_version}"
+  image    = "ghcr:hotio/prowlarr:release-${var.versions.prowlarr}"
 
   device {
     name = "config"
@@ -58,7 +53,7 @@ resource "incus_instance" "prowlarr" {
   }
 
   config = {
-    "environment.PROWLARR__AUTH__APIKEY" = sensitive(var.config.prowlarr_api_key)
+    "environment.PROWLARR__AUTH__APIKEY" = sensitive(var.secrets.prowlarr_api_key)
     "environment.TZ"                     = var.timezone
 
     "user.access_interface" = "eth1"

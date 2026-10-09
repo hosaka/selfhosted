@@ -22,9 +22,9 @@ module "linstor" {
 
 # This is the entrypoint for all server traffic.
 module "ingress" {
-  source = "./ingress"
-
-  config         = var.config.ingress
+  source         = "./ingress"
+  versions       = var.versions.ingress
+  secrets        = var.secrets.ingress
   target         = var.cluster.node-3.target
   public_domain  = var.public_domain
   private_domain = var.private_domain
@@ -60,7 +60,8 @@ module "ingress" {
 # Service authentication layer
 module "auth" {
   source         = "./auth"
-  config         = var.config.auth
+  versions       = var.versions.auth
+  secrets        = var.secrets.auth
   target         = var.cluster.node-3.target
   public_domain  = var.public_domain
   private_domain = var.private_domain
@@ -70,7 +71,8 @@ module "auth" {
 
 module "atuin" {
   source         = "./atuin"
-  config         = var.config.atuin
+  versions       = var.versions.atuin
+  secrets        = var.secrets.atuin
   target         = var.cluster.node-1.target
   public_domain  = var.public_domain
   private_domain = var.private_domain
@@ -79,20 +81,20 @@ module "atuin" {
 }
 
 module "forgejo" {
-  source = "./forgejo"
-  config = merge(var.config.forgejo, {
-    trusted_proxies = format("10.%d.%d.0/24", random_integer.meshbr0-v4-subnet-2.result, random_integer.meshbr0-v4-subnet-3.result)
-  })
-  target         = var.cluster.node-1.target
-  public_domain  = var.public_domain
-  private_domain = var.private_domain
-  timezone       = var.timezone
-  depends_on     = [null_resource.post_server, module.linstor]
+  source          = "./forgejo"
+  versions        = var.versions.forgejo
+  secrets         = var.secrets.forgejo
+  target          = var.cluster.node-1.target
+  public_domain   = var.public_domain
+  private_domain  = var.private_domain
+  timezone        = var.timezone
+  trusted_proxies = local.mesh_cidr
+  depends_on      = [null_resource.post_server, module.linstor]
 }
 
 # module "homeassistant" {
 #   source         = "./homeassistant"
-#   config         = var.config.homeassistant
+#   versions       = var.versions.homeassistant
 #   target         = var.cluster.node-1.target
 #   private_domain = var.private_domain
 #   timezone       = var.timezone
@@ -101,7 +103,8 @@ module "forgejo" {
 
 # module "immich" {
 #   source         = "./immich"
-#   config         = var.config.immich
+#   versions       = var.versions.immich
+#   secrets        = var.secrets.immich
 #   target         = var.cluster.node-4.target
 #   storage_pool   = incus_storage_volume.immich.pool
 #   storage_source = incus_storage_volume.immich.name
@@ -113,7 +116,8 @@ module "forgejo" {
 
 # module "jellyfin" {
 #   source         = "./jellyfin"
-#   config         = var.config.jellyfin
+#   versions       = var.versions.jellyfin
+#   secrets        = var.secrets.jellyfin
 #   target         = var.cluster.node-4.target
 #   media_pool     = incus_storage_volume.media.pool
 #   media_source   = incus_storage_volume.media.name
@@ -124,6 +128,7 @@ module "forgejo" {
 
 # module "kavita" {
 #   source         = "./kavita"
+#   versions       = var.versions.kavita
 #   target         = var.cluster.node-4.target
 #   media_pool     = incus_storage_volume.media.pool
 #   media_source   = incus_storage_volume.media.name
@@ -134,7 +139,8 @@ module "forgejo" {
 
 module "metrics" {
   source        = "./metrics"
-  config        = var.config.metrics
+  versions      = var.versions.metrics
+  secrets       = var.secrets.metrics
   members       = local.members
   target        = var.cluster.node-2.target
   public_domain = var.public_domain
@@ -144,7 +150,8 @@ module "metrics" {
 
 # module "navidrome" {
 #   source         = "./navidrome"
-#   config         = var.config.navidrome
+#   versions       = var.versions.navidrome
+#   secrets        = var.secrets.navidrome
 #   target         = var.cluster.node-4.target
 #   media_pool     = incus_storage_volume.media.pool
 #   media_source   = incus_storage_volume.media.name
@@ -155,7 +162,8 @@ module "metrics" {
 
 module "notify" {
   source         = "./notify"
-  config         = var.config.notify
+  versions       = var.versions.notify
+  secrets        = var.secrets.notify
   target         = var.cluster.node-2.target
   public_domain  = var.public_domain
   private_domain = var.private_domain
@@ -165,7 +173,8 @@ module "notify" {
 
 module "paperless" {
   source         = "./paperless"
-  config         = var.config.paperless
+  versions       = var.versions.paperless
+  secrets        = var.secrets.paperless
   target         = var.cluster.node-3.target
   public_domain  = var.public_domain
   private_domain = var.private_domain
@@ -174,21 +183,23 @@ module "paperless" {
 }
 
 # module "qbittorrent" {
-#   source = "./qbittorrent"
-#   config = merge(var.config.qbittorrent, {
-#     # caddy and qbitmanage reach the webui over the mesh, which must bypass the VPN killswitch
-#     vpn_lan_network = format("10.%d.%d.0/24", random_integer.meshbr0-v4-subnet-2.result, random_integer.meshbr0-v4-subnet-3.result)
-#   })
-#   target         = var.cluster.node-4.target
-#   media_pool     = incus_storage_volume.media.pool
-#   media_source   = incus_storage_volume.media.name
-#   private_domain = var.private_domain
-#   timezone       = var.timezone
-#   depends_on     = [null_resource.post_server, module.linstor]
+#   source          = "./qbittorrent"
+#   versions        = var.versions.qbittorrent
+#   secrets         = var.secrets.qbittorrent
+#   target          = var.cluster.node-4.target
+#   media_pool      = incus_storage_volume.media.pool
+#   media_source    = incus_storage_volume.media.name
+#   private_domain  = var.private_domain
+#   timezone        = var.timezone
+#   vpn_provider    = "proton"
+#   # caddy and qbitmanage reach the webui over the mesh, which must bypass the VPN killswitch
+#   vpn_lan_network = local.mesh_cidr
+#   depends_on      = [null_resource.post_server, module.linstor]
 # }
 
 # module "sabnzbd" {
 #   source         = "./sabnzbd"
+#   versions       = var.versions.sabnzbd
 #   target         = var.cluster.node-4.target
 #   media_pool     = incus_storage_volume.media.pool
 #   media_source   = incus_storage_volume.media.name
@@ -198,19 +209,20 @@ module "paperless" {
 # }
 
 # module "searxng" {
-#   source         = "./searxng"
-#   config = merge(var.config.searxng, {
-#     trusted_proxies = format("10.%d.%d.0/24", random_integer.meshbr0-v4-subnet-2.result, random_integer.meshbr0-v4-subnet-3.result)
-#   })
-#   target         = var.cluster.node-1.target
-#   public_domain  = var.public_domain
-#   private_domain = var.private_domain
-#   depends_on     = [null_resource.post_server, module.linstor]
+#   source          = "./searxng"
+#   versions        = var.versions.searxng
+#   secrets         = var.secrets.searxng
+#   target          = var.cluster.node-1.target
+#   public_domain   = var.public_domain
+#   private_domain  = var.private_domain
+#   trusted_proxies = local.mesh_cidr
+#   depends_on      = [null_resource.post_server, module.linstor]
 # }
 
 # module "servarr" {
 #   source         = "./servarr"
-#   config         = var.config.servarr
+#   versions       = var.versions.servarr
+#   secrets        = var.secrets.servarr
 #   target         = var.cluster.node-4.target
 #   media_pool     = incus_storage_volume.media.pool
 #   media_source   = incus_storage_volume.media.name
@@ -221,7 +233,8 @@ module "paperless" {
 
 # module "slskd" {
 #   source         = "./slskd"
-#   config         = var.config.slskd
+#   versions       = var.versions.slskd
+#   secrets        = var.secrets.slskd
 #   target         = var.cluster.node-4.target
 #   media_pool     = incus_storage_volume.media.pool
 #   media_source   = incus_storage_volume.media.name
@@ -232,7 +245,7 @@ module "paperless" {
 
 module "snikket" {
   source        = "./snikket"
-  config        = var.config.snikket
+  versions      = var.versions.snikket
   target        = var.cluster.node-2.target
   public_domain = var.public_domain
   timezone      = var.timezone
@@ -241,7 +254,8 @@ module "snikket" {
 
 module "syncstorage" {
   source         = "./syncstorage"
-  config         = var.config.syncstorage
+  versions       = var.versions.syncstorage
+  secrets        = var.secrets.syncstorage
   target         = var.cluster.node-1.target
   public_domain  = var.public_domain
   private_domain = var.private_domain
@@ -251,7 +265,8 @@ module "syncstorage" {
 
 module "vaultwarden" {
   source         = "./vaultwarden"
-  config         = var.config.vaultwarden
+  versions       = var.versions.vaultwarden
+  secrets        = var.secrets.vaultwarden
   target         = var.cluster.node-3.target
   public_domain  = var.public_domain
   private_domain = var.private_domain
@@ -261,6 +276,7 @@ module "vaultwarden" {
 
 # module "voidrepo" {
 #   source         = "./voidrepo"
+#   versions       = var.versions.voidrepo
 #   target         = var.cluster.node-4.target
 #   storage_pool   = incus_storage_volume.voidrepo.pool
 #   storage_source = incus_storage_volume.voidrepo.name
@@ -271,7 +287,8 @@ module "vaultwarden" {
 
 module "wakapi" {
   source         = "./wakapi"
-  config         = var.config.wakapi
+  versions       = var.versions.wakapi
+  secrets        = var.secrets.wakapi
   target         = var.cluster.node-2.target
   public_domain  = var.public_domain
   private_domain = var.private_domain
@@ -281,6 +298,7 @@ module "wakapi" {
 
 module "whoami" {
   source         = "./whoami"
+  versions       = var.versions.whoami
   target         = var.cluster.node-1.target
   public_domain  = var.public_domain
   private_domain = var.private_domain

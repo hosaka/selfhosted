@@ -1,8 +1,3 @@
-variable "sabnzbd_version" {
-  type    = string
-  default = "5.0.4"
-}
-
 locals {
   sabnzbd_ports = {
     webui = 8080
@@ -25,7 +20,7 @@ resource "incus_instance" "sabnzbd" {
 
   target   = var.target
   profiles = ["default", "mesh"]
-  image    = "ghcr:hotio/sabnzbd:release-${var.sabnzbd_version}"
+  image    = "ghcr:hotio/sabnzbd:release-${var.versions.sabnzbd}"
 
   device {
     name = "config"

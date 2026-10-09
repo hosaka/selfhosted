@@ -1,8 +1,3 @@
-variable "sonarr_version" {
-  type    = string
-  default = "4.0.19.2979"
-}
-
 locals {
   sonarr_ports = {
     webui = 8989
@@ -31,7 +26,7 @@ resource "incus_instance" "sonarr" {
 
   target   = var.target
   profiles = ["default", "mesh"]
-  image    = "ghcr:hotio/sonarr:release-${var.sonarr_version}"
+  image    = "ghcr:hotio/sonarr:release-${var.versions.sonarr}"
 
   device {
     name = "config"
@@ -58,7 +53,7 @@ resource "incus_instance" "sonarr" {
   }
 
   config = {
-    "environment.SONARR__AUTH__APIKEY" = sensitive(var.config.sonarr_api_key)
+    "environment.SONARR__AUTH__APIKEY" = sensitive(var.secrets.sonarr_api_key)
     "environment.TZ"                   = var.timezone
 
     "user.access_interface" = "eth1"

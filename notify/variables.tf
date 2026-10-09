@@ -1,4 +1,4 @@
-variable "config" {
+variable "secrets" {
   type = object({
     gotify_token       = string
     dockerhub_username = string
@@ -27,3 +27,9 @@ variable "private_domain" {
   type = string
 }
 
+variable "versions" {
+  type = object({
+    gotify = string
+    diun   = string
+  })
+}

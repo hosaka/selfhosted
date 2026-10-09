@@ -1,3 +1,7 @@
+timezone       = "Asia/Tokyo"
+public_domain  = "hosaka.cc"
+private_domain = "box.hosaka.cc"
+
 cluster = {
   uplink = "uplink"
 

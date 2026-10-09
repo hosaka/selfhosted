@@ -29,3 +29,9 @@ variable "rsync_args" {
   type        = string
   default     = ""
 }
+
+variable "versions" {
+  type = object({
+    caddy = string
+  })
+}

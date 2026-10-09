@@ -1,8 +1,3 @@
-variable "searxng_version" {
-  type    = string
-  default = "2026.7.31-057a77168"
-}
-
 locals {
   searxng_ports = {
     webui  = 8080
@@ -16,7 +11,7 @@ resource "incus_instance" "searxng" {
 
   target   = var.target
   profiles = ["default", "mesh"]
-  image    = "ghcr:searxng/searxng:${var.searxng_version}"
+  image    = "ghcr:searxng/searxng:${var.versions.searxng}"
 
   file {
     content            = file("${path.module}/settings.yml")
@@ -27,7 +22,7 @@ resource "incus_instance" "searxng" {
 
   file {
     content = templatefile("${path.module}/limiter.toml.tpl", {
-      trusted_proxies = var.config.trusted_proxies
+      trusted_proxies = var.trusted_proxies
     })
     target_path        = "/etc/searxng/limiter.toml"
     mode               = "0600"
@@ -39,7 +34,7 @@ resource "incus_instance" "searxng" {
   }
 
   config = {
-    "environment.SEARXNG_SECRET"     = sensitive(var.config.secret)
+    "environment.SEARXNG_SECRET"     = sensitive(var.secrets.secret)
     "environment.SEARXNG_BASE_URL"   = "https://search.${var.public_domain}"
     "environment.SEARXNG_VALKEY_URL" = "valkey://${incus_instance.searxng_valkey.ipv4_address}:${local.searxng_ports.valkey}/0"
 

@@ -1,8 +1,3 @@
-variable "jellyfin_version" {
-  type    = string
-  default = "10.11.11"
-}
-
 locals {
   jellyfin_ports = {
     webui = 8096
@@ -25,7 +20,7 @@ resource "incus_instance" "jellyfin" {
 
   target   = var.target
   profiles = ["default", "mesh"]
-  image    = "ghcr:hotio/jellyfin:release-${var.jellyfin_version}"
+  image    = "ghcr:hotio/jellyfin:release-${var.versions.jellyfin}"
 
   device {
     name = "config"

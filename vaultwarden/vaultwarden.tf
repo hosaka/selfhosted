@@ -1,8 +1,3 @@
-variable "vaultwarden_version" {
-  type    = string
-  default = "1.37.2"
-}
-
 locals {
   vaultwarden_ports = {
     webui = 80
@@ -20,7 +15,7 @@ resource "incus_instance" "vaultwarden" {
 
   target   = var.target
   profiles = ["default", "mesh"]
-  image    = "ghcr:dani-garcia/vaultwarden:${var.vaultwarden_version}-alpine"
+  image    = "ghcr:dani-garcia/vaultwarden:${var.versions.vaultwarden}-alpine"
 
   device {
     name = "data"
@@ -37,19 +32,19 @@ resource "incus_instance" "vaultwarden" {
   }
 
   config = {
-    "environment.ADMIN_TOKEN"            = sensitive(var.config.admin_token)
+    "environment.ADMIN_TOKEN"            = sensitive(var.secrets.admin_token)
     "environment.DOMAIN"                 = "https://vaultwarden.${var.public_domain}"
     "environment.INVITATIONS_ALLOWED"    = "false"
     "environment.ORG_CREATION_USERS"     = "none"
     "environment.PASSWORD_HINTS_ALLOWED" = "false"
     "environment.SHOW_PASSWORD_HINT"     = "false"
     "environment.SIGNUPS_ALLOWED"        = "false"
-    "environment.SMTP_FROM"              = var.config.smtp_from
-    "environment.SMTP_HOST"              = var.config.smtp_host
-    "environment.SMTP_PASSWORD"          = sensitive(var.config.smtp_password)
-    "environment.SMTP_PORT"              = var.config.smtp_port
-    "environment.SMTP_SECURITY"          = var.config.smtp_security
-    "environment.SMTP_USERNAME"          = sensitive(var.config.smtp_username)
+    "environment.SMTP_FROM"              = coalesce(var.smtp_from, "admin@${var.public_domain}")
+    "environment.SMTP_HOST"              = var.secrets.smtp_host
+    "environment.SMTP_PASSWORD"          = sensitive(var.secrets.smtp_password)
+    "environment.SMTP_PORT"              = var.smtp_port
+    "environment.SMTP_SECURITY"          = var.smtp_security
+    "environment.SMTP_USERNAME"          = sensitive(var.secrets.smtp_username)
     "environment.SSO_ENABLED"            = "true"
     "environment.SSO_ONLY"               = "false"
     # on SSO signup associate a user with a matching email that already exists
@@ -58,10 +53,10 @@ resource "incus_instance" "vaultwarden" {
     # openid scope is implicit and does not need to be included here
     "environment.SSO_SCOPES"        = "email profile offline_access vaultwarden"
     "environment.SSO_PKCE"          = "true"
-    "environment.SSO_CLIENT_ID"     = var.config.oidc_client_id
-    "environment.SSO_CLIENT_SECRET" = sensitive(var.config.oidc_client_secret)
-    "environment.YUBICO_CLIENT_ID"  = var.config.yubico_client_id
-    "environment.YUBICO_SECRET_KEY" = sensitive(var.config.yubico_secret_key)
+    "environment.SSO_CLIENT_ID"     = var.secrets.oidc_client_id
+    "environment.SSO_CLIENT_SECRET" = sensitive(var.secrets.oidc_client_secret)
+    "environment.YUBICO_CLIENT_ID"  = var.secrets.yubico_client_id
+    "environment.YUBICO_SECRET_KEY" = sensitive(var.secrets.yubico_secret_key)
     "environment.TZ"                = var.timezone
 
     "user.access_interface" = "eth1"

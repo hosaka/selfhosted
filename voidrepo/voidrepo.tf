@@ -1,8 +1,3 @@
-variable "caddy_version" {
-  type    = string
-  default = "2.11.4"
-}
-
 locals {
   voidrepo_ports = {
     http = 80
@@ -63,7 +58,7 @@ resource "incus_instance" "voidrepo" {
 
   target   = var.target
   profiles = ["default", "mesh"]
-  image    = "docker:caddy:${var.caddy_version}-alpine"
+  image    = "docker:caddy:${var.versions.caddy}-alpine"
 
   device {
     name = "data"

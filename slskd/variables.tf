@@ -1,12 +1,24 @@
-variable "config" {
+variable "puid" {
+  type    = string
+  default = "1000"
+}
+
+variable "pgid" {
+  type    = string
+  default = "1000"
+}
+
+variable "umask" {
+  type    = string
+  default = "002"
+}
+
+variable "secrets" {
   type = object({
     slsk_username       = string
     slsk_password       = string
     slsk_proxy_username = string
     slsk_proxy_password = string
-    puid                = optional(string, "1000")
-    pgid                = optional(string, "1000")
-    umask               = optional(string, "002")
   })
 }
 
@@ -28,4 +40,10 @@ variable "media_pool" {
 
 variable "media_source" {
   type = string
+}
+
+variable "versions" {
+  type = object({
+    slskd = string
+  })
 }

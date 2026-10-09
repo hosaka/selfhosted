@@ -1,8 +1,14 @@
-variable "config" {
+variable "vpn_provider" {
+  type = string
+}
+
+variable "vpn_lan_network" {
+  type = string
+}
+
+variable "secrets" {
   type = object({
-    vpn_provider    = string
-    vpn_lan_network = string
-    wg0_conf        = string
+    wg0_conf = string
   })
 }
 
@@ -25,4 +31,11 @@ variable "media_pool" {
 
 variable "media_source" {
   type = string
+}
+
+variable "versions" {
+  type = object({
+    qbittorrent = string
+    qbitmanage  = string
+  })
 }

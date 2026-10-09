@@ -1,4 +1,4 @@
-variable "config" {
+variable "secrets" {
   type = object({
     lidarr_api_key   = string
     prowlarr_api_key = string
@@ -26,4 +26,15 @@ variable "media_pool" {
 
 variable "media_source" {
   type = string
+}
+
+variable "versions" {
+  type = object({
+    lidarr    = string
+    prowlarr  = string
+    radarr    = string
+    recyclarr = string
+    seerr     = string
+    sonarr    = string
+  })
 }

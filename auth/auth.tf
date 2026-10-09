@@ -1,14 +1,6 @@
-variable "authelia_version" {
-  type    = string
-  default = "4.39.20"
-}
-
-variable "lldap_version" {
-  type    = string
-  default = "0.6.3"
-}
-
 locals {
+  lldap_base_dn = coalesce(var.lldap_base_dn, "dc=${join(",dc=", split(".", var.public_domain))}")
+
   authelia_ports = {
     api    = 9091
     db     = 5432
@@ -25,43 +17,43 @@ locals {
     private_domain = var.private_domain
 
     db_address             = incus_instance.authelia_database.ipv4_address
-    db_name                = var.config.db_name
-    db_password            = sensitive(var.config.db_password)
-    db_username            = var.config.db_username
-    jwt_secret             = sensitive(var.config.jwt_secret)
+    db_name                = var.db_name
+    db_password            = sensitive(var.secrets.db_password)
+    db_username            = var.secrets.db_username
+    jwt_secret             = sensitive(var.secrets.jwt_secret)
     jwks_key               = sensitive(indent(10, trimspace(file("${path.module}/private.pem"))))
     lldap_address          = incus_instance.lldap.ipv4_address
     lldap_port             = local.lldap_ports.ldap
-    lldap_base_dn          = var.config.lldap_base_dn
-    lldap_password         = sensitive(var.config.lldap_password)
-    session_secret         = sensitive(var.config.session_secret)
-    smtp_address           = var.config.smtp_address
-    smtp_password          = sensitive(var.config.smtp_password)
-    smtp_sender            = var.config.smtp_sender
-    smtp_username          = sensitive(var.config.smtp_username)
+    lldap_base_dn          = local.lldap_base_dn
+    lldap_password         = sensitive(var.secrets.lldap_password)
+    session_secret         = sensitive(var.secrets.session_secret)
+    smtp_address           = var.secrets.smtp_address
+    smtp_password          = sensitive(var.secrets.smtp_password)
+    smtp_sender            = coalesce(var.smtp_sender, "Authelia <auth@${var.public_domain}>")
+    smtp_username          = sensitive(var.secrets.smtp_username)
     valkey_address         = incus_instance.authelia_valkey.ipv4_address
     valkey_port            = local.authelia_ports.valkey
-    storage_encryption_key = sensitive(var.config.storage_encryption_key)
+    storage_encryption_key = sensitive(var.secrets.storage_encryption_key)
 
     # clients
-    forgejo_client_id              = var.config.forgejo_client_id
-    forgejo_client_secret_hash     = var.config.forgejo_client_secret_hash
-    gotify_client_id               = var.config.gotify_client_id
-    gotify_client_secret_hash      = var.config.gotify_client_secret_hash
-    grafana_client_id              = var.config.grafana_client_id
-    grafana_client_secret_hash     = var.config.grafana_client_secret_hash
-    immich_client_id               = var.config.immich_client_id
-    immich_client_secret_hash      = var.config.immich_client_secret_hash
-    jellyfin_client_id             = var.config.jellyfin_client_id
-    jellyfin_client_secret_hash    = var.config.jellyfin_client_secret_hash
-    kavita_client_id               = var.config.kavita_client_id
-    kavita_client_secret_hash      = var.config.kavita_client_secret_hash
-    paperless_client_id            = var.config.paperless_client_id
-    paperless_client_secret_hash   = var.config.paperless_client_secret_hash
-    vaultwarden_client_id          = var.config.vaultwarden_client_id
-    vaultwarden_client_secret_hash = var.config.vaultwarden_client_secret_hash
-    wakapi_client_id               = var.config.wakapi_client_id
-    wakapi_client_secret_hash      = var.config.wakapi_client_secret_hash
+    forgejo_client_id              = var.secrets.forgejo_client_id
+    forgejo_client_secret_hash     = var.secrets.forgejo_client_secret_hash
+    gotify_client_id               = var.secrets.gotify_client_id
+    gotify_client_secret_hash      = var.secrets.gotify_client_secret_hash
+    grafana_client_id              = var.secrets.grafana_client_id
+    grafana_client_secret_hash     = var.secrets.grafana_client_secret_hash
+    immich_client_id               = var.secrets.immich_client_id
+    immich_client_secret_hash      = var.secrets.immich_client_secret_hash
+    jellyfin_client_id             = var.secrets.jellyfin_client_id
+    jellyfin_client_secret_hash    = var.secrets.jellyfin_client_secret_hash
+    kavita_client_id               = var.secrets.kavita_client_id
+    kavita_client_secret_hash      = var.secrets.kavita_client_secret_hash
+    paperless_client_id            = var.secrets.paperless_client_id
+    paperless_client_secret_hash   = var.secrets.paperless_client_secret_hash
+    vaultwarden_client_id          = var.secrets.vaultwarden_client_id
+    vaultwarden_client_secret_hash = var.secrets.vaultwarden_client_secret_hash
+    wakapi_client_id               = var.secrets.wakapi_client_id
+    wakapi_client_secret_hash      = var.secrets.wakapi_client_secret_hash
   })
 }
 
@@ -71,7 +63,7 @@ resource "incus_instance" "authelia" {
 
   target   = var.target
   profiles = ["default", "mesh"]
-  image    = "ghcr:authelia/authelia:${var.authelia_version}"
+  image    = "ghcr:authelia/authelia:${var.versions.authelia}"
 
   file {
     content            = local.authelia_config
@@ -133,9 +125,9 @@ resource "incus_instance" "authelia_database" {
   }
 
   config = {
-    "environment.POSTGRES_DB"       = var.config.db_name
-    "environment.POSTGRES_USER"     = var.config.db_username
-    "environment.POSTGRES_PASSWORD" = sensitive(var.config.db_password)
+    "environment.POSTGRES_DB"       = var.db_name
+    "environment.POSTGRES_USER"     = var.secrets.db_username
+    "environment.POSTGRES_PASSWORD" = sensitive(var.secrets.db_password)
     "environment.PGTZ"              = var.timezone
 
     "user.access_interface" = "eth0"
@@ -206,7 +198,7 @@ resource "incus_instance" "lldap" {
 
   target   = var.target
   profiles = ["default", "mesh"]
-  image    = "ghcr:lldap/lldap:v${var.lldap_version}-alpine"
+  image    = "ghcr:lldap/lldap:v${var.versions.lldap}-alpine"
 
   device {
     name = "data"
@@ -223,10 +215,10 @@ resource "incus_instance" "lldap" {
   }
 
   config = {
-    "environment.LLDAP_LDAP_BASE_DN"   = var.config.lldap_base_dn
-    "environment.LLDAP_LDAP_USER_PASS" = sensitive(var.config.lldap_user_pass)
-    "environment.LLDAP_JWT_SECRET"     = sensitive(var.config.lldap_jwt_secret)
-    "environment.LLDAP_KEY_SEED"       = sensitive(var.config.lldap_key_seed)
+    "environment.LLDAP_LDAP_BASE_DN"   = local.lldap_base_dn
+    "environment.LLDAP_LDAP_USER_PASS" = sensitive(var.secrets.lldap_user_pass)
+    "environment.LLDAP_JWT_SECRET"     = sensitive(var.secrets.lldap_jwt_secret)
+    "environment.LLDAP_KEY_SEED"       = sensitive(var.secrets.lldap_key_seed)
     "environment.UID"                  = "1000"
     "environment.GID"                  = "1000"
     "environment.TZ"                   = var.timezone

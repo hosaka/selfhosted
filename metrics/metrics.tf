@@ -1,18 +1,3 @@
-variable "grafana_version" {
-  type    = string
-  default = "13.1.1"
-}
-
-variable "prometheus_version" {
-  type    = string
-  default = "3.13.2"
-}
-
-variable "loki_version" {
-  type    = string
-  default = "3.7.4"
-}
-
 locals {
   metrics_ports = {
     webui      = 3000
@@ -22,13 +7,13 @@ locals {
 
   metrics_targets = {
     for name, member in var.members :
-    name => "${split(":", trimprefix(member.address, "https://"))[0]}:${var.config.port}"
+    name => "${split(":", trimprefix(member.address, "https://"))[0]}:${var.port}"
   }
   grafana_config = templatefile("${path.module}/grafana.ini.tpl", {
     public_domain = var.public_domain
 
-    oidc_client_id     = var.config.oidc_client_id
-    oidc_client_secret = sensitive(var.config.oidc_client_secret)
+    oidc_client_id     = var.secrets.oidc_client_id
+    oidc_client_secret = sensitive(var.secrets.oidc_client_secret)
   })
 }
 
@@ -42,7 +27,7 @@ resource "incus_server" "metrics" {
   target   = each.key
 
   config = {
-    "core.metrics_address" = ":${var.config.port}"
+    "core.metrics_address" = ":${var.port}"
   }
 }
 
@@ -62,7 +47,7 @@ resource "incus_instance" "grafana" {
 
   target   = var.target
   profiles = ["default", "mesh"]
-  image    = "docker:grafana/grafana:${var.grafana_version}"
+  image    = "docker:grafana/grafana:${var.versions.grafana}"
 
   file {
     content = templatefile("${path.module}/datasources.yml.tpl", {
@@ -153,7 +138,7 @@ resource "incus_instance" "prometheus" {
 
   target   = var.target
   profiles = ["default"]
-  image    = "ghcr:prometheus/prometheus:v${var.prometheus_version}"
+  image    = "ghcr:prometheus/prometheus:v${var.versions.prometheus}"
 
   file {
     content = templatefile("${path.module}/prometheus.yml.tpl", {
@@ -233,7 +218,7 @@ resource "incus_instance" "loki" {
 
   target   = var.target
   profiles = ["default"]
-  image    = "docker:grafana/loki:${var.loki_version}"
+  image    = "docker:grafana/loki:${var.versions.loki}"
 
   # custom config file can be added to /etc/loki/local-config.yaml
 

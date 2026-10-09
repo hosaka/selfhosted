@@ -1,8 +1,3 @@
-variable "immich_version" {
-  type    = string
-  default = "3.3.0"
-}
-
 locals {
   immich_ports = {
     webui            = 2283
@@ -18,7 +13,7 @@ resource "incus_instance" "immich" {
 
   target   = var.target
   profiles = ["default", "mesh"]
-  image    = "ghcr:immich-app/immich-server:v${var.immich_version}"
+  image    = "ghcr:immich-app/immich-server:v${var.versions.immich}"
 
   device {
     name = "storage"
@@ -45,11 +40,11 @@ resource "incus_instance" "immich" {
 
   config = {
     "environment.IMMICH_ENV"                  = "production"
-    "environment.IMMICH_LOG_LEVEL"            = var.config.log_level
+    "environment.IMMICH_LOG_LEVEL"            = var.log_level
     "environment.DB_HOSTNAME"                 = incus_instance.immich_database.ipv4_address
-    "environment.DB_USERNAME"                 = var.config.db_username
-    "environment.DB_PASSWORD"                 = sensitive(var.config.db_password)
-    "environment.DB_DATABASE_NAME"            = var.config.db_name
+    "environment.DB_USERNAME"                 = var.secrets.db_username
+    "environment.DB_PASSWORD"                 = sensitive(var.secrets.db_password)
+    "environment.DB_DATABASE_NAME"            = var.db_name
     "environment.REDIS_HOSTNAME"              = incus_instance.immich_valkey.ipv4_address
     "environment.IMMICH_MACHINE_LEARNING_URL" = "http://${incus_instance.immich_machine_learning.ipv4_address}:${local.immich_ports.machine_learning}"
     "environment.TZ"                          = var.timezone
@@ -69,7 +64,7 @@ resource "incus_instance" "immich_machine_learning" {
 
   target   = var.target
   profiles = ["default"]
-  image    = "ghcr:immich-app/immich-machine-learning:v${var.immich_version}"
+  image    = "ghcr:immich-app/immich-machine-learning:v${var.versions.immich}"
 
   device {
     name = "cache"
@@ -141,9 +136,9 @@ resource "incus_instance" "immich_database" {
   }
 
   config = {
-    "environment.POSTGRES_DB"          = var.config.db_name
-    "environment.POSTGRES_USER"        = var.config.db_username
-    "environment.POSTGRES_PASSWORD"    = sensitive(var.config.db_password)
+    "environment.POSTGRES_DB"          = var.db_name
+    "environment.POSTGRES_USER"        = var.secrets.db_username
+    "environment.POSTGRES_PASSWORD"    = sensitive(var.secrets.db_password)
     "environment.POSTGRES_INITDB_ARGS" = "--data-checksums"
     "environment.PGTZ"                 = var.timezone
 

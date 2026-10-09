@@ -1,10 +1,11 @@
-variable "config" {
+variable "secrets" {
   type = object({
     password_salt      = string
     oidc_client_id     = string
     oidc_client_secret = string
   })
 }
+
 variable "target" {
   type = string
 }
@@ -20,4 +21,10 @@ variable "public_domain" {
 
 variable "private_domain" {
   type = string
+}
+
+variable "versions" {
+  type = object({
+    wakapi = string
+  })
 }

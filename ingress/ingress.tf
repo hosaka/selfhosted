@@ -1,29 +1,3 @@
-variable "frpc_version" {
-  type    = string
-  default = "0.70.1"
-}
-
-variable "caddy_version" {
-  type    = string
-  default = "2.11.4"
-}
-
-variable "services" {
-  type = list(object({
-    name       = string
-    domains    = optional(list(string), [])
-    caddy      = optional(string, "")
-    caddy_apex = optional(string, "")
-    frpc       = optional(string, "")
-  }))
-  default = []
-
-  validation {
-    condition     = length(flatten(var.services[*].domains)) == length(distinct(flatten(var.services[*].domains)))
-    error_message = "Each domain can only be claimed by one service, duplicates: ${join(", ", [for d in distinct(flatten(var.services[*].domains)) : d if length([for x in flatten(var.services[*].domains) : x if x == d]) > 1])}."
-  }
-}
-
 locals {
   frpc_ports = {
     webui = 7400
@@ -41,16 +15,16 @@ locals {
 
   caddyfile = join("\n", concat(
     [templatefile("${path.module}/Caddyfile.tpl", {
-      cf_api_email  = sensitive(var.config.caddy_cf_api_email)
-      cf_api_token  = sensitive(var.config.caddy_cf_api_token)
+      cf_api_email  = sensitive(var.secrets.caddy_cf_api_email)
+      cf_api_token  = sensitive(var.secrets.caddy_cf_api_token)
       public_domain = var.public_domain
       services      = var.services
     })],
   ))
 
   frpc_toml = templatefile("${path.module}/frpc.toml.tpl", {
-    frp_server_addr = var.config.frp_server_addr
-    frp_auth_token  = sensitive(var.config.frp_auth_token)
+    frp_server_addr = var.secrets.frp_server_addr
+    frp_auth_token  = sensitive(var.secrets.frp_auth_token)
     caddy_ip        = incus_instance.caddy.ipv4_address
     caddy_ports     = local.caddy_ports
     frpc_ports      = local.frpc_ports
@@ -65,7 +39,7 @@ resource "incus_instance" "frpc" {
 
   target   = var.target
   profiles = ["default", "mesh"]
-  image    = "ghcr:fatedier/frpc:v${var.frpc_version}"
+  image    = "ghcr:fatedier/frpc:v${var.versions.frpc}"
 
   lifecycle {
     prevent_destroy = true
@@ -105,7 +79,7 @@ resource "incus_instance" "caddy" {
 
   target   = var.target
   profiles = ["default", "mesh"]
-  image    = "ghcr:hotio/caddy:release-${var.caddy_version}"
+  image    = "ghcr:hotio/caddy:release-${var.versions.caddy}"
 
   lifecycle {
     prevent_destroy = true

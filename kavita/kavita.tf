@@ -1,8 +1,3 @@
-variable "kavita_version" {
-  type    = string
-  default = "0.9.0"
-}
-
 locals {
   kavita_ports = {
     webui = 5000
@@ -20,7 +15,7 @@ resource "incus_instance" "kavita" {
 
   target   = var.target
   profiles = ["default", "mesh"]
-  image    = "ghcr:kareadita/kavita:${var.kavita_version}"
+  image    = "ghcr:kareadita/kavita:${var.versions.kavita}"
 
   device {
     name = "config"

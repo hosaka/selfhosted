@@ -1,7 +1,15 @@
-variable "config" {
+variable "log_level" {
+  type    = string
+  default = "log"
+}
+
+variable "db_name" {
+  type    = string
+  default = "immich"
+}
+
+variable "secrets" {
   type = object({
-    log_level   = optional(string, "log")
-    db_name     = optional(string, "immich")
     db_username = optional(string, "postgres")
     db_password = string
     # unused for now, oauth is configured in the admin settings and stored in the database
@@ -32,4 +40,10 @@ variable "storage_pool" {
 
 variable "storage_source" {
   type = string
+}
+
+variable "versions" {
+  type = object({
+    immich = string
+  })
 }

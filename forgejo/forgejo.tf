@@ -1,13 +1,3 @@
-variable "anubis_version" {
-  type    = string
-  default = "1.26.2"
-}
-
-variable "forgejo_version" {
-  type    = string
-  default = "16.0.1"
-}
-
 locals {
   forgejo_ports = {
     webui = 3000
@@ -26,7 +16,7 @@ resource "incus_instance" "forgejo_anubis" {
 
   target   = var.target
   profiles = ["default", "mesh"]
-  image    = "ghcr:techarohq/anubis:v${var.anubis_version}"
+  image    = "ghcr:techarohq/anubis:v${var.versions.anubis}"
 
   file {
     content            = file("${path.module}/anubis.yml")
@@ -65,7 +55,7 @@ resource "incus_instance" "forgejo" {
 
   target   = var.target
   profiles = ["default", "mesh"]
-  image    = "codeberg:forgejo/forgejo:${var.forgejo_version}-rootless"
+  image    = "codeberg:forgejo/forgejo:${var.versions.forgejo}-rootless"
 
   device {
     name = "data"
@@ -83,19 +73,19 @@ resource "incus_instance" "forgejo" {
       http_port     = local.forgejo_ports.webui
       ssh_port      = local.forgejo_ports.ssh
 
-      db_name         = var.config.db_name
-      db_username     = var.config.db_username
-      db_password     = sensitive(var.config.db_password)
+      db_name         = var.db_name
+      db_username     = var.secrets.db_username
+      db_password     = sensitive(var.secrets.db_password)
       db_host         = incus_instance.forgejo_database.ipv4_address
-      smtp_address    = var.config.smtp_address
-      smtp_port       = var.config.smtp_port
-      mailer_from     = var.config.mailer_from
-      mailer_user     = sensitive(var.config.mailer_user)
-      mailer_password = sensitive(var.config.mailer_password)
-      internal_token  = sensitive(var.config.internal_token)
-      trusted_proxies = var.config.trusted_proxies
-      secret_key      = sensitive(var.config.secret_key)
-      lfs_jwt_secret  = sensitive(var.config.lfs_jwt_secret)
+      smtp_address    = var.secrets.smtp_address
+      smtp_port       = var.smtp_port
+      mailer_from     = coalesce(var.mailer_from, "Code <noreply@code.${var.public_domain}>")
+      mailer_user     = sensitive(var.secrets.mailer_user)
+      mailer_password = sensitive(var.secrets.mailer_password)
+      internal_token  = sensitive(var.secrets.internal_token)
+      trusted_proxies = var.trusted_proxies
+      secret_key      = sensitive(var.secrets.secret_key)
+      lfs_jwt_secret  = sensitive(var.secrets.lfs_jwt_secret)
     })
 
     target_path        = "/var/lib/gitea/custom/conf/app.ini"
@@ -137,8 +127,8 @@ resource "incus_instance" "forgejo" {
       EOT
       ]
       environment = {
-        KEY       = var.config.oidc_client_id
-        SECRET    = sensitive(var.config.oidc_client_secret)
+        KEY       = var.secrets.oidc_client_id
+        SECRET    = sensitive(var.secrets.oidc_client_secret)
         DISCOVERY = "https://auth.${var.public_domain}/.well-known/openid-configuration"
       }
       uid = 1000
@@ -189,9 +179,9 @@ resource "incus_instance" "forgejo_database" {
   }
 
   config = {
-    "environment.POSTGRES_DB"       = var.config.db_name
-    "environment.POSTGRES_USER"     = var.config.db_username
-    "environment.POSTGRES_PASSWORD" = sensitive(var.config.db_password)
+    "environment.POSTGRES_DB"       = var.db_name
+    "environment.POSTGRES_USER"     = var.secrets.db_username
+    "environment.POSTGRES_PASSWORD" = sensitive(var.secrets.db_password)
     "environment.PGTZ"              = var.timezone
 
     "user.access_interface" = "eth0"

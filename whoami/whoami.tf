@@ -1,8 +1,3 @@
-variable "whoami_version" {
-  type    = string
-  default = "1.12.0"
-}
-
 locals {
   whoami_ports = {
     http = 80
@@ -15,7 +10,7 @@ resource "incus_instance" "whoami" {
 
   target   = var.target
   profiles = ["default"]
-  image    = "ghcr:traefik/whoami:v${var.whoami_version}"
+  image    = "ghcr:traefik/whoami:v${var.versions.whoami}"
 
   device {
     name = "eth0"

@@ -1,8 +1,3 @@
-variable "lidarr_version" {
-  type    = string
-  default = "pr-plugins-3.1.2.4913"
-}
-
 locals {
   lidarr_ports = {
     webui = 8686
@@ -31,7 +26,7 @@ resource "incus_instance" "lidarr" {
 
   target   = var.target
   profiles = ["default", "mesh"]
-  image    = "ghcr:hotio/lidarr:${var.lidarr_version}"
+  image    = "ghcr:hotio/lidarr:${var.versions.lidarr}"
 
   device {
     name = "config"
@@ -58,7 +53,7 @@ resource "incus_instance" "lidarr" {
   }
 
   config = {
-    "environment.LIDARR__AUTH__APIKEY" = sensitive(var.config.lidarr_api_key)
+    "environment.LIDARR__AUTH__APIKEY" = sensitive(var.secrets.lidarr_api_key)
     "environment.TZ"                   = var.timezone
 
     "user.access_interface" = "eth1"

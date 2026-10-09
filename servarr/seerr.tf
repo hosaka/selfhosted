@@ -1,8 +1,3 @@
-variable "seerr_version" {
-  type    = string
-  default = "3.4.0"
-}
-
 locals {
   seerr_ports = {
     webui = 5055
@@ -31,7 +26,7 @@ resource "incus_instance" "seerr" {
 
   target   = var.target
   profiles = ["default", "mesh"]
-  image    = "ghcr:hotio/seerr:release-${var.seerr_version}"
+  image    = "ghcr:hotio/seerr:release-${var.versions.seerr}"
 
   device {
     name = "config"

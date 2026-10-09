@@ -15,3 +15,8 @@ variable "private_domain" {
   type = string
 }
 
+variable "versions" {
+  type = object({
+    whoami = string
+  })
+}

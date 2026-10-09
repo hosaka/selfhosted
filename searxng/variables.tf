@@ -1,7 +1,10 @@
-variable "config" {
+variable "trusted_proxies" {
+  type = string
+}
+
+variable "secrets" {
   type = object({
-    secret          = string
-    trusted_proxies = string
+    secret = string
   })
 }
 
@@ -15,4 +18,10 @@ variable "public_domain" {
 
 variable "private_domain" {
   type = string
+}
+
+variable "versions" {
+  type = object({
+    searxng = string
+  })
 }

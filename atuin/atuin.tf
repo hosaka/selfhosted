@@ -1,8 +1,3 @@
-variable "atuin_version" {
-  type    = string
-  default = "18.18.0"
-}
-
 locals {
   atuin_ports = {
     api = 8888
@@ -16,7 +11,7 @@ resource "incus_instance" "atuin" {
 
   target   = var.target
   profiles = ["default", "mesh"]
-  image    = "ghcr:atuinsh/atuin:${var.atuin_version}"
+  image    = "ghcr:atuinsh/atuin:${var.versions.atuin}"
 
   wait_for {
     type = "ipv4"
@@ -25,7 +20,7 @@ resource "incus_instance" "atuin" {
   config = {
     "environment.ATUIN_HOST"              = "0.0.0.0"
     "environment.ATUIN_OPEN_REGISTRATION" = "false"
-    "environment.ATUIN_DB_URI"            = "postgres://${var.config.db_username}:${sensitive(var.config.db_password)}@${incus_instance.atuin_database.ipv4_address}/${var.config.db_name}"
+    "environment.ATUIN_DB_URI"            = "postgres://${var.secrets.db_username}:${sensitive(var.secrets.db_password)}@${incus_instance.atuin_database.ipv4_address}/${var.db_name}"
 
     "oci.entrypoint" = "/usr/local/bin/atuin-server start"
 
@@ -75,9 +70,9 @@ resource "incus_instance" "atuin_database" {
   }
 
   config = {
-    "environment.POSTGRES_DB"       = var.config.db_name
-    "environment.POSTGRES_USER"     = var.config.db_username
-    "environment.POSTGRES_PASSWORD" = sensitive(var.config.db_password)
+    "environment.POSTGRES_DB"       = var.db_name
+    "environment.POSTGRES_USER"     = var.secrets.db_username
+    "environment.POSTGRES_PASSWORD" = sensitive(var.secrets.db_password)
     "environment.PGTZ"              = var.timezone
 
     "user.access_interface" = "eth0"

@@ -1,4 +1,4 @@
-variable "config" {
+variable "secrets" {
   type = object({
     lastfm_apikey = string
     lastfm_secret = string
@@ -23,4 +23,10 @@ variable "media_pool" {
 
 variable "media_source" {
   type = string
+}
+
+variable "versions" {
+  type = object({
+    navidrome = string
+  })
 }
