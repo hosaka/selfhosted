@@ -159,6 +159,14 @@ bootstrap-linstor: (onpath 'incus') (onpath 'tofu') (onpath 'yq')
 
     tofu apply -auto-approve -target=module.linstor.null_resource.post_linstor
 
+[doc('format, validate and lint the configuration')]
+lint *args: (onpath 'tofu') (onpath 'git')
+    # sops-encrypted tfvars are JSON, which fmt can't parse
+    git ls-files --cached --others --exclude-standard '*.tf' '*.tfvars' '*.tftest.hcl' \
+      | grep -vx 'secrets.default.tfvars' \
+      | xargs tofu fmt -check -diff
+    tofu validate -lint=all {{ args }}
+
 [doc('plan module changes')]
 plan module *args: (onpath 'tofu')
     tofu plan -target=module.{{ module }} {{ args }}
