@@ -22,7 +22,7 @@ versions = {
     mosquitto     = "2.0.22"
   }
   immich = {
-    immich = "3.3.0"
+    immich = "3.2.2"
     db     = "14-vectorchord0.4.3-pgvectors0.2.0"
     cache  = "8-alpine"
   }
@@ -61,7 +61,7 @@ versions = {
     sabnzbd = "5.0.4"
   }
   searxng = {
-    searxng = "2026.7.31-057a77168"
+    searxng = "2026.8.22-9fea41204"
     cache   = "8-alpine"
   }
   servarr = {
@@ -83,6 +83,7 @@ versions = {
     db          = "18-alpine"
   }
   vaultwarden = {
+    # todo: we should be at 1.37.3 here
     vaultwarden = "1.37.2"
   }
   voidrepo = {

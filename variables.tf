@@ -30,14 +30,14 @@ variable "cluster" {
     node-3 = object({
       target = optional(string, "node-3")
     })
-    # node-4 = object({
-    #   target = optional(string, "node-4")
-    # })
+    node-4 = object({
+      target = optional(string, "node-4")
+    })
   })
 
   validation {
     condition = alltrue([
-      for v in [var.cluster.name, var.cluster.uplink, var.cluster.node-1.target, var.cluster.node-2.target, var.cluster.node-3.target] :
+      for v in [var.cluster.name, var.cluster.uplink, var.cluster.node-1.target, var.cluster.node-2.target, var.cluster.node-3.target, var.cluster.node-4.target] :
       trimspace(v) != ""
     ])
     error_message = "Cluster name, uplink and node targets must not be empty."
@@ -48,7 +48,8 @@ variable "cluster" {
       var.cluster.node-1.target,
       var.cluster.node-2.target,
       var.cluster.node-3.target,
-    ])) == 3
+      var.cluster.node-4.target,
+    ])) == 4
     error_message = "Each cluster node must have a distinct target."
   }
 }

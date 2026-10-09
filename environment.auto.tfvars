@@ -14,5 +14,8 @@ cluster = {
   node-3 = {
     ipv4_address = "10.10.0.103"
   }
+  node-4 = {
+    ipv4_address = "10.10.0.104"
+  }
 }
 
