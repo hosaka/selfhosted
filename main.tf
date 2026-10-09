@@ -11,8 +11,9 @@ data "incus_cluster" "this" {
 locals {
   members = data.incus_cluster.this.is_clustered ? { for k, v in data.incus_cluster.this.members : k => v } : {}
 
-  # Members the cluster-wide pools and networks were created with. Their per-member config can only be
-  # defined before a pool or network exists, members joining later get it from the `incus cluster join` prompts.
+  # Members the cluster-wide pools and networks were created with.
+  # Their per-member config can only be defined before a pool or network exists,
+  # members joining later get it from the `incus cluster join` prompts.
   founding_members = {
     for k, v in local.members : k => v
     if contains([var.cluster.node-1.target, var.cluster.node-2.target, var.cluster.node-3.target], k)
@@ -21,9 +22,11 @@ locals {
 
 # Replicated storage
 module "linstor" {
-  source     = "./linstor"
-  target     = var.cluster.node-1.target
-  members    = local.members
+  source = "./linstor"
+  target = var.cluster.node-1.target
+  # Satellites and the pool's per-member config are bootstrap-time only,
+  # members joining later are registered and configured during the join
+  members    = local.founding_members
   depends_on = [null_resource.post_server]
 }
 
