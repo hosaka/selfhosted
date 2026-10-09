@@ -110,7 +110,7 @@ resource "incus_instance" "immich_database" {
 
   target   = var.target
   profiles = ["default"]
-  image    = "ghcr:immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0"
+  image    = "ghcr:immich-app/postgres:${var.versions.db}"
 
   # mounted one level above PGDATA so initdb gets an empty directory
   device {
@@ -163,7 +163,7 @@ resource "incus_instance" "immich_valkey" {
 
   target   = var.target
   profiles = ["default"]
-  image    = "docker:valkey/valkey:8-alpine"
+  image    = "docker:valkey/valkey:${var.versions.cache}"
 
   device {
     name = "data"

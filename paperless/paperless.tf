@@ -119,7 +119,7 @@ resource "incus_instance" "paperless_database" {
 
   target   = var.target
   profiles = ["default"]
-  image    = "docker:postgres:18-alpine"
+  image    = "docker:postgres:${var.versions.db}"
 
   device {
     name = "data"
@@ -170,7 +170,7 @@ resource "incus_instance" "paperless_valkey" {
 
   target   = var.target
   profiles = ["default"]
-  image    = "docker:valkey/valkey:8-alpine"
+  image    = "docker:valkey/valkey:${var.versions.cache}"
 
   device {
     name = "data"

@@ -154,7 +154,7 @@ resource "incus_instance" "forgejo_database" {
 
   target   = var.target
   profiles = ["default"]
-  image    = "docker:postgres:18-alpine"
+  image    = "docker:postgres:${var.versions.db}"
 
   device {
     name = "data"

@@ -45,5 +45,7 @@ variable "storage_source" {
 variable "versions" {
   type = object({
     immich = string
+    db     = string
+    cache  = string
   })
 }

@@ -54,5 +54,6 @@ variable "versions" {
   type = object({
     anubis  = string
     forgejo = string
+    db      = string
   })
 }

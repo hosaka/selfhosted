@@ -23,5 +23,6 @@ variable "private_domain" {
 variable "versions" {
   type = object({
     searxng = string
+    cache   = string
   })
 }

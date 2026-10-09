@@ -77,5 +77,7 @@ variable "versions" {
   type = object({
     authelia = string
     lldap    = string
+    db       = string
+    cache    = string
   })
 }

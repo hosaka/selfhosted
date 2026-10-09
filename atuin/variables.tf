@@ -30,5 +30,6 @@ variable "private_domain" {
 variable "versions" {
   type = object({
     atuin = string
+    db    = string
   })
 }

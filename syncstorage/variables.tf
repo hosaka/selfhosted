@@ -32,5 +32,6 @@ variable "private_domain" {
 variable "versions" {
   type = object({
     syncstorage = string
+    db          = string
   })
 }

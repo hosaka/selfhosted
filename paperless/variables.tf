@@ -35,5 +35,7 @@ variable "private_domain" {
 variable "versions" {
   type = object({
     paperless = string
+    db        = string
+    cache     = string
   })
 }

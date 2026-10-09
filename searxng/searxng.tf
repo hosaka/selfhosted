@@ -60,7 +60,7 @@ resource "incus_instance" "searxng_valkey" {
 
   target   = var.target
   profiles = ["default"]
-  image    = "docker:valkey/valkey:8-alpine"
+  image    = "docker:valkey/valkey:${var.versions.cache}"
 
   device {
     name = "data"
