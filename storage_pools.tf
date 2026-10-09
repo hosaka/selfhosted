@@ -36,7 +36,7 @@
 # }
 
 resource "incus_storage_pool" "local_per_node" {
-  for_each = local.members
+  for_each = local.founding_members
 
   name   = "local"
   driver = "zfs"

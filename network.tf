@@ -1,5 +1,5 @@
 resource "incus_network" "incusbr0_per_node" {
-  for_each = local.members
+  for_each = local.founding_members
 
   name   = "incusbr0"
   target = each.key
@@ -63,7 +63,7 @@ resource "random_integer" "meshbr0-v6-subnet-4" {
 }
 
 resource "incus_network" "meshbr0_per_node" {
-  for_each = local.members
+  for_each = local.founding_members
 
   name   = "meshbr0"
   target = each.key
@@ -99,7 +99,7 @@ resource "incus_network" "meshbr0" {
 }
 
 resource "incus_network" "lan_per_node" {
-  for_each = local.members
+  for_each = local.founding_members
 
   name   = "lan"
   type   = "physical"

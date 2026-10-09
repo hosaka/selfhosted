@@ -10,6 +10,13 @@ data "incus_cluster" "this" {
 
 locals {
   members = data.incus_cluster.this.is_clustered ? { for k, v in data.incus_cluster.this.members : k => v } : {}
+
+  # Members the cluster-wide pools and networks were created with. Their per-member config can only be
+  # defined before a pool or network exists, members joining later get it from the `incus cluster join` prompts.
+  founding_members = {
+    for k, v in local.members : k => v
+    if contains([var.cluster.node-1.target, var.cluster.node-2.target, var.cluster.node-3.target], k)
+  }
 }
 
 # Replicated storage
