@@ -1,0 +1,16 @@
+dns:
+  domain: hosaka.cc
+  hostname: node-4
+time:
+  timezone: Asia/Tokyo
+interfaces:
+  # single NIC, still named uplink like the bonds on the other nodes
+  - name: uplink
+    hwaddr: d8:5e:d3:fc:77:70
+    addresses:
+      - dhcp4
+      - slaac
+    roles:
+      - management
+      - cluster
+      - instances
