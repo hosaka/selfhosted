@@ -10,8 +10,8 @@ locals {
   EOT
 }
 
-resource "incus_storage_volume" "lidarr_config" {
-  name = "lidarr-config"
+resource "incus_storage_volume" "lidarr_data" {
+  name = "lidarr-data"
   pool = "linstor"
 
   config = {
@@ -33,8 +33,8 @@ resource "incus_instance" "lidarr" {
     type = "disk"
     properties = {
       path   = "/config"
-      pool   = incus_storage_volume.lidarr_config.pool
-      source = incus_storage_volume.lidarr_config.name
+      pool   = incus_storage_volume.lidarr_data.pool
+      source = incus_storage_volume.lidarr_data.name
     }
   }
 

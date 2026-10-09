@@ -10,8 +10,8 @@ locals {
   EOT
 }
 
-resource "incus_storage_volume" "sonarr_config" {
-  name = "sonarr-config"
+resource "incus_storage_volume" "sonarr_data" {
+  name = "sonarr-data"
   pool = "linstor"
 
   config = {
@@ -33,8 +33,8 @@ resource "incus_instance" "sonarr" {
     type = "disk"
     properties = {
       path   = "/config"
-      pool   = incus_storage_volume.sonarr_config.pool
-      source = incus_storage_volume.sonarr_config.name
+      pool   = incus_storage_volume.sonarr_data.pool
+      source = incus_storage_volume.sonarr_data.name
     }
   }
 

@@ -10,8 +10,8 @@ locals {
   EOT
 }
 
-resource "incus_storage_volume" "seerr_config" {
-  name = "seerr-config"
+resource "incus_storage_volume" "seerr_data" {
+  name = "seerr-data"
   pool = "linstor"
 
   config = {
@@ -32,10 +32,9 @@ resource "incus_instance" "seerr" {
     name = "config"
     type = "disk"
     properties = {
-      # hotio's image keeps the config in /config, not /app/config like upstream
       path   = "/config"
-      pool   = incus_storage_volume.seerr_config.pool
-      source = incus_storage_volume.seerr_config.name
+      pool   = incus_storage_volume.seerr_data.pool
+      source = incus_storage_volume.seerr_data.name
     }
   }
 

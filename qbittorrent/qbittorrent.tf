@@ -8,8 +8,8 @@ locals {
   })
 }
 
-resource "incus_storage_volume" "qbittorrent_config" {
-  name = "qbittorrent-config"
+resource "incus_storage_volume" "qbittorrent_data" {
+  name = "qbittorrent-data"
   pool = "linstor"
 
   config = {
@@ -31,8 +31,8 @@ resource "incus_instance" "qbittorrent" {
     type = "disk"
     properties = {
       path   = "/config"
-      pool   = incus_storage_volume.qbittorrent_config.pool
-      source = incus_storage_volume.qbittorrent_config.name
+      pool   = incus_storage_volume.qbittorrent_data.pool
+      source = incus_storage_volume.qbittorrent_data.name
     }
   }
 

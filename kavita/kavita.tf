@@ -4,8 +4,8 @@ locals {
   }
 }
 
-resource "incus_storage_volume" "kavita_config" {
-  name = "kavita-config"
+resource "incus_storage_volume" "kavita_data" {
+  name = "kavita-data"
   pool = "linstor"
 }
 
@@ -22,8 +22,8 @@ resource "incus_instance" "kavita" {
     type = "disk"
     properties = {
       path   = "/kavita/config"
-      pool   = incus_storage_volume.kavita_config.pool
-      source = incus_storage_volume.kavita_config.name
+      pool   = incus_storage_volume.kavita_data.pool
+      source = incus_storage_volume.kavita_data.name
     }
   }
 

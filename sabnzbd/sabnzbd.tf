@@ -4,8 +4,8 @@ locals {
   }
 }
 
-resource "incus_storage_volume" "sabnzbd_config" {
-  name = "sabnzbd-config"
+resource "incus_storage_volume" "sabnzbd_data" {
+  name = "sabnzbd-data"
   pool = "linstor"
 
   config = {
@@ -27,8 +27,8 @@ resource "incus_instance" "sabnzbd" {
     type = "disk"
     properties = {
       path   = "/config"
-      pool   = incus_storage_volume.sabnzbd_config.pool
-      source = incus_storage_volume.sabnzbd_config.name
+      pool   = incus_storage_volume.sabnzbd_data.pool
+      source = incus_storage_volume.sabnzbd_data.name
     }
   }
 

@@ -6,8 +6,8 @@ locals {
   }
 }
 
-resource "incus_storage_volume" "frigate_config" {
-  name = "frigate-config"
+resource "incus_storage_volume" "frigate_data" {
+  name = "frigate-data"
   pool = "linstor"
 }
 
@@ -24,8 +24,8 @@ resource "incus_instance" "frigate" {
     type = "disk"
     properties = {
       path   = "/config"
-      pool   = incus_storage_volume.frigate_config.pool
-      source = incus_storage_volume.frigate_config.name
+      pool   = incus_storage_volume.frigate_data.pool
+      source = incus_storage_volume.frigate_data.name
     }
   }
 

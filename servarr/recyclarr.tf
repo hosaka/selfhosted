@@ -7,8 +7,8 @@ locals {
   })
 }
 
-resource "incus_storage_volume" "recyclarr_config" {
-  name = "recyclarr-config"
+resource "incus_storage_volume" "recyclarr_data" {
+  name = "recyclarr-data"
   pool = "linstor"
 
   config = {
@@ -30,8 +30,8 @@ resource "incus_instance" "recyclarr" {
     type = "disk"
     properties = {
       path   = "/config"
-      pool   = incus_storage_volume.recyclarr_config.pool
-      source = incus_storage_volume.recyclarr_config.name
+      pool   = incus_storage_volume.recyclarr_data.pool
+      source = incus_storage_volume.recyclarr_data.name
     }
   }
 

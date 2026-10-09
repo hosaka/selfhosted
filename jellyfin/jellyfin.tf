@@ -4,8 +4,8 @@ locals {
   }
 }
 
-resource "incus_storage_volume" "jellyfin_config" {
-  name = "jellyfin-config"
+resource "incus_storage_volume" "jellyfin_data" {
+  name = "jellyfin-data"
   pool = "linstor"
 
   config = {
@@ -27,8 +27,8 @@ resource "incus_instance" "jellyfin" {
     type = "disk"
     properties = {
       path   = "/config"
-      pool   = incus_storage_volume.jellyfin_config.pool
-      source = incus_storage_volume.jellyfin_config.name
+      pool   = incus_storage_volume.jellyfin_data.pool
+      source = incus_storage_volume.jellyfin_data.name
     }
   }
 

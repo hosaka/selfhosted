@@ -10,8 +10,8 @@ locals {
   EOT
 }
 
-resource "incus_storage_volume" "radarr_config" {
-  name = "radarr-config"
+resource "incus_storage_volume" "radarr_data" {
+  name = "radarr-data"
   pool = "linstor"
 
   config = {
@@ -33,8 +33,8 @@ resource "incus_instance" "radarr" {
     type = "disk"
     properties = {
       path   = "/config"
-      pool   = incus_storage_volume.radarr_config.pool
-      source = incus_storage_volume.radarr_config.name
+      pool   = incus_storage_volume.radarr_data.pool
+      source = incus_storage_volume.radarr_data.name
     }
   }
 

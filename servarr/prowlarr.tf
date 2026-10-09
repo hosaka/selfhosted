@@ -10,8 +10,8 @@ locals {
   EOT
 }
 
-resource "incus_storage_volume" "prowlarr_config" {
-  name = "prowlarr-config"
+resource "incus_storage_volume" "prowlarr_data" {
+  name = "prowlarr-data"
   pool = "linstor"
 
   config = {
@@ -33,8 +33,8 @@ resource "incus_instance" "prowlarr" {
     type = "disk"
     properties = {
       path   = "/config"
-      pool   = incus_storage_volume.prowlarr_config.pool
-      source = incus_storage_volume.prowlarr_config.name
+      pool   = incus_storage_volume.prowlarr_data.pool
+      source = incus_storage_volume.prowlarr_data.name
     }
   }
 
