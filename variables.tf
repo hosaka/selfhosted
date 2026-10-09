@@ -34,5 +34,22 @@ variable "cluster" {
     #   target = optional(string, "node-4")
     # })
   })
+
+  validation {
+    condition = alltrue([
+      for v in [var.cluster.name, var.cluster.uplink, var.cluster.node-1.target, var.cluster.node-2.target, var.cluster.node-3.target] :
+      trimspace(v) != ""
+    ])
+    error_message = "Cluster name, uplink and node targets must not be empty."
+  }
+
+  validation {
+    condition = length(distinct([
+      var.cluster.node-1.target,
+      var.cluster.node-2.target,
+      var.cluster.node-3.target,
+    ])) == 3
+    error_message = "Each cluster node must have a distinct target."
+  }
 }
 
