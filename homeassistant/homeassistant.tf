@@ -28,6 +28,8 @@ resource "incus_instance" "homeassistant" {
     }
   }
 
+  # todo: if it relies on mDNS or device discovery, it probably needs a NIC on lan
+
   wait_for {
     type = "ipv4"
   }
