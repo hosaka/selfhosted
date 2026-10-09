@@ -64,7 +64,8 @@ resource "incus_storage_volume" "logs" {
 #   content_type = "filesystem"
 #
 #   config = {
-#     "zfs.blocksize" = "1MiB"
+#     "security.shifted" = "true"
+#     "zfs.blocksize"    = "1MiB"
 #   }
 #
 #   depends_on = [
@@ -98,18 +99,29 @@ resource "incus_storage_volume" "logs" {
 #   type         = "custom"
 #   content_type = "filesystem"
 #
+#   config = {
+#     "security.shifted" = "true"
+#   }
+#
 #   depends_on = [
 #     null_resource.post_storage_pools,
 #   ]
 # }
 
-# resource "incus_storage_volume" "private" {
-#   name         = "private"
-#   description  = "Family files from the old SMB share, not attached to any service yet"
+# resource "incus_storage_volume" "voidrepo" {
+#   name         = "voidrepo"
+#   description  = "Void Linux repository mirror"
 #   target       = "node-4"
 #   pool         = incus_storage_pool.nas.name
 #   type         = "custom"
 #   content_type = "filesystem"
+#
+#   config = {
+#     "zfs.blocksize" = "1MiB"
+#
+#     # shared between voidrepo-sync and voidrepo
+#     "security.shifted" = "true"
+#   }
 #
 #   depends_on = [
 #     null_resource.post_storage_pools,
