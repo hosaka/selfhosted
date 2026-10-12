@@ -192,7 +192,7 @@ stop instance: (onpath 'incus')
 restart instance: (onpath 'incus')
     incus restart {{ instance }}
 
-[arg('target', pattern='all|auth|keys|restic|secrets', help='target to entrypt')]
+[arg('target', pattern='all|auth|keys|recovery|restic|secrets', help='target to entrypt')]
 [doc('encrypt files for storing them in git repository')]
 encrypt target: (onpath 'sops') (onpath 'age') (onpath 'age-plugin-yubikey')
     @just _encrypt-{{ target }}
@@ -212,13 +212,20 @@ _encrypt-restic:
     sops encrypt ./restic/.env > ./restic/default.env
 
 [private]
+_encrypt-recovery:
+    sops encrypt ./incus/node-1/recovery.key > ./incus/node-1/recovery.key.enc
+    sops encrypt ./incus/node-2/recovery.key > ./incus/node-2/recovery.key.enc
+    sops encrypt ./incus/node-3/recovery.key > ./incus/node-3/recovery.key.enc
+    sops encrypt ./incus/node-4/recovery.key > ./incus/node-4/recovery.key.enc
+
+[private]
 _encrypt-auth:
     sops encrypt ./auth/private.pem > ./auth/private.pem.enc
 
 [private]
-_encrypt-all: _encrypt-secrets _encrypt-keys _encrypt-restic _encrypt-auth
+_encrypt-all: _encrypt-secrets _encrypt-keys _encrypt-recovery _encrypt-restic _encrypt-auth
 
-[arg('target', pattern='all|auth|keys|restic|secrets', help='target to decrypt')]
+[arg('target', pattern='all|auth|keys|recovery|restic|secrets', help='target to decrypt')]
 [doc('decrypt files stored in git repository')]
 decrypt target: (onpath 'sops') (onpath 'age') (onpath 'age-plugin-yubikey')
     @just _decrypt-{{ target }}
@@ -234,6 +241,13 @@ _decrypt-keys:
     sops decrypt ./metrics/metrics.key.enc > ./metrics/metrics.key
 
 [private]
+_decrypt-recovery:
+    sops decrypt ./incus/node-1/recovery.key.enc > ./incus/node-1/recovery.key
+    sops decrypt ./incus/node-2/recovery.key.enc > ./incus/node-2/recovery.key
+    sops decrypt ./incus/node-3/recovery.key.enc > ./incus/node-3/recovery.key
+    sops decrypt ./incus/node-4/recovery.key.enc > ./incus/node-4/recovery.key
+
+[private]
 _decrypt-restic:
     sops decrypt ./restic/default.env > ./restic/.env
 
@@ -242,7 +256,7 @@ _decrypt-auth:
     sops decrypt ./auth/private.pem.enc > ./auth/private.pem
 
 [private]
-_decrypt-all: _decrypt-secrets _decrypt-keys _decrypt-restic _decrypt-auth
+_decrypt-all: _decrypt-secrets _decrypt-keys _decrypt-recovery _decrypt-restic _decrypt-auth
 
 [doc('generate random OIDC client id (assumes authelia instance is runnig)')]
 genid: (onpath 'incus')
