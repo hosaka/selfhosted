@@ -2,10 +2,6 @@ locals {
   qbittorrent_ports = {
     webui = 8080
   }
-
-  qbitmanage_config = templatefile("${path.module}/qbitmanage.yml.tpl", {
-    qbittorrent_host = "${incus_instance.qbittorrent.ipv4_address}:${local.qbittorrent_ports.webui}"
-  })
 }
 
 resource "incus_storage_volume" "qbittorrent_data" {
@@ -58,21 +54,30 @@ resource "incus_instance" "qbittorrent" {
   }
 
   config = {
-    # wireguard runs inside the container, the module has to be loaded on the host
+    # Wireguard runs inside the container, the module has to be loaded on the host.
     "linux.kernel_modules"                          = "wireguard"
     "linux.sysctl.net.ipv4.conf.all.src_valid_mark" = "1"
     "linux.sysctl.net.ipv6.conf.all.disable_ipv6"   = "1"
 
-    "environment.VPN_ENABLED"  = "true"
-    "environment.VPN_PROVIDER" = var.vpn_provider
-    # anything coming in from outside these networks is dropped by the VPN killswitch
-    "environment.VPN_LAN_NETWORK"         = var.vpn_lan_network
-    "environment.VPN_AUTO_PORT_FORWARD"   = "true"
-    "environment.VPN_HEALTHCHECK_ENABLED" = "true"
-    "environment.TZ"                      = var.timezone
+    # Give the container an explicit, smaller capability set, Docker’s default set plus net_admin,
+    # so capsh lists the capabilities individually in order for `init-wireguard/run` to execute correctly.
+    #
+    # Incus bind-mounts /etc/resolv.conf from outside the rootfs, so container root can't write it, but
+    # `init-wireguard/run` overwrites it to keep DNS inside the tunnel, cover it with a writable copy.
+    # This can't be done with a `file` because files are only pushed after the instance starts, and
+    # "oci.entrypoint" only runs as PID 1, which s6 requires.
+    "raw.lxc" = <<-EOT
+      lxc.cap.drop =
+      lxc.cap.keep = chown dac_override fowner fsetid kill setgid setuid setpcap net_bind_service net_raw sys_chroot mknod audit_write setfcap net_admin
+      lxc.hook.mount = /bin/sh -c 'cp "$LXC_ROOTFS_MOUNT/etc/resolv.conf" "$LXC_ROOTFS_MOUNT/run/resolv.conf" && mount --bind "$LXC_ROOTFS_MOUNT/run/resolv.conf" "$LXC_ROOTFS_MOUNT/etc/resolv.conf"'
+    EOT
 
-    # files are pushed after the instance starts, the VPN must not come up without wg0.conf
-    "oci.entrypoint" = "/bin/sh -c 'while [ ! -f /config/wireguard/wg0.conf ]; do sleep 1; done; exec /init'"
+    "environment.VPN_ENABLED"           = "true"
+    "environment.VPN_PROVIDER"          = var.vpn_provider
+    "environment.VPN_AUTO_PORT_FORWARD" = "true"
+    # todo: set back to "true" once wtfismyip.com resolves again
+    "environment.VPN_HEALTHCHECK_ENABLED" = "false"
+    "environment.TZ"                      = var.timezone
 
     "user.access_interface" = "eth1"
   }
@@ -97,7 +102,9 @@ resource "incus_instance" "qbitmanage" {
   }
 
   file {
-    content            = local.qbitmanage_config
+    content = templatefile("${path.module}/qbitmanage.yml.tpl", {
+      qbittorrent_host = "${incus_instance.qbittorrent.ipv4_address}:${local.qbittorrent_ports.webui}"
+    })
     target_path        = "/config/config.yml"
     mode               = "0644"
     uid                = 1000
@@ -110,7 +117,6 @@ resource "incus_instance" "qbitmanage" {
   }
 
   config = {
-    "oci.entrypoint" = "/bin/sh -c 'while [ ! -f /config/config.yml ]; do sleep 1; done; exec /init'"
     "environment.TZ" = var.timezone
 
     "user.access_interface" = "eth1"

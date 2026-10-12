@@ -241,10 +241,7 @@ resource "null_resource" "authelia_restart" {
 
 output "ingress" {
   value = {
-    name = "auth"
-    domains = [
-      "auth.${var.public_domain}"
-    ]
+    name  = "auth"
     caddy = <<-EOT
 			auth.${var.public_domain} {
 				reverse_proxy ${incus_instance.authelia.ipv4_address}:${local.authelia_ports.api}

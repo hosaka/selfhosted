@@ -47,6 +47,7 @@ resource "incus_instance" "navidrome" {
     "environment.ND_ENABLETRANSCODINGCONFIG" = "false"
     # data collection: https://www.navidrome.org/docs/getting-started/insights/
     "environment.ND_ENABLEINSIGHTSCOLLECTOR" = "true"
+
     # used to fetch artist images
     "environment.ND_LASTFM_ENABLED" = "true"
     "environment.ND_LASTFM_APIKEY"  = sensitive(var.secrets.lastfm_apikey)
@@ -60,10 +61,7 @@ resource "incus_instance" "navidrome" {
 
 output "ingress" {
   value = {
-    name = "navidrome"
-    domains = [
-      "navidrome.${var.public_domain}"
-    ]
+    name  = "navidrome"
     caddy = <<-EOT
 			navidrome.${var.private_domain}, navidrome.${var.public_domain} {
 				reverse_proxy ${incus_instance.navidrome.ipv4_address}:${local.navidrome_ports.webui}

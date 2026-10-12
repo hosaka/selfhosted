@@ -1,9 +1,6 @@
 variable "vpn_provider" {
-  type = string
-}
-
-variable "vpn_lan_network" {
-  type = string
+  type    = string
+  default = "proton"
 }
 
 variable "secrets" {

@@ -81,10 +81,7 @@ resource "incus_instance" "atuin_database" {
 
 output "ingress" {
   value = {
-    name = "atuin"
-    domains = [
-      "atuin.${var.public_domain}"
-    ]
+    name  = "atuin"
     caddy = <<-EOT
 			atuin.${var.public_domain} {
 				reverse_proxy ${incus_instance.atuin.ipv4_address}:${local.atuin_ports.api}

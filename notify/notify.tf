@@ -104,10 +104,7 @@ resource "incus_instance" "diun" {
 
 output "ingress" {
   value = {
-    name = "gotify"
-    domains = [
-      "gotify.${var.public_domain}"
-    ]
+    name  = "gotify"
     caddy = <<-EOT
 			gotify.${var.public_domain} {
 				reverse_proxy ${incus_instance.gotify.ipv4_address}:${local.gotify_ports.webui}

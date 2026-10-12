@@ -4,9 +4,9 @@ locals {
   }
 
   seerr_caddy = <<-EOT
-		seerr.${var.private_domain} {
-			reverse_proxy ${incus_instance.seerr.ipv4_address}:${local.seerr_ports.webui}
-		}
+  seerr.${var.private_domain} {
+  	reverse_proxy ${incus_instance.seerr.ipv4_address}:${local.seerr_ports.webui}
+  }
   EOT
 }
 

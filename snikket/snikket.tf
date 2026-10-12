@@ -138,12 +138,7 @@ resource "incus_instance" "snikket_web" {
 
 output "ingress" {
   value = {
-    name = "snikket"
-    domains = [
-      "chat.${var.public_domain}",
-      "groups.chat.${var.public_domain}",
-      "share.chat.${var.public_domain}",
-    ]
+    name  = "snikket"
     caddy = <<-EOT
 			chat.${var.public_domain}, groups.chat.${var.public_domain}, share.chat.${var.public_domain} {
 				# Prosody endpoints on the chat and share*/upload domain

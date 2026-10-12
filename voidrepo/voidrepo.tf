@@ -90,10 +90,7 @@ resource "incus_instance" "voidrepo" {
 
 output "ingress" {
   value = {
-    name = "voidrepo"
-    domains = [
-      "mirror.${var.public_domain}"
-    ]
+    name  = "voidrepo"
     caddy = <<-EOT
 			mirror.${var.private_domain}, mirror.${var.public_domain} {
 				reverse_proxy ${incus_instance.voidrepo.ipv4_address}:${local.voidrepo_ports.http}

@@ -201,10 +201,7 @@ resource "incus_instance" "paperless_valkey" {
 
 output "ingress" {
   value = {
-    name = "paperless"
-    domains = [
-      "paperless.${var.public_domain}"
-    ]
+    name  = "paperless"
     caddy = <<-EOT
 			paperless.${var.private_domain}, paperless.${var.public_domain} {
 				reverse_proxy ${incus_instance.paperless.ipv4_address}:${local.paperless_ports.webui}

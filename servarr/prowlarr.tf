@@ -4,9 +4,9 @@ locals {
   }
 
   prowlarr_caddy = <<-EOT
-		prowlarr.${var.private_domain} {
-			reverse_proxy ${incus_instance.prowlarr.ipv4_address}:${local.prowlarr_ports.webui}
-		}
+  prowlarr.${var.private_domain} {
+  	reverse_proxy ${incus_instance.prowlarr.ipv4_address}:${local.prowlarr_ports.webui}
+  }
   EOT
 }
 

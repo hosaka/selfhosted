@@ -8,11 +8,6 @@ locals {
     https = 443
   }
 
-  public_domains = distinct(concat(
-    [var.public_domain],
-    flatten([for s in var.services : s.domains])
-  ))
-
   caddyfile = join("\n", concat(
     [templatefile("${path.module}/Caddyfile.tpl", {
       cf_api_email  = sensitive(var.secrets.caddy_cf_api_email)
@@ -28,7 +23,6 @@ locals {
     caddy_ip        = incus_instance.caddy.ipv4_address
     caddy_ports     = local.caddy_ports
     frpc_ports      = local.frpc_ports
-    public_domains  = local.public_domains
     services        = var.services
   })
 }

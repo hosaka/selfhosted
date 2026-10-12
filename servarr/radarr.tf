@@ -4,9 +4,9 @@ locals {
   }
 
   radarr_caddy = <<-EOT
-		radarr.${var.private_domain} {
-			reverse_proxy ${incus_instance.radarr.ipv4_address}:${local.radarr_ports.webui}
-		}
+  radarr.${var.private_domain} {
+  	reverse_proxy ${incus_instance.radarr.ipv4_address}:${local.radarr_ports.webui}
+  }
   EOT
 }
 

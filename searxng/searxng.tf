@@ -94,10 +94,7 @@ resource "incus_instance" "searxng_valkey" {
 
 output "ingress" {
   value = {
-    name = "searxng"
-    domains = [
-      "search.${var.public_domain}"
-    ]
+    name  = "searxng"
     caddy = <<-EOT
 			search.${var.private_domain}, search.${var.public_domain} {
 				log {

@@ -20,19 +20,19 @@ log.level = "info"
 log.maxDays = 3
 
 [[proxies]]
-name = "https-cluster"
-type = "https"
-customDomains = [${join(", ", [for d in public_domains : format("%q", d)])}]
+name = "https"
+type = "tcp"
 localIP = "${caddy_ip}"
 localPort = ${caddy_ports.https}
+remotePort = ${caddy_ports.https}
 transport.proxyProtocolVersion = "v2"
 
 [[proxies]]
-name = "http-cluster"
-type = "http"
-customDomains = [${join(", ", [for d in public_domains : format("%q", d)])}]
+name = "http"
+type = "tcp"
 localIP = "${caddy_ip}"
 localPort = ${caddy_ports.http}
+remotePort = ${caddy_ports.http}
 transport.proxyProtocolVersion = "v2"
 
 %{ for s in services ~}

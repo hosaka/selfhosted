@@ -4,9 +4,9 @@ locals {
   }
 
   sonarr_caddy = <<-EOT
-		sonarr.${var.private_domain} {
-			reverse_proxy ${incus_instance.sonarr.ipv4_address}:${local.sonarr_ports.webui}
-		}
+  sonarr.${var.private_domain} {
+  	reverse_proxy ${incus_instance.sonarr.ipv4_address}:${local.sonarr_ports.webui}
+  }
   EOT
 }
 

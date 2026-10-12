@@ -59,10 +59,7 @@ resource "incus_instance" "wakapi" {
 
 output "ingress" {
   value = {
-    name = "waka"
-    domains = [
-      "waka.${var.public_domain}"
-    ]
+    name  = "waka"
     caddy = <<-EOT
 			waka.${var.public_domain} {
 				reverse_proxy ${incus_instance.wakapi.ipv4_address}:${local.wakapi_ports.api}

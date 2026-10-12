@@ -4,9 +4,9 @@ locals {
   }
 
   lidarr_caddy = <<-EOT
-		lidarr.${var.private_domain} {
-			reverse_proxy ${incus_instance.lidarr.ipv4_address}:${local.lidarr_ports.webui}
-		}
+  lidarr.${var.private_domain} {
+  	reverse_proxy ${incus_instance.lidarr.ipv4_address}:${local.lidarr_ports.webui}
+  }
   EOT
 }
 

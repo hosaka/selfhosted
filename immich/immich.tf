@@ -25,7 +25,7 @@ resource "incus_instance" "immich" {
     }
   }
 
-  # hardware transcoding, enable it under Administration > Video Transcoding
+  #  hardware transcoding
   device {
     name = "gpu"
     type = "gpu"
@@ -194,10 +194,7 @@ resource "incus_instance" "immich_valkey" {
 
 output "ingress" {
   value = {
-    name = "immich"
-    domains = [
-      "immich.${var.public_domain}"
-    ]
+    name  = "immich"
     caddy = <<-EOT
 			immich.${var.private_domain}, immich.${var.public_domain} {
 				reverse_proxy ${incus_instance.immich.ipv4_address}:${local.immich_ports.webui}

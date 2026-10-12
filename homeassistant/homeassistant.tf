@@ -28,7 +28,7 @@ resource "incus_instance" "homeassistant" {
     }
   }
 
-  # todo: if it relies on mDNS or device discovery, it probably needs a NIC on lan
+  # todo: if the service relies on mDNS or device discovery, it probably needs a NIC on lan
 
   wait_for {
     type = "ipv4"
@@ -41,56 +41,56 @@ resource "incus_instance" "homeassistant" {
   }
 }
 
-resource "incus_storage_volume" "mosquitto_data" {
-  name = "mosquitto-data"
-  pool = "linstor"
-}
-
-resource "incus_instance" "mosquitto" {
-  name = "mosquitto"
-  type = "container"
-
-  target   = var.target
-  profiles = ["default"]
-  image    = "docker:eclipse-mosquitto:${var.versions.mosquitto}"
-
-  file {
-    content            = file("${path.module}/mosquitto.conf")
-    target_path        = "/mosquitto/config/mosquitto.conf"
-    mode               = "0600"
-    create_directories = true
-  }
-
-  device {
-    name = "data"
-    type = "disk"
-    properties = {
-      path   = "/mosquitto/data"
-      pool   = incus_storage_volume.mosquitto_data.pool
-      source = incus_storage_volume.mosquitto_data.name
-    }
-  }
-
-  device {
-    name = "eth0"
-    type = "nic"
-    properties = {
-      network = "incusbr0"
-    }
-  }
-
-  wait_for {
-    type = "ipv4"
-  }
-
-  config = {
-    # overriding the entrypoint drops the image's CMD, so pass the mosquitto command to the original entrypoint explicitly
-    # mosquitto.conf points at a password file and refuses to start without one, create an empty one on a fresh volume
-    "oci.entrypoint" = "/bin/sh -c 'while [ ! -f /mosquitto/config/mosquitto.conf ]; do sleep 1; done; [ -f /mosquitto/data/pwfile ] || install -m 0700 /dev/null /mosquitto/data/pwfile; exec /docker-entrypoint.sh /usr/sbin/mosquitto -c /mosquitto/config/mosquitto.conf'"
-
-    "user.access_interface" = "eth0"
-  }
-}
+# resource "incus_storage_volume" "mosquitto_data" {
+#   name = "mosquitto-data"
+#   pool = "linstor"
+# }
+#
+# resource "incus_instance" "mosquitto" {
+#   name = "mosquitto"
+#   type = "container"
+#
+#   target   = var.target
+#   profiles = ["default"]
+#   image    = "docker:eclipse-mosquitto:${var.versions.mosquitto}"
+#
+#   file {
+#     content            = file("${path.module}/mosquitto.conf")
+#     target_path        = "/mosquitto/config/mosquitto.conf"
+#     mode               = "0600"
+#     create_directories = true
+#   }
+#
+#   device {
+#     name = "data"
+#     type = "disk"
+#     properties = {
+#       path   = "/mosquitto/data"
+#       pool   = incus_storage_volume.mosquitto_data.pool
+#       source = incus_storage_volume.mosquitto_data.name
+#     }
+#   }
+#
+#   device {
+#     name = "eth0"
+#     type = "nic"
+#     properties = {
+#       network = "incusbr0"
+#     }
+#   }
+#
+#   wait_for {
+#     type = "ipv4"
+#   }
+#
+#   config = {
+#     # overriding the entrypoint drops the image's CMD, so pass the mosquitto command to the original entrypoint explicitly
+#     # mosquitto.conf points at a password file and refuses to start without one, create an empty one on a fresh volume
+#     "oci.entrypoint" = "/bin/sh -c 'while [ ! -f /mosquitto/config/mosquitto.conf ]; do sleep 1; done; [ -f /mosquitto/data/pwfile ] || install -m 0700 /dev/null /mosquitto/data/pwfile; exec /docker-entrypoint.sh /usr/sbin/mosquitto -c /mosquitto/config/mosquitto.conf'"
+#
+#     "user.access_interface" = "eth0"
+#   }
+# }
 
 output "ingress" {
   value = {
