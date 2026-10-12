@@ -9,11 +9,22 @@ locals {
     for name, member in var.members :
     name => "${split(":", trimprefix(member.address, "https://"))[0]}:${var.port}"
   }
-  grafana_config = templatefile("${path.module}/grafana.ini.tpl", {
-    public_domain = var.public_domain
 
+  grafana_config = templatefile("${path.module}/grafana.ini.tpl", {
+    public_domain      = var.public_domain
     oidc_client_id     = var.secrets.oidc_client_id
     oidc_client_secret = sensitive(var.secrets.oidc_client_secret)
+  })
+
+  grafana_datasources = templatefile("${path.module}/datasources.yml.tpl", {
+    prometheus_address = incus_instance.prometheus.ipv4_address
+    prometheus_port    = local.metrics_ports.prometheus
+    loki_address       = incus_instance.loki.ipv4_address
+    loki_port          = local.metrics_ports.loki
+  })
+
+  prometheus_config = templatefile("${path.module}/prometheus.yml.tpl", {
+    metrics_targets = local.metrics_targets
   })
 }
 
@@ -50,12 +61,7 @@ resource "incus_instance" "grafana" {
   image    = "docker:grafana/grafana:${var.versions.grafana}"
 
   file {
-    content = templatefile("${path.module}/datasources.yml.tpl", {
-      prometheus_address = incus_instance.prometheus.ipv4_address
-      prometheus_port    = local.metrics_ports.prometheus
-      loki_address       = incus_instance.loki.ipv4_address
-      loki_port          = local.metrics_ports.loki
-    })
+    content            = local.grafana_datasources
     uid                = 472
     gid                = 0
     target_path        = "/etc/grafana/provisioning/datasources/datasources.yml"
@@ -68,6 +74,15 @@ resource "incus_instance" "grafana" {
     uid                = 472
     gid                = 0
     target_path        = "/etc/grafana/provisioning/dashboards/dashboards.yml"
+    mode               = "0600"
+    create_directories = true
+  }
+
+  file {
+    content            = file("${path.module}/dashboards/incus.json")
+    uid                = 472
+    gid                = 0
+    target_path        = "/etc/grafana/provisioning/dashboards/incus.json"
     mode               = "0600"
     create_directories = true
   }
@@ -102,7 +117,8 @@ resource "incus_instance" "grafana" {
 
 resource "null_resource" "grafana_restart" {
   triggers = {
-    config = nonsensitive(sha1(local.grafana_config))
+    config      = nonsensitive(sha1(local.grafana_config))
+    datasources = sha1(local.grafana_datasources)
   }
 
   provisioner "local-exec" {
@@ -141,10 +157,7 @@ resource "incus_instance" "prometheus" {
   image    = "ghcr:prometheus/prometheus:v${var.versions.prometheus}"
 
   file {
-    content = templatefile("${path.module}/prometheus.yml.tpl", {
-      metrics_targets = local.metrics_targets
-    })
-
+    content            = local.prometheus_config
     target_path        = "/etc/prometheus/prometheus.yml"
     uid                = 65534
     gid                = 65534
@@ -200,6 +213,19 @@ resource "incus_instance" "prometheus" {
   }
 
   depends_on = [incus_server.metrics, incus_certificate.metrics_key]
+}
+
+resource "null_resource" "prometheus_reload" {
+  triggers = {
+    config = sha1(local.prometheus_config)
+  }
+
+  # prometheus may not be listening yet right after the instance is created
+  provisioner "local-exec" {
+    command = "incus exec prometheus -- sh -c 'for i in $(seq 30); do wget -qO- --post-data= http://127.0.0.1:${local.metrics_ports.prometheus}/-/reload && exit 0; sleep 1; done; exit 1'"
+  }
+
+  depends_on = [incus_instance.prometheus]
 }
 
 resource "incus_storage_volume" "loki_data" {
