@@ -1,29 +1,34 @@
 locals {
   frpc_ports = {
-    webui = 7400
+    webui     = 7400
+    dashboard = 7500
   }
 
   caddy_ports = {
-    http  = 80
-    https = 443
+    http    = 80
+    https   = 443
+    metrics = 2020
   }
 
   caddyfile = join("\n", concat(
     [templatefile("${path.module}/Caddyfile.tpl", {
-      cf_api_email  = sensitive(var.secrets.caddy_cf_api_email)
-      cf_api_token  = sensitive(var.secrets.caddy_cf_api_token)
-      public_domain = var.public_domain
-      services      = var.services
+      cf_api_email   = sensitive(var.secrets.caddy_cf_api_email)
+      cf_api_token   = sensitive(var.secrets.caddy_cf_api_token)
+      public_domain  = var.public_domain
+      private_domain = var.private_domain
+      services       = var.services
+      metrics_port   = local.caddy_ports.metrics
     })],
   ))
 
   frpc_toml = templatefile("${path.module}/frpc.toml.tpl", {
-    frp_server_addr = var.secrets.frp_server_addr
-    frp_auth_token  = sensitive(var.secrets.frp_auth_token)
-    caddy_ip        = incus_instance.caddy.ipv4_address
-    caddy_ports     = local.caddy_ports
-    frpc_ports      = local.frpc_ports
-    services        = var.services
+    frp_server_addr           = var.secrets.frp_server_addr
+    frp_auth_token            = sensitive(var.secrets.frp_auth_token)
+    frps_dashboard_secret_key = sensitive(var.secrets.frps_dashboard_secret_key)
+    caddy_ip                  = incus_instance.caddy.ipv4_address
+    caddy_ports               = local.caddy_ports
+    frpc_ports                = local.frpc_ports
+    services                  = var.services
   })
 }
 
@@ -98,10 +103,6 @@ resource "incus_instance" "caddy" {
     }
   }
 
-  # required for any services using var.private_domain
-  # add the ipv4 on this NIC to DHCP leases on the router and point
-  # all the *.${var.private_domain} traffic to this address in order
-  # to correctly resolve LAN-only access
   file {
     content     = local.caddyfile
     target_path = "/config/Caddyfile"
@@ -138,4 +139,14 @@ resource "null_resource" "frpc_reload" {
   }
 
   depends_on = [incus_instance.frpc]
+}
+
+output "caddy_metrics_address" {
+  description = "Caddy's prometheus metrics endpoint, only reachable inside the cluster"
+  value       = "${incus_instance.caddy.ipv4_address}:${local.caddy_ports.metrics}"
+}
+
+output "frps_metrics_address" {
+  description = "The frps dashboard and its /metrics through frpc's stcp visitor, only reachable inside the cluster"
+  value       = "${incus_instance.frpc.ipv4_address}:${local.frpc_ports.dashboard}"
 }

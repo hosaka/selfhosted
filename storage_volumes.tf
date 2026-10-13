@@ -47,6 +47,10 @@ resource "incus_storage_volume" "logs" {
   content_type = "filesystem"
 
   config = {
+    # the alloy log collectors mounts this read only
+    # without shifting, attaching it to an unprivileged container chowns the files once
+    # and anything incusd creates afterwards stays unreadable to it
+    "security.shifted" = "true"
   }
 
   depends_on = [

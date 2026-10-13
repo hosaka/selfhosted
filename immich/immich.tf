@@ -1,6 +1,8 @@
 locals {
   immich_ports = {
     webui            = 2283
+    api_metrics      = 8081
+    jobs_metrics     = 8082
     machine_learning = 3003
     db               = 5432
     valkey           = 6379
@@ -39,15 +41,18 @@ resource "incus_instance" "immich" {
   }
 
   config = {
-    "environment.IMMICH_ENV"                  = "production"
-    "environment.IMMICH_LOG_LEVEL"            = var.log_level
-    "environment.DB_HOSTNAME"                 = incus_instance.immich_database.ipv4_address
-    "environment.DB_USERNAME"                 = var.secrets.db_username
-    "environment.DB_PASSWORD"                 = sensitive(var.secrets.db_password)
-    "environment.DB_DATABASE_NAME"            = var.db_name
-    "environment.REDIS_HOSTNAME"              = incus_instance.immich_valkey.ipv4_address
-    "environment.IMMICH_MACHINE_LEARNING_URL" = "http://${incus_instance.immich_machine_learning.ipv4_address}:${local.immich_ports.machine_learning}"
-    "environment.TZ"                          = var.timezone
+    "environment.IMMICH_ENV"                        = "production"
+    "environment.IMMICH_LOG_LEVEL"                  = var.log_level
+    "environment.IMMICH_TELEMETRY_INCLUDE"          = "all"
+    "environment.IMMICH_API_METRICS_PORT"           = local.immich_ports.api_metrics
+    "environment.IMMICH_MICROSERVICES_METRICS_PORT" = local.immich_ports.jobs_metrics
+    "environment.DB_HOSTNAME"                       = incus_instance.immich_database.ipv4_address
+    "environment.DB_USERNAME"                       = var.secrets.db_username
+    "environment.DB_PASSWORD"                       = sensitive(var.secrets.db_password)
+    "environment.DB_DATABASE_NAME"                  = var.db_name
+    "environment.REDIS_HOSTNAME"                    = incus_instance.immich_valkey.ipv4_address
+    "environment.IMMICH_MACHINE_LEARNING_URL"       = "http://${incus_instance.immich_machine_learning.ipv4_address}:${local.immich_ports.machine_learning}"
+    "environment.TZ"                                = var.timezone
 
     "user.access_interface" = "eth1"
   }
@@ -192,6 +197,16 @@ resource "incus_instance" "immich_valkey" {
   }
 }
 
+resource "null_resource" "immich_restart" {
+  triggers = {
+    config = nonsensitive(sha1(jsonencode(incus_instance.immich.config)))
+  }
+
+  provisioner "local-exec" {
+    command = "incus restart ${incus_instance.immich.name}"
+  }
+}
+
 output "ingress" {
   value = {
     name  = "immich"
@@ -200,5 +215,13 @@ output "ingress" {
 				reverse_proxy ${incus_instance.immich.ipv4_address}:${local.immich_ports.webui}
 			}
     EOT
+  }
+}
+
+output "metrics_addresses" {
+  description = "Prometheus metrics of the api and the job worker, only reachable inside the cluster"
+  value = {
+    api  = "${incus_instance.immich.ipv4_address}:${local.immich_ports.api_metrics}"
+    jobs = "${incus_instance.immich.ipv4_address}:${local.immich_ports.jobs_metrics}"
   }
 }

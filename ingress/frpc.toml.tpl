@@ -15,9 +15,18 @@ transport.poolCount = 10
 
 loginFailExit = false
 
-log.to = "/tmp/frpc.log"
+# log to console so it can be fed to loki
+log.to = "console"
 log.level = "info"
-log.maxDays = 3
+
+# the frps dashboard, published by a second frpc as stcp
+[[visitors]]
+name = "frps-dashboard-visitor"
+type = "stcp"
+serverName = "frps-dashboard"
+secretKey = "${frps_dashboard_secret_key}"
+bindAddr = "0.0.0.0"
+bindPort = ${frpc_ports.dashboard}
 
 [[proxies]]
 name = "https"

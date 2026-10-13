@@ -2,9 +2,10 @@ locals {
   lldap_base_dn = coalesce(var.lldap_base_dn, "dc=${join(",dc=", split(".", var.public_domain))}")
 
   authelia_ports = {
-    api    = 9091
-    db     = 5432
-    valkey = 6379
+    api     = 9091
+    metrics = 9959
+    db      = 5432
+    valkey  = 6379
   }
 
   lldap_ports = {
@@ -34,6 +35,7 @@ locals {
     valkey_address         = incus_instance.authelia_valkey.ipv4_address
     valkey_port            = local.authelia_ports.valkey
     storage_encryption_key = sensitive(var.secrets.storage_encryption_key)
+    metrics_port           = local.authelia_ports.metrics
 
     # clients
     forgejo_client_id              = var.secrets.forgejo_client_id
@@ -251,4 +253,9 @@ output "ingress" {
 			}
     EOT
   }
+}
+
+output "authelia_metrics_address" {
+  description = "Authelia's prometheus metrics endpoint, only reachable inside the cluster"
+  value       = "${incus_instance.authelia.ipv4_address}:${local.authelia_ports.metrics}"
 }

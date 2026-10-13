@@ -4,6 +4,13 @@ instance_name = selfhosted
 domain = metrics.${public_domain}
 root_url = https://metrics.${public_domain}
 
+[log]
+; otherwise request logs would drown out the service logs
+level = warn
+
+[dashboards]
+default_home_dashboard_path = /etc/grafana/home.json
+
 [security]
 ; use oauth
 disable_initial_admin_creation = true

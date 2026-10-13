@@ -37,9 +37,11 @@ versions = {
     kavita = "0.9.0"
   }
   metrics = {
-    grafana    = "13.1.1"
-    prometheus = "3.13.2"
-    loki       = "3.7.4"
+    alloy             = "1.20.1"
+    grafana           = "13.1.1"
+    loki              = "3.7.4"
+    prometheus        = "3.13.2"
+    smartctl_exporter = "0.15.0"
   }
   navidrome = {
     navidrome = "0.63.2"

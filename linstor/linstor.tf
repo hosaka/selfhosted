@@ -126,3 +126,8 @@ output "linstor_ip" {
   value       = incus_instance.linstor_controller.ipv4_address
 }
 
+output "linstor_api_address" {
+  description = "Linstor Controller REST API address, it also serves Prometheus metrics on /metrics"
+  value       = "${incus_instance.linstor_controller.ipv4_address}:${local.linstor_controller_ports.api}"
+}
+

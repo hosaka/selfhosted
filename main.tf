@@ -148,14 +148,46 @@ module "kavita" {
 }
 
 module "metrics" {
-  source        = "./metrics"
-  versions      = var.versions.metrics
-  secrets       = var.secrets.metrics
-  members       = local.members
-  target        = var.cluster.node-2.target
-  public_domain = var.public_domain
-  timezone      = var.timezone
-  depends_on    = [null_resource.post_server, module.linstor]
+  source         = "./metrics"
+  versions       = var.versions.metrics
+  secrets        = var.secrets.metrics
+  members        = local.members
+  target         = var.cluster.node-2.target
+  public_domain  = var.public_domain
+  private_domain = var.private_domain
+  timezone       = var.timezone
+  # `incus query /os/1.0/system/storage?target=<member>` lists the drives
+  smart_devices = {
+    (var.cluster.node-1.target) = [
+      "/dev/disk/by-id/nvme-KXG6AZNV256G_TOSHIBA_305F70ONF6B1",
+      "/dev/disk/by-id/nvme-KXG6AZNV256G_TOSHIBA_50MF3DS2F6C1",
+    ]
+    (var.cluster.node-2.target) = [
+      "/dev/disk/by-id/nvme-KXG6AZNV256G_TOSHIBA_305F70CWF6B1",
+      "/dev/disk/by-id/nvme-KXG6AZNV256G_TOSHIBA_50MF34WKF6C1",
+    ]
+    (var.cluster.node-3.target) = [
+      "/dev/disk/by-id/nvme-KXG6AZNV256G_TOSHIBA_305F70EIF6B1",
+      "/dev/disk/by-id/nvme-KXG6AZNV256G_TOSHIBA_50QFA01HF6C1",
+    ]
+    (var.cluster.node-4.target) = [
+      "/dev/disk/by-id/nvme-KXG6AZNV256G_TOSHIBA_50MF386PF6C1",
+      "/dev/disk/by-id/ata-KINGSTON_SQ500S37240G_50026B7784A8E6B0",
+      "/dev/disk/by-id/ata-KINGSTON_SQ500S37240G_50026B7784D51AD1",
+      "/dev/disk/by-id/ata-WDC_WD80EFAX-68KNBN0_VAKD8J6L",
+      "/dev/disk/by-id/ata-WDC_WD80EFAX-68KNBN0_VAKEE7RL",
+      "/dev/disk/by-id/ata-WDC_WD80EFAX-68KNBN0_VDGBKXND",
+      "/dev/disk/by-id/ata-WDC_WD80EFAX-68KNBN0_VDGLA6GD",
+      "/dev/disk/by-id/ata-WDC_WD80EFAX-68KNBN0_VDJ0YV7K",
+    ]
+  }
+  linstor_address  = module.linstor.linstor_api_address
+  caddy_address    = module.ingress.caddy_metrics_address
+  frps_address     = module.ingress.frps_metrics_address
+  authelia_address = module.auth.authelia_metrics_address
+  immich_addresses = module.immich.metrics_addresses
+  log_collectors = keys(local.members)
+  depends_on     = [null_resource.post_server, module.linstor]
 }
 
 module "navidrome" {

@@ -1,5 +1,11 @@
 theme: "auto"
 
+# prometheus metrics
+telemetry:
+  metrics:
+    enabled: true
+    address: "tcp://:${metrics_port}/metrics"
+
 access_control:
   default_policy: deny
   rules:

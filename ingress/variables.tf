@@ -1,10 +1,11 @@
 
 variable "secrets" {
   type = object({
-    frp_server_addr    = string
-    frp_auth_token     = string
-    caddy_cf_api_email = string
-    caddy_cf_api_token = string
+    frp_server_addr           = string
+    frp_auth_token            = string
+    frps_dashboard_secret_key = string
+    caddy_cf_api_email        = string
+    caddy_cf_api_token        = string
   })
 }
 

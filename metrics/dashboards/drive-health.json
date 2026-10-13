@@ -1,0 +1,1208 @@
+{
+  "uid": "drive-health",
+  "title": "Drive Health",
+  "description": "SMART health of the cluster members' drives, from smartctl_exporter.",
+  "tags": [
+    "smart",
+    "storage"
+  ],
+  "editable": false,
+  "graphTooltip": 1,
+  "refresh": "1m",
+  "schemaVersion": 39,
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "timezone": "browser",
+  "templating": {
+    "list": [
+      {
+        "name": "node",
+        "label": "Node",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "query": {
+          "query": "label_values(smartctl_device, node)",
+          "refId": "node"
+        },
+        "definition": "label_values(smartctl_device, node)",
+        "refresh": 1,
+        "sort": 1,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Drives",
+      "description": "Drives reporting SMART data.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 0,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "count(max by (node, device) (smartctl_device{node=~\"$node\"}))",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "noValue": "0",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value"
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "SMART failed",
+      "description": "Drives whose overall SMART self-assessment failed.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 4,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "count(max by (node, device) (smartctl_device_smart_status{node=~\"$node\"}) == 0) or vector(0)",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "noValue": "0",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value"
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Pending / uncorrectable",
+      "description": "Drives with sectors they could not read (Current_Pending_Sector, Offline_Uncorrectable), the strongest sign of a failing HDD.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 8,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "count(max by (node, device) (smartctl_device_attribute{node=~\"$node\", attribute_value_type=\"raw\", attribute_name=~\"Current_Pending_Sector|Offline_Uncorrectable\"}) > 0) or vector(0)",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "noValue": "0",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value"
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Reallocated",
+      "description": "Drives that have remapped bad sectors (Reallocated_Sector_Ct). A small stable count is common, watch the table for growth.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 12,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "count(max by (node, device) (smartctl_device_attribute{node=~\"$node\", attribute_value_type=\"raw\", attribute_name=\"Reallocated_Sector_Ct\"}) > 0) or vector(0)",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "noValue": "0",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value"
+      }
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "NVMe warnings",
+      "description": "NVMe drives with a critical warning or media errors.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 16,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "count(max by (node, device) (smartctl_device_critical_warning{node=~\"$node\"}) > 0 or max by (node, device) (smartctl_device_media_errors{node=~\"$node\"}) > 0) or vector(0)",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "noValue": "0",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value"
+      }
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Hottest drive",
+      "description": "Highest current drive temperature.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max(smartctl_device_temperature{node=~\"$node\", temperature_type=\"current\"})",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "noValue": "0",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 50
+              },
+              {
+                "color": "red",
+                "value": 60
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value"
+      }
+    },
+    {
+      "id": 7,
+      "type": "table",
+      "title": "Drives",
+      "description": "Reallocated, Pending, Uncorrectable and CRC errors are lifetime SATA attribute counts; NVMe wear and media errors only apply to NVMe drives. New errors (24h) is how much those error counters grew over the last day, a drive with a value there needs attention.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 4
+      },
+      "targets": [
+        {
+          "refId": "status",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max by (node, device, model_name, serial_number) ((max by (node, device) (smartctl_device_smart_status{node=~\"$node\"})) * on (node, device) group_left (model_name, serial_number) max by (node, device, model_name, serial_number) (smartctl_device{node=~\"$node\"}))",
+          "format": "table",
+          "instant": true,
+          "range": false
+        },
+        {
+          "refId": "capacity",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max by (node, device, model_name, serial_number) ((max by (node, device) (smartctl_device_capacity_bytes{node=~\"$node\"} or smartctl_device_nvme_capacity_bytes{node=~\"$node\"})) * on (node, device) group_left (model_name, serial_number) max by (node, device, model_name, serial_number) (smartctl_device{node=~\"$node\"}))",
+          "format": "table",
+          "instant": true,
+          "range": false
+        },
+        {
+          "refId": "temperature",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max by (node, device, model_name, serial_number) ((max by (node, device) (smartctl_device_temperature{node=~\"$node\", temperature_type=\"current\"})) * on (node, device) group_left (model_name, serial_number) max by (node, device, model_name, serial_number) (smartctl_device{node=~\"$node\"}))",
+          "format": "table",
+          "instant": true,
+          "range": false
+        },
+        {
+          "refId": "power_on",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max by (node, device, model_name, serial_number) ((max by (node, device) (smartctl_device_power_on_seconds{node=~\"$node\"})) * on (node, device) group_left (model_name, serial_number) max by (node, device, model_name, serial_number) (smartctl_device{node=~\"$node\"}))",
+          "format": "table",
+          "instant": true,
+          "range": false
+        },
+        {
+          "refId": "reallocated",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max by (node, device, model_name, serial_number) ((max by (node, device) (smartctl_device_attribute{node=~\"$node\", attribute_value_type=\"raw\", attribute_name=\"Reallocated_Sector_Ct\"})) * on (node, device) group_left (model_name, serial_number) max by (node, device, model_name, serial_number) (smartctl_device{node=~\"$node\"}))",
+          "format": "table",
+          "instant": true,
+          "range": false
+        },
+        {
+          "refId": "pending",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max by (node, device, model_name, serial_number) ((max by (node, device) (smartctl_device_attribute{node=~\"$node\", attribute_value_type=\"raw\", attribute_name=\"Current_Pending_Sector\"})) * on (node, device) group_left (model_name, serial_number) max by (node, device, model_name, serial_number) (smartctl_device{node=~\"$node\"}))",
+          "format": "table",
+          "instant": true,
+          "range": false
+        },
+        {
+          "refId": "uncorrectable",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max by (node, device, model_name, serial_number) ((max by (node, device) (smartctl_device_attribute{node=~\"$node\", attribute_value_type=\"raw\", attribute_name=\"Offline_Uncorrectable\"})) * on (node, device) group_left (model_name, serial_number) max by (node, device, model_name, serial_number) (smartctl_device{node=~\"$node\"}))",
+          "format": "table",
+          "instant": true,
+          "range": false
+        },
+        {
+          "refId": "crc",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max by (node, device, model_name, serial_number) ((max by (node, device) (smartctl_device_attribute{node=~\"$node\", attribute_value_type=\"raw\", attribute_name=\"UDMA_CRC_Error_Count\"})) * on (node, device) group_left (model_name, serial_number) max by (node, device, model_name, serial_number) (smartctl_device{node=~\"$node\"}))",
+          "format": "table",
+          "instant": true,
+          "range": false
+        },
+        {
+          "refId": "wear",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max by (node, device, model_name, serial_number) ((max by (node, device) (smartctl_device_percentage_used{node=~\"$node\"})) * on (node, device) group_left (model_name, serial_number) max by (node, device, model_name, serial_number) (smartctl_device{node=~\"$node\"}))",
+          "format": "table",
+          "instant": true,
+          "range": false
+        },
+        {
+          "refId": "media_errors",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max by (node, device, model_name, serial_number) ((max by (node, device) (smartctl_device_media_errors{node=~\"$node\"})) * on (node, device) group_left (model_name, serial_number) max by (node, device, model_name, serial_number) (smartctl_device{node=~\"$node\"}))",
+          "format": "table",
+          "instant": true,
+          "range": false
+        },
+        {
+          "refId": "new_errors",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max by (node, device, model_name, serial_number) ((sum by (node, device) (clamp_min((smartctl_device_attribute{node=~\"$node\", attribute_value_type=\"raw\", attribute_name=~\"Reallocated_Sector_Ct|Current_Pending_Sector|Offline_Uncorrectable|Reported_Uncorrect|UDMA_CRC_Error_Count\"} - smartctl_device_attribute{node=~\"$node\", attribute_value_type=\"raw\", attribute_name=~\"Reallocated_Sector_Ct|Current_Pending_Sector|Offline_Uncorrectable|Reported_Uncorrect|UDMA_CRC_Error_Count\"} offset 1d), 0)) or sum by (node, device) (clamp_min((smartctl_device_media_errors{node=~\"$node\"} - smartctl_device_media_errors{node=~\"$node\"} offset 1d), 0))) * on (node, device) group_left (model_name, serial_number) max by (node, device, model_name, serial_number) (smartctl_device{node=~\"$node\"}))",
+          "format": "table",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "indexByName": {
+              "node": 0,
+              "device": 1,
+              "model_name": 2,
+              "serial_number": 3,
+              "Value #status": 4,
+              "Value #capacity": 5,
+              "Value #temperature": 6,
+              "Value #power_on": 7,
+              "Value #reallocated": 8,
+              "Value #pending": 9,
+              "Value #uncorrectable": 10,
+              "Value #crc": 11,
+              "Value #wear": 12,
+              "Value #media_errors": 13,
+              "Value #new_errors": 14
+            },
+            "renameByName": {
+              "node": "Node",
+              "device": "Device",
+              "model_name": "Model",
+              "serial_number": "Serial",
+              "Value #status": "SMART",
+              "Value #capacity": "Capacity",
+              "Value #temperature": "Temperature",
+              "Value #power_on": "Powered on",
+              "Value #reallocated": "Reallocated",
+              "Value #pending": "Pending",
+              "Value #uncorrectable": "Uncorrectable",
+              "Value #crc": "CRC errors",
+              "Value #wear": "NVMe wear",
+              "Value #media_errors": "Media errors",
+              "Value #new_errors": "New errors (24h)"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "SMART"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": "FAILED",
+                        "color": "red",
+                        "index": 0
+                      },
+                      "1": {
+                        "text": "PASSED",
+                        "color": "green",
+                        "index": 1
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Capacity"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "decbytes"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Temperature"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "celsius"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 50
+                    },
+                    {
+                      "color": "red",
+                      "value": 60
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Powered on"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "s"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Reallocated"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "CRC errors"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Pending"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Uncorrectable"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Media errors"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "New errors (24h)"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "NVMe wear"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 80
+                    },
+                    {
+                      "color": "red",
+                      "value": 95
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "sortBy": [
+          {
+            "displayName": "Node",
+            "desc": false
+          }
+        ]
+      }
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Temperature",
+      "description": "Current temperature per drive.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 14
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max by (node, device) (smartctl_device_temperature{node=~\"$node\", temperature_type=\"current\"})",
+          "instant": false,
+          "range": true,
+          "legendFormat": "{{device}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 50
+              },
+              {
+                "color": "red",
+                "value": 60
+              }
+            ]
+          },
+          "custom": {
+            "showPoints": "never",
+            "spanNulls": true,
+            "lineInterpolation": "stepAfter",
+            "thresholdsStyle": {
+              "mode": "dashed"
+            }
+          }
+        }
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "New drive errors",
+      "description": "How much each error counter grew per interval; only growth is drawn, so a bar means that drive logged new errors then. Reallocated, pending, uncorrectable and reported uncorrectable sectors point at the drive itself, UDMA CRC errors at its cable, port or backplane, media errors at an NVMe drive.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 14
+      },
+      "interval": "1h",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max by (node, device, attribute_name) (smartctl_device_attribute{node=~\"$node\", attribute_value_type=\"raw\", attribute_name=~\"Reallocated_Sector_Ct|Current_Pending_Sector|Offline_Uncorrectable|Reported_Uncorrect|UDMA_CRC_Error_Count\"} - smartctl_device_attribute{node=~\"$node\", attribute_value_type=\"raw\", attribute_name=~\"Reallocated_Sector_Ct|Current_Pending_Sector|Offline_Uncorrectable|Reported_Uncorrect|UDMA_CRC_Error_Count\"} offset $__interval) > 0",
+          "instant": false,
+          "range": true,
+          "legendFormat": "{{node}} {{device}} {{attribute_name}}"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max by (node, device) (smartctl_device_media_errors{node=~\"$node\"} - smartctl_device_media_errors{node=~\"$node\"} offset $__interval) > 0",
+          "instant": false,
+          "range": true,
+          "legendFormat": "{{node}} {{device}} media errors"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "noValue": "No new errors",
+          "custom": {
+            "drawStyle": "bars",
+            "showPoints": "never",
+            "spanNulls": true
+          }
+        }
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "calcs": [
+            "sum"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "NVMe wear",
+      "description": "Percentage of the rated endurance used, as reported by the drive.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 23
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max by (node, device) (smartctl_device_percentage_used{node=~\"$node\"})",
+          "instant": false,
+          "range": true,
+          "legendFormat": "{{device}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 80
+              },
+              {
+                "color": "red",
+                "value": 95
+              }
+            ]
+          },
+          "custom": {
+            "showPoints": "never",
+            "spanNulls": true,
+            "lineInterpolation": "stepAfter",
+            "thresholdsStyle": {
+              "mode": "dashed"
+            }
+          }
+        }
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "NVMe writes per day",
+      "description": "Data written per drive over the preceding 24 hours.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 23
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max by (node, device) (increase(smartctl_device_bytes_written{node=~\"$node\"}[1d]))",
+          "instant": false,
+          "range": true,
+          "legendFormat": "{{device}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "decbytes",
+          "custom": {
+            "showPoints": "never",
+            "spanNulls": true,
+            "lineInterpolation": "stepAfter"
+          }
+        }
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,1168 @@
+{
+  "uid": "linstor-pool",
+  "title": "Linstor Pool",
+  "description": "State of the LINSTOR satellites, storage pools and volumes, from the controller's metrics.",
+  "tags": [
+    "linstor",
+    "storage"
+  ],
+  "editable": false,
+  "graphTooltip": 1,
+  "refresh": "1m",
+  "schemaVersion": 41,
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Controller",
+      "description": "Whether Prometheus can scrape the LINSTOR controller; everything else on this dashboard comes from it.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 0,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "up{job=\"linstor\"}",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "noValue": "No data",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "Down",
+                  "color": "red",
+                  "index": 0
+                },
+                "1": {
+                  "text": "Up",
+                  "color": "green",
+                  "index": 1
+                }
+              }
+            }
+          ]
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value"
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Satellites not online",
+      "description": "Satellites in any state but ONLINE, such as VERSION_MISMATCH after an IncusOS update.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 4,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "count(linstor_node_state{job=\"linstor\"} != 2) or vector(0)",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "noValue": "0",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value"
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Unhealthy volumes",
+      "description": "Volumes that are neither UpToDate nor Diskless on a node.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 8,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "count((linstor_volume_state{job=\"linstor\"} != 1) != 4) or vector(0)",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "noValue": "0",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value"
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Pool errors",
+      "description": "Errors the satellites report for their storage pools.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 12,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(linstor_storage_pool_error_count{job=\"linstor\"}) or vector(0)",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "noValue": "0",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value"
+      }
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "New error reports (24h)",
+      "description": "Error reports the controller and satellites wrote over the last day, `linstor error-reports list` shows them.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 16,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(clamp_min(linstor_error_reports_count{job=\"linstor\", module!=\"\"} - linstor_error_reports_count{job=\"linstor\", module!=\"\"} offset 1d, 0)) or vector(0)",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "noValue": "0",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value"
+      }
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Pool used",
+      "description": "Allocated share of all LINSTOR storage pools.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "100 * (1 - sum(linstor_storage_pool_capacity_free_bytes{job=\"linstor\", driver!=\"DISKLESS\"}) / sum(linstor_storage_pool_capacity_total_bytes{job=\"linstor\", driver!=\"DISKLESS\"}))",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "noValue": "0",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 75
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value"
+      }
+    },
+    {
+      "id": 7,
+      "type": "table",
+      "title": "Satellites",
+      "description": "In use counts the resources that are primary on the satellite. Pool columns are empty for satellites without a storage pool, which use their volumes diskless.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 4
+      },
+      "targets": [
+        {
+          "refId": "state",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max by (node, address) (linstor_node_state{job=\"linstor\"})",
+          "format": "table",
+          "instant": true,
+          "range": false
+        },
+        {
+          "refId": "resources",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max by (node, address) ((count by (node) (linstor_resource_state{job=\"linstor\"})) * on (node) group_left (address) group by (node, address) (linstor_node_state{job=\"linstor\"}))",
+          "format": "table",
+          "instant": true,
+          "range": false
+        },
+        {
+          "refId": "in_use",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max by (node, address) ((count by (node) (linstor_resource_state{job=\"linstor\"} == 1) or max by (node) (linstor_node_state{job=\"linstor\"}) * 0) * on (node) group_left (address) group by (node, address) (linstor_node_state{job=\"linstor\"}))",
+          "format": "table",
+          "instant": true,
+          "range": false
+        },
+        {
+          "refId": "pool_used",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max by (node, address) ((100 * (1 - sum by (node) (linstor_storage_pool_capacity_free_bytes{job=\"linstor\", driver!=\"DISKLESS\"}) / sum by (node) (linstor_storage_pool_capacity_total_bytes{job=\"linstor\", driver!=\"DISKLESS\"}))) * on (node) group_left (address) group by (node, address) (linstor_node_state{job=\"linstor\"}))",
+          "format": "table",
+          "instant": true,
+          "range": false
+        },
+        {
+          "refId": "pool_free",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max by (node, address) ((sum by (node) (linstor_storage_pool_capacity_free_bytes{job=\"linstor\", driver!=\"DISKLESS\"})) * on (node) group_left (address) group by (node, address) (linstor_node_state{job=\"linstor\"}))",
+          "format": "table",
+          "instant": true,
+          "range": false
+        },
+        {
+          "refId": "pool_errors",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max by (node, address) ((sum by (node) (linstor_storage_pool_error_count{job=\"linstor\"})) * on (node) group_left (address) group by (node, address) (linstor_node_state{job=\"linstor\"}))",
+          "format": "table",
+          "instant": true,
+          "range": false
+        },
+        {
+          "refId": "error_reports",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max by (node, address) ((max by (node) (label_replace(linstor_error_reports_count{job=\"linstor\", module=\"SATELLITE\"}, \"node\", \"$1\", \"hostname\", \"(.*)\"))) * on (node) group_left (address) group by (node, address) (linstor_node_state{job=\"linstor\"}))",
+          "format": "table",
+          "instant": true,
+          "range": false
+        },
+        {
+          "refId": "reconnects",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max by (node, address) ((max by (node) (clamp_min(linstor_node_reconnect_attempt_count{job=\"linstor\"} - linstor_node_reconnect_attempt_count{job=\"linstor\"} offset 1d, 0))) * on (node) group_left (address) group by (node, address) (linstor_node_state{job=\"linstor\"}))",
+          "format": "table",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "indexByName": {
+              "node": 0,
+              "address": 1,
+              "Value #state": 2,
+              "Value #resources": 3,
+              "Value #in_use": 4,
+              "Value #pool_used": 5,
+              "Value #pool_free": 6,
+              "Value #pool_errors": 7,
+              "Value #error_reports": 8,
+              "Value #reconnects": 9
+            },
+            "renameByName": {
+              "node": "Node",
+              "address": "Address",
+              "Value #state": "State",
+              "Value #resources": "Resources",
+              "Value #in_use": "In use",
+              "Value #pool_used": "Pool used",
+              "Value #pool_free": "Pool free",
+              "Value #pool_errors": "Pool errors",
+              "Value #error_reports": "Error reports",
+              "Value #reconnects": "Reconnects (24h)"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "left"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "State"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": "OFFLINE",
+                        "color": "red",
+                        "index": 0
+                      },
+                      "1": {
+                        "text": "CONNECTED",
+                        "color": "yellow",
+                        "index": 1
+                      },
+                      "2": {
+                        "text": "ONLINE",
+                        "color": "green",
+                        "index": 2
+                      },
+                      "3": {
+                        "text": "VERSION_MISMATCH",
+                        "color": "red",
+                        "index": 3
+                      },
+                      "4": {
+                        "text": "FULL_SYNC_FAILED",
+                        "color": "red",
+                        "index": 4
+                      },
+                      "5": {
+                        "text": "AUTHENTICATION_ERROR",
+                        "color": "red",
+                        "index": 5
+                      },
+                      "6": {
+                        "text": "UNKNOWN",
+                        "color": "red",
+                        "index": 6
+                      },
+                      "7": {
+                        "text": "HOSTNAME_MISMATCH",
+                        "color": "red",
+                        "index": 7
+                      },
+                      "8": {
+                        "text": "OTHER_CONTROLLER",
+                        "color": "red",
+                        "index": 8
+                      },
+                      "9": {
+                        "text": "AUTHENTICATED",
+                        "color": "yellow",
+                        "index": 9
+                      },
+                      "10": {
+                        "text": "NO_STLT_CONN",
+                        "color": "red",
+                        "index": 10
+                      },
+                      "11": {
+                        "text": "MISSING_EXT_TOOLS",
+                        "color": "orange",
+                        "index": 11
+                      },
+                      "12": {
+                        "text": "DUPLICATE_UNAME",
+                        "color": "red",
+                        "index": 12
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Pool used"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 100
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 75
+                    },
+                    {
+                      "color": "red",
+                      "value": 90
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "gauge",
+                  "mode": "basic"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Pool free"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "bytes"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Pool errors"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Error reports"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Reconnects (24h)"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "sortBy": [
+          {
+            "displayName": "Node",
+            "desc": false
+          }
+        ]
+      }
+    },
+    {
+      "id": 8,
+      "type": "state-timeline",
+      "title": "Satellite state",
+      "description": "Connection state of each satellite as seen by the controller.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 11
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max by (node) (linstor_node_state{job=\"linstor\"})",
+          "legendFormat": "{{node}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "OFFLINE",
+                  "color": "red",
+                  "index": 0
+                },
+                "1": {
+                  "text": "CONNECTED",
+                  "color": "yellow",
+                  "index": 1
+                },
+                "2": {
+                  "text": "ONLINE",
+                  "color": "green",
+                  "index": 2
+                },
+                "3": {
+                  "text": "VERSION_MISMATCH",
+                  "color": "red",
+                  "index": 3
+                },
+                "4": {
+                  "text": "FULL_SYNC_FAILED",
+                  "color": "red",
+                  "index": 4
+                },
+                "5": {
+                  "text": "AUTHENTICATION_ERROR",
+                  "color": "red",
+                  "index": 5
+                },
+                "6": {
+                  "text": "UNKNOWN",
+                  "color": "red",
+                  "index": 6
+                },
+                "7": {
+                  "text": "HOSTNAME_MISMATCH",
+                  "color": "red",
+                  "index": 7
+                },
+                "8": {
+                  "text": "OTHER_CONTROLLER",
+                  "color": "red",
+                  "index": 8
+                },
+                "9": {
+                  "text": "AUTHENTICATED",
+                  "color": "yellow",
+                  "index": 9
+                },
+                "10": {
+                  "text": "NO_STLT_CONN",
+                  "color": "red",
+                  "index": 10
+                },
+                "11": {
+                  "text": "MISSING_EXT_TOOLS",
+                  "color": "orange",
+                  "index": 11
+                },
+                "12": {
+                  "text": "DUPLICATE_UNAME",
+                  "color": "red",
+                  "index": 12
+                }
+              }
+            }
+          ]
+        }
+      },
+      "options": {
+        "showValue": "never"
+      }
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Pool used",
+      "description": "Allocated share of each satellite's storage pool.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 11
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "100 * (1 - sum by (node) (linstor_storage_pool_capacity_free_bytes{job=\"linstor\", driver!=\"DISKLESS\"}) / sum by (node) (linstor_storage_pool_capacity_total_bytes{job=\"linstor\", driver!=\"DISKLESS\"}))",
+          "legendFormat": "{{node}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 75
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          },
+          "custom": {
+            "showPoints": "never",
+            "thresholdsStyle": {
+              "mode": "dashed"
+            }
+          }
+        }
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 10,
+      "type": "table",
+      "title": "Volumes",
+      "description": "DRBD state of each volume per satellite; \"in use\" marks where the volume is primary. Volumes that aren't mounted anywhere show their LINSTOR resource name.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 14,
+        "w": 24,
+        "x": 0,
+        "y": 18
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max by (name, node) ((max by (resource, device_path, node) (linstor_volume_state{job=\"linstor\"}) + on (resource, node) group_left 100 * (max by (resource, node) (label_replace(linstor_resource_state{job=\"linstor\"}, \"resource\", \"$1\", \"name\", \"(.*)\")) == bool 1)) * on (device_path) group_left (name) group by (device_path, name) (label_replace(label_replace(node_filesystem_size_bytes{job=\"cluster\", device=~\"/dev/drbd.*\"}, \"device_path\", \"$1\", \"device\", \"(.*)\"), \"name\", \"$1\", \"mountpoint\", \".*/storage-pools/[^/]+/[^/]+/(?:[^_/]+_)?([^/]+)\")) or label_replace((max by (resource, device_path, node) (linstor_volume_state{job=\"linstor\"}) + on (resource, node) group_left 100 * (max by (resource, node) (label_replace(linstor_resource_state{job=\"linstor\"}, \"resource\", \"$1\", \"name\", \"(.*)\")) == bool 1)) unless on (device_path) group by (device_path, name) (label_replace(label_replace(node_filesystem_size_bytes{job=\"cluster\", device=~\"/dev/drbd.*\"}, \"device_path\", \"$1\", \"device\", \"(.*)\"), \"name\", \"$1\", \"mountpoint\", \".*/storage-pools/[^/]+/[^/]+/(?:[^_/]+_)?([^/]+)\")), \"name\", \"$1\", \"resource\", \"(.*)\"))",
+          "format": "table",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "transformations": [
+        {
+          "id": "groupingToMatrix",
+          "options": {
+            "columnField": "node",
+            "rowField": "name",
+            "valueField": "Value"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "name\\node": "Volume"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "1": {
+                  "text": "UpToDate",
+                  "color": "green",
+                  "index": 0
+                },
+                "2": {
+                  "text": "Created",
+                  "color": "yellow",
+                  "index": 1
+                },
+                "3": {
+                  "text": "Attached",
+                  "color": "yellow",
+                  "index": 2
+                },
+                "4": {
+                  "text": "Diskless",
+                  "color": "blue",
+                  "index": 3
+                },
+                "5": {
+                  "text": "Inconsistent",
+                  "color": "orange",
+                  "index": 4
+                },
+                "6": {
+                  "text": "Failed",
+                  "color": "red",
+                  "index": 5
+                },
+                "7": {
+                  "text": "Creating",
+                  "color": "yellow",
+                  "index": 6
+                },
+                "8": {
+                  "text": "Attachable",
+                  "color": "yellow",
+                  "index": 7
+                },
+                "9": {
+                  "text": "Attaching",
+                  "color": "yellow",
+                  "index": 8
+                },
+                "90": {
+                  "text": "Diskless (detached)",
+                  "color": "text",
+                  "index": 9
+                },
+                "-1": {
+                  "text": "Unknown",
+                  "color": "red",
+                  "index": 10
+                },
+                "101": {
+                  "text": "UpToDate · in use",
+                  "color": "green",
+                  "index": 11
+                },
+                "102": {
+                  "text": "Created · in use",
+                  "color": "yellow",
+                  "index": 12
+                },
+                "103": {
+                  "text": "Attached · in use",
+                  "color": "yellow",
+                  "index": 13
+                },
+                "104": {
+                  "text": "Diskless · in use",
+                  "color": "blue",
+                  "index": 14
+                },
+                "105": {
+                  "text": "Inconsistent · in use",
+                  "color": "orange",
+                  "index": 15
+                },
+                "106": {
+                  "text": "Failed · in use",
+                  "color": "red",
+                  "index": 16
+                },
+                "107": {
+                  "text": "Creating · in use",
+                  "color": "yellow",
+                  "index": 17
+                },
+                "108": {
+                  "text": "Attachable · in use",
+                  "color": "yellow",
+                  "index": 18
+                },
+                "109": {
+                  "text": "Attaching · in use",
+                  "color": "yellow",
+                  "index": 19
+                },
+                "190": {
+                  "text": "Diskless (detached) · in use",
+                  "color": "text",
+                  "index": 20
+                },
+                "99": {
+                  "text": "Unknown · in use",
+                  "color": "red",
+                  "index": 21
+                }
+              }
+            }
+          ],
+          "custom": {
+            "cellOptions": {
+              "type": "color-text"
+            }
+          }
+        }
+      },
+      "options": {
+        "sortBy": [
+          {
+            "displayName": "Volume",
+            "desc": false
+          }
+        ]
+      }
+    }
+  ]
+}

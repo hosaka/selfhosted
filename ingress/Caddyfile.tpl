@@ -4,6 +4,11 @@
 	# acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
 	skip_install_trust
 
+	# metrics per site
+	metrics {
+		per_host
+	}
+
 	servers {
 		listener_wrappers {
 			proxy_protocol {
@@ -20,8 +25,26 @@
 	}
 }
 
+# prometheus metrics, stays inside the cluster
+:${metrics_port} {
+	metrics
+}
+
 # public
 ${public_domain} {
+	log {
+		hostnames ${public_domain} *.${public_domain} *.${private_domain}
+		output stdout
+
+		# headers and query strings may carry credentials so they get filtered
+		format filter {
+			wrap json
+			request>headers delete
+			resp_headers delete
+			request>uri regexp "\?.*$" "?..."
+		}
+	}
+
 	handle {
 		respond 404
 	}
