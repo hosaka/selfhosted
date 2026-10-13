@@ -134,7 +134,7 @@ just encrypt secrets
 
 ## Backups
 
-Backups are done using `restic` and `resticprofile`. See the [restic/README.md](restic/README.md) for details.
+> I have previously managed backups using `restic` and `resticprofile`. See the [archive/restic/README.md](archive/restic/README.md) for details.
 
 ## Power
 
@@ -146,7 +146,7 @@ Backups are done using `restic` and `resticprofile`. See the [restic/README.md](
 
 ### Software
 
-- [ ] Make just cluster and bootstrap-linstor recipes idempotent. Incus CLI does have a `--format=json` that can be piped to `jq` where we can check the current state
+- [x] Make just cluster and bootstrap-linstor recipes idempotent. Incus CLI does have a `--format=json` that can be piped to `jq` where we can check the current state
 - [ ] Better automation for Linstor provisioning, perhaps getting [Operations Center](https://github.com/FuturFusion/operations-center) involved
 - [ ] CardDAV and CalDAV for calendar and contacts sync like [radicale](https://radicale.org/v3.html)
 - [ ] [Safe{Wallet}](https://github.com/safe-global/safe-wallet-web) for multisig wallets
