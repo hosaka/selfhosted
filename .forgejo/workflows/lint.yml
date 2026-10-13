@@ -10,14 +10,16 @@ on:
 jobs:
   lint:
     name: Lint
-    runs-on: docker
+    runs-on: linux-amd64
+    container:
+      image: code.forgejo.org/oci/node:24-bookworm@sha256:3d27e5c11e5786e309ec3e03f93ae536eb36e6e5eb3714d5eb3300a36157add0
 
     steps:
-      - uses: https://code.forgejo.org/actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: https://code.forgejo.org/actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
-      - uses: https://github.com/jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4
+      - uses: https://github.com/jdx/mise-action@08ae2a091c038e1e05ec6f5115dc5c69d5a2a6b8 # v5.1.2
         env:
           MISE_GITHUB_TOKEN: ${{ secrets.MISE_TOKEN }}
 
