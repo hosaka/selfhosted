@@ -7,6 +7,8 @@ locals {
 resource "incus_storage_volume" "gotify_data" {
   name = "gotify-data"
   pool = "linstor"
+
+  config = var.snapshots
 }
 
 # todo: fails to start if authelia is not reachable
@@ -106,6 +108,14 @@ output "probes" {
   value = [
     "https://gotify.${var.public_domain}/health",
   ]
+}
+
+output "backups" {
+  value = {
+    volumes = {
+      (incus_storage_volume.gotify_data.name) = {}
+    }
+  }
 }
 
 output "ingress" {

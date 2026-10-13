@@ -3,6 +3,12 @@ versions = {
     atuin = "18.18.0"
     db    = "18-alpine"
   }
+  backups = {
+    backrest = "1.14.1"
+    # standalone client, from the release matching the cluster
+    incus        = "7.5.1"
+    incus_sha256 = "7bd6223b369f4d693fcde695bd8549a73b5b3d403735329212483702aa22c179"
+  }
   auth = {
     authelia = "4.39.20"
     lldap    = "0.6.3"

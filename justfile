@@ -206,6 +206,7 @@ _encrypt-keys:
     sops encrypt ./incus/client.key > ./incus/client.key.enc
     sops encrypt ./incus/client.pfx > ./incus/client.pfx.enc
     sops encrypt ./metrics/metrics.key > ./metrics/metrics.key.enc
+    sops encrypt ./backups/backup.key > ./backups/backup.key.enc
 
 [private]
 _encrypt-restic:
@@ -239,6 +240,7 @@ _decrypt-keys:
     sops decrypt ./incus/client.key.enc > ./incus/client.key
     sops decrypt ./incus/client.pfx.enc > ./incus/client.pfx
     sops decrypt ./metrics/metrics.key.enc > ./metrics/metrics.key
+    sops decrypt ./backups/backup.key.enc > ./backups/backup.key
 
 [private]
 _decrypt-recovery:

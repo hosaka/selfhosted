@@ -44,6 +44,7 @@ module "ingress" {
   services = [
     module.auth.ingress,
     module.atuin.ingress,
+    module.backups.ingress,
     module.forgejo.ingress,
     # module.homeassistant.ingress,
     module.immich.ingress,
@@ -64,6 +65,24 @@ module "ingress" {
     module.voidrepo.ingress,
     module.wakapi.ingress,
     module.whoami.ingress,
+  ]
+}
+
+module "backups" {
+  source              = "./backups"
+  versions            = var.versions.backups
+  secrets             = var.secrets.backups
+  target              = var.cluster.node-4.target
+  restic_pool         = incus_storage_pool.nas.name
+  cluster_address     = local.members[var.cluster.node-4.target].address
+  cluster_certificate = file("${path.root}/incus/cluster.crt")
+  private_domain      = var.private_domain
+  timezone            = var.timezone
+  depends_on          = [null_resource.post_server, module.linstor]
+
+  sources = [
+    module.auth.backups,
+    module.notify.backups,
   ]
 }
 
@@ -189,6 +208,7 @@ module "metrics" {
   probes = {
     auth        = module.auth.probes
     atuin       = module.atuin.probes
+    backups     = module.backups.probes
     forgejo     = module.forgejo.probes
     immich      = module.immich.probes
     jellyfin    = module.jellyfin.probes
@@ -230,6 +250,7 @@ module "notify" {
   versions       = var.versions.notify
   secrets        = var.secrets.notify
   target         = var.cluster.node-2.target
+  snapshots      = local.volume_snapshots
   public_domain  = var.public_domain
   private_domain = var.private_domain
   timezone       = var.timezone

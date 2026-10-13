@@ -1,3 +1,11 @@
+locals {
+  volume_snapshots = {
+    "snapshots.schedule" = "0 1 * * *"
+    "snapshots.expiry"   = "7d"
+    "snapshots.pattern"  = "daily-{{ creation_date|date:'2006-01-02' }}"
+  }
+}
+
 resource "incus_storage_volume" "backups" {
   for_each = local.members
 

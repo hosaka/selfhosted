@@ -248,6 +248,12 @@ output "probes" {
   ]
 }
 
+output "backups" {
+  value = {
+    databases = [incus_instance.authelia_database.name]
+  }
+}
+
 output "ingress" {
   value = {
     name  = "auth"
