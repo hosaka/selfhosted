@@ -53,6 +53,12 @@ resource "incus_instance" "sabnzbd" {
   }
 }
 
+output "probes" {
+  value = [
+    "https://nzb.${var.private_domain}/",
+  ]
+}
+
 output "ingress" {
   value = {
     name  = "sabnzbd"

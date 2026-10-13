@@ -186,6 +186,29 @@ module "metrics" {
   frps_address     = module.ingress.frps_metrics_address
   authelia_address = module.auth.authelia_metrics_address
   immich_addresses = module.immich.metrics_addresses
+  probes = {
+    auth        = module.auth.probes
+    atuin       = module.atuin.probes
+    forgejo     = module.forgejo.probes
+    immich      = module.immich.probes
+    jellyfin    = module.jellyfin.probes
+    kavita      = module.kavita.probes
+    metrics     = module.metrics.probes
+    navidrome   = module.navidrome.probes
+    notify      = module.notify.probes
+    paperless   = module.paperless.probes
+    qbittorrent = module.qbittorrent.probes
+    sabnzbd     = module.sabnzbd.probes
+    searxng     = module.searxng.probes
+    servarr     = module.servarr.probes
+    slskd       = module.slskd.probes
+    snikket     = module.snikket.probes
+    syncstorage = module.syncstorage.probes
+    vaultwarden = module.vaultwarden.probes
+    voidrepo    = module.voidrepo.probes
+    wakapi      = module.wakapi.probes
+    whoami      = module.whoami.probes
+  }
   log_collectors = keys(local.members)
   depends_on     = [null_resource.post_server, module.linstor]
 }

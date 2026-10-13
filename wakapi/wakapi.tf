@@ -57,6 +57,12 @@ resource "incus_instance" "wakapi" {
   }
 }
 
+output "probes" {
+  value = [
+    "https://waka.${var.public_domain}/api/health",
+  ]
+}
+
 output "ingress" {
   value = {
     name  = "waka"

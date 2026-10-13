@@ -1,3 +1,9 @@
+output "probes" {
+  value = [
+    "https://metrics.${var.public_domain}/api/health",
+  ]
+}
+
 output "ingress" {
   value = {
     name  = "metrics"

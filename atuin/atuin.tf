@@ -79,6 +79,12 @@ resource "incus_instance" "atuin_database" {
   }
 }
 
+output "probes" {
+  value = [
+    "https://atuin.${var.public_domain}/healthz",
+  ]
+}
+
 output "ingress" {
   value = {
     name  = "atuin"

@@ -123,6 +123,12 @@ resource "incus_instance" "qbitmanage" {
   }
 }
 
+output "probes" {
+  value = [
+    "https://qbit.${var.private_domain}/",
+  ]
+}
+
 output "ingress" {
   value = {
     name  = "qbittorrent"

@@ -188,6 +188,14 @@ resource "incus_instance" "forgejo_database" {
   }
 }
 
+output "probes" {
+  value = [
+    "https://${var.public_domain}/public.pgp",
+    "https://code.${var.public_domain}/api/healthz",
+    "https://code.${var.private_domain}/api/healthz",
+  ]
+}
+
 output "ingress" {
   value = {
     name       = "code"

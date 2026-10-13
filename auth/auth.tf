@@ -241,6 +241,13 @@ resource "null_resource" "authelia_restart" {
   depends_on = [incus_instance.authelia]
 }
 
+output "probes" {
+  value = [
+    "https://auth.${var.public_domain}/api/health",
+    "https://users.${var.private_domain}/health",
+  ]
+}
+
 output "ingress" {
   value = {
     name  = "auth"

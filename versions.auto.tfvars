@@ -38,6 +38,7 @@ versions = {
   }
   metrics = {
     alloy             = "1.20.1"
+    blackbox_exporter = "0.29.0"
     grafana           = "13.1.1"
     loki              = "3.7.4"
     prometheus        = "3.13.2"

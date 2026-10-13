@@ -88,6 +88,13 @@ resource "incus_instance" "voidrepo" {
   }
 }
 
+output "probes" {
+  value = [
+    "https://mirror.${var.public_domain}/voidlinux/",
+    "https://mirror.${var.private_domain}/voidlinux/",
+  ]
+}
+
 output "ingress" {
   value = {
     name  = "voidrepo"

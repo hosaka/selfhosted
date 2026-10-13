@@ -49,6 +49,12 @@ resource "incus_instance" "kavita" {
   }
 }
 
+output "probes" {
+  value = [
+    "https://kavita.${var.private_domain}/api/health",
+  ]
+}
+
 output "ingress" {
   value = {
     name  = "kavita"

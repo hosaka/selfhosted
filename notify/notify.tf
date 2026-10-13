@@ -102,6 +102,12 @@ resource "incus_instance" "diun" {
   }
 }
 
+output "probes" {
+  value = [
+    "https://gotify.${var.public_domain}/health",
+  ]
+}
+
 output "ingress" {
   value = {
     name  = "gotify"

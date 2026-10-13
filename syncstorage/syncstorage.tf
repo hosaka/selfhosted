@@ -90,6 +90,12 @@ resource "incus_instance" "syncstorage_database" {
   }
 }
 
+output "probes" {
+  value = [
+    "https://ffs.${var.public_domain}/__heartbeat__",
+  ]
+}
+
 output "ingress" {
   value = {
     name  = "ffs"

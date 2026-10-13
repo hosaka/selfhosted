@@ -25,6 +25,13 @@ resource "incus_instance" "whoami" {
   }
 }
 
+output "probes" {
+  value = [
+    "https://whoami.${var.public_domain}/",
+    "https://whoami.${var.private_domain}/",
+  ]
+}
+
 output "ingress" {
   value = {
     name  = "whoami"

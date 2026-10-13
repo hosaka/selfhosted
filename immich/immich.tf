@@ -207,6 +207,13 @@ resource "null_resource" "immich_restart" {
   }
 }
 
+output "probes" {
+  value = [
+    "https://immich.${var.public_domain}/api/server/ping",
+    "https://immich.${var.private_domain}/api/server/ping",
+  ]
+}
+
 output "ingress" {
   value = {
     name  = "immich"

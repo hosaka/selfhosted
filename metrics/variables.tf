@@ -80,3 +80,9 @@ variable "authelia_address" {
 variable "immich_addresses" {
   type = map(string)
 }
+
+# Health check URLs the blackbox exporter probes, by the module that serves them.
+variable "probes" {
+  type    = map(list(string))
+  default = {}
+}

@@ -83,6 +83,12 @@ resource "incus_instance" "slskd" {
   }
 }
 
+output "probes" {
+  value = [
+    "https://slskd.${var.private_domain}/health",
+  ]
+}
+
 output "ingress" {
   value = {
     name = "slskd"

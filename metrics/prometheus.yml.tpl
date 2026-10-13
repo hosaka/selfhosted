@@ -101,6 +101,25 @@ scrape_configs:
         target_label: __name__
         replacement: "immich_repository_duration_milliseconds_$3"
 
+  # service health checks, probed through the blackbox exporter
+  - job_name: "blackbox"
+    scrape_interval: 60s
+    metrics_path: "/probe"
+    params:
+      module: ["http_2xx"]
+    static_configs:
+%{~ for p in probes }
+      - targets: ["${p.url}"]
+        labels: { service: "${p.service}", domain: "${p.domain}" }
+%{~ endfor }
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: "${blackbox_target}"
+
   - job_name: "caddy"
     file_sd_configs:
       - files: ["/etc/prometheus/targets/caddy.json"]

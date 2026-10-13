@@ -136,6 +136,14 @@ resource "incus_instance" "snikket_web" {
   }
 }
 
+output "probes" {
+  value = [
+    "https://chat.${var.public_domain}/",
+    "https://groups.chat.${var.public_domain}/",
+    "https://share.chat.${var.public_domain}/",
+  ]
+}
+
 output "ingress" {
   value = {
     name  = "snikket"

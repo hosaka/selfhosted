@@ -63,6 +63,12 @@ resource "incus_instance" "jellyfin" {
   }
 }
 
+output "probes" {
+  value = [
+    "https://jellyfin.${var.private_domain}/health",
+  ]
+}
+
 output "ingress" {
   value = {
     name  = "jellyfin"
