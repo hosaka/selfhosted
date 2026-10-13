@@ -31,6 +31,30 @@ resource "incus_server" "this" {
   ]
 }
 
+# IncusOS kernel configuration per member. Incus provider has no resource for this IncusOS API.
+# btusb: node-4's MediaTek bluetooth chip has no firmware in IncusOS and retries several times a second.
+resource "null_resource" "os_kernel" {
+  for_each = local.members
+
+  triggers = {
+    target = each.key
+    config = jsonencode({
+      config = {
+        blacklist_modules = ["btusb"]
+      }
+    })
+  }
+
+  provisioner "local-exec" {
+    command = "incus query -X PUT --data '${self.triggers.config}' '/os/1.0/system/kernel?target=${self.triggers.target}'"
+  }
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = "incus query -X PUT --data '{\"config\": {}}' '/os/1.0/system/kernel?target=${self.triggers.target}'"
+  }
+}
+
 resource "null_resource" "post_server" {
   depends_on = [
     incus_server.this_per_node,
