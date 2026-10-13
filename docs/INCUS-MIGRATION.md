@@ -329,7 +329,7 @@ Add a `zfs-raidz2` pool, which survives two of the five HDDs failing:
 config:
   pools:
     - name: nas
-      type: zfs-raidz1
+      type: zfs-raidz2
       devices:
         - /dev/disk/by-id/ata-WDC_WD80EFAX-68KNBN0_VAKD8J6L
         - /dev/disk/by-id/ata-WDC_WD80EFAX-68KNBN0_VAKEE7RL
