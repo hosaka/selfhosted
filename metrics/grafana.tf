@@ -21,10 +21,10 @@ resource "incus_storage_volume" "grafana_data" {
   name = "grafana-data"
   pool = "linstor"
 
-  config = {
+  config = merge({
     "initial.uid" = "472"
     "initial.gid" = "0"
-  }
+  }, var.snapshots)
 }
 
 resource "incus_instance" "grafana" {
@@ -157,6 +157,15 @@ resource "incus_instance" "grafana" {
     uid                = 472
     gid                = 0
     target_path        = "/etc/grafana/provisioning/dashboards/uptime.json"
+    mode               = "0600"
+    create_directories = true
+  }
+
+  file {
+    content            = file("${path.module}/dashboards/backups.json")
+    uid                = 472
+    gid                = 0
+    target_path        = "/etc/grafana/provisioning/dashboards/backups.json"
     mode               = "0600"
     create_directories = true
   }

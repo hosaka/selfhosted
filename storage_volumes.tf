@@ -1,5 +1,5 @@
 locals {
-  volume_snapshots = {
+  daily_snapshot = {
     "snapshots.schedule" = "0 1 * * *"
     "snapshots.expiry"   = "7d"
     "snapshots.pattern"  = "daily-{{ creation_date|date:'2006-01-02' }}"
@@ -75,10 +75,11 @@ resource "incus_storage_volume" "immich" {
   type         = "custom"
   content_type = "filesystem"
 
-  config = {
+  config = merge(local.daily_snapshot, {
     "security.shifted" = "true"
     "zfs.blocksize"    = "1MiB"
-  }
+    "snapshots.expiry" = "30d"
+  })
 
   depends_on = [
     null_resource.post_storage_pools,
@@ -93,10 +94,11 @@ resource "incus_storage_volume" "media" {
   type         = "custom"
   content_type = "filesystem"
 
-  config = {
+  config = merge(local.daily_snapshot, {
     "security.shifted" = "true"
     "zfs.blocksize"    = "1MiB"
-  }
+    "snapshots.expiry" = "14d"
+  })
 
   depends_on = [
     null_resource.post_storage_pools,
@@ -111,9 +113,10 @@ resource "incus_storage_volume" "private" {
   type         = "custom"
   content_type = "filesystem"
 
-  config = {
+  config = merge(local.daily_snapshot, {
     "security.shifted" = "true"
-  }
+    "snapshots.expiry" = "30d"
+  })
 
   depends_on = [
     null_resource.post_storage_pools,

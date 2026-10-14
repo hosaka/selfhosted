@@ -112,8 +112,10 @@ output "probes" {
 
 output "backups" {
   value = {
-    volumes = {
-      (incus_storage_volume.gotify_data.name) = {}
+    gotify = {
+      volumes = {
+        (incus_storage_volume.gotify_data.name) = {}
+      }
     }
   }
 }
@@ -127,4 +129,9 @@ output "ingress" {
 			}
     EOT
   }
+}
+
+output "gotify_address" {
+  description = "Gotify's address on the mesh, for services that send notifications"
+  value       = "http://${incus_instance.gotify.ipv4_address}:${local.gotify_ports.webui}"
 }

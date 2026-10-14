@@ -16,6 +16,7 @@ locals {
     linstor_target   = var.linstor_address
     authelia_target  = var.authelia_address
     immich_targets   = var.immich_addresses
+    restic_targets   = var.restic_exporter_addresses
     blackbox_target  = "${incus_instance.blackbox.ipv4_address}:${local.blackbox_ports.api}"
     probes = flatten([
       for service, urls in var.probes : [

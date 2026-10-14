@@ -43,11 +43,11 @@ resource "incus_storage_volume" "syncstorage_db" {
   name = "syncstorage-db"
   pool = "linstor"
 
-  config = {
+  config = merge({
     # postgres user in alpine
     "initial.uid" = "70"
     "initial.gid" = "70"
-  }
+  }, var.snapshots)
 }
 
 resource "incus_instance" "syncstorage_database" {
@@ -94,6 +94,17 @@ output "probes" {
   value = [
     "https://ffs.${var.public_domain}/__heartbeat__",
   ]
+}
+
+output "backups" {
+  value = {
+    syncstorage = {
+      volumes = {
+        (incus_storage_volume.syncstorage_db.name) = {}
+      }
+      databases = [incus_instance.syncstorage_database.name]
+    }
+  }
 }
 
 output "ingress" {

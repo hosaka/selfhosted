@@ -1,8 +1,13 @@
 variable "secrets" {
   type = object({
-    username            = string
-    password_bcrypt     = string # base64 of a bcrypt hash
-    restic_password_nas = string
+    username             = string
+    password_bcrypt      = string # base64 of a bcrypt hash
+    restic_password_nas  = string
+    gotify_token         = string # of the Backrest application
+    s3_repository        = string # restic's s3:https://<endpoint>/<bucket> uri
+    restic_password_s3   = string
+    s3_access_key_id     = string
+    s3_secret_access_key = string
   })
 }
 
@@ -34,9 +39,14 @@ variable "cluster_certificate" {
   type = string
 }
 
-# What to back up, from each module's `backups` output
+# Gotify the failure notifications go to, as http://<address>:<port>
+variable "gotify_address" {
+  type = string
+}
+
+# What to back up per application. These go to nas and an s3 repo.
 variable "sources" {
-  type = list(object({
+  type = map(object({
     volumes = optional(map(object({         # LINSTOR volumes, cloned from a snapshot and mounted read-only
       excludes = optional(list(string), []) # paths are relative to the volume
     })), {})
@@ -44,10 +54,22 @@ variable "sources" {
   }))
 }
 
+# Volumes on the nas pool, by plan name. They go to the s3 repo only.
+variable "nas_sources" {
+  type = map(object({
+    pool     = string
+    volume   = string
+    paths    = optional(list(string), [""]) # relative to the volume, all included by default
+    excludes = optional(list(string), [])   # relative to the volume
+  }))
+  default = {}
+}
+
 variable "versions" {
   type = object({
-    backrest     = string
-    incus        = string
-    incus_sha256 = string
+    backrest        = string
+    incus           = string
+    incus_sha256    = string
+    restic_exporter = string
   })
 }

@@ -15,10 +15,10 @@ resource "incus_storage_volume" "slskd_data" {
   name = "slskd-data"
   pool = "linstor"
 
-  config = {
+  config = merge({
     "initial.uid" = var.puid
     "initial.gid" = var.pgid
-  }
+  }, var.snapshots)
 }
 
 resource "incus_instance" "slskd" {
@@ -87,6 +87,18 @@ output "probes" {
   value = [
     "https://slskd.${var.private_domain}/health",
   ]
+}
+
+output "backups" {
+  value = {
+    slskd = {
+      volumes = {
+        (incus_storage_volume.slskd_data.name) = {
+          excludes = ["data/backups"]
+        }
+      }
+    }
+  }
 }
 
 output "ingress" {

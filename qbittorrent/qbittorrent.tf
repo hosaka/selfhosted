@@ -8,10 +8,10 @@ resource "incus_storage_volume" "qbittorrent_data" {
   name = "qbittorrent-data"
   pool = "linstor"
 
-  config = {
+  config = merge({
     "initial.uid" = "1000"
     "initial.gid" = "1000"
-  }
+  }, var.snapshots)
 }
 
 resource "incus_instance" "qbittorrent" {
@@ -127,6 +127,18 @@ output "probes" {
   value = [
     "https://qbit.${var.private_domain}/",
   ]
+}
+
+output "backups" {
+  value = {
+    qbittorrent = {
+      volumes = {
+        (incus_storage_volume.qbittorrent_data.name) = {
+          excludes = ["config/ipc-socket", "config/lockfile", "data/GeoDB", "privoxy", "wireguard"]
+        }
+      }
+    }
+  }
 }
 
 output "ingress" {

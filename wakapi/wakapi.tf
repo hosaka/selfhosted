@@ -8,10 +8,10 @@ resource "incus_storage_volume" "wakapi_data" {
   name = "wakapi-data"
   pool = "linstor"
 
-  config = {
+  config = merge({
     "initial.uid" = "65532"
     "initial.gid" = "65532"
-  }
+  }, var.snapshots)
 }
 
 # todo: fails to start if authelia is not reachable
@@ -61,6 +61,16 @@ output "probes" {
   value = [
     "https://waka.${var.public_domain}/api/health",
   ]
+}
+
+output "backups" {
+  value = {
+    wakapi = {
+      volumes = {
+        (incus_storage_volume.wakapi_data.name) = {}
+      }
+    }
+  }
 }
 
 output "ingress" {

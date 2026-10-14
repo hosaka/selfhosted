@@ -32,11 +32,11 @@ resource "incus_storage_volume" "atuin_db" {
   name = "atuin-db"
   pool = "linstor"
 
-  config = {
+  config = merge({
     # postgres user in alpine
     "initial.uid" = "70"
     "initial.gid" = "70"
-  }
+  }, var.snapshots)
 }
 
 resource "incus_instance" "atuin_database" {
@@ -83,6 +83,17 @@ output "probes" {
   value = [
     "https://atuin.${var.public_domain}/healthz",
   ]
+}
+
+output "backups" {
+  value = {
+    atuin = {
+      volumes = {
+        (incus_storage_volume.atuin_db.name) = {}
+      }
+      databases = [incus_instance.atuin_database.name]
+    }
+  }
 }
 
 output "ingress" {

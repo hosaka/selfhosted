@@ -8,6 +8,58 @@ output "probes" {
   ]
 }
 
+output "backups" {
+  value = {
+    lidarr = {
+      volumes = {
+        (incus_storage_volume.lidarr_data.name) = {
+          excludes = ["asp", "Backups", "MediaCover", "logs.*"]
+        }
+      }
+    }
+
+    prowlarr = {
+      volumes = {
+        (incus_storage_volume.prowlarr_data.name) = {
+          excludes = ["asp", "Backups", "MediaCover", "logs.*", "Definitions"]
+        }
+      }
+    }
+
+    radarr = {
+      volumes = {
+        (incus_storage_volume.radarr_data.name) = {
+          excludes = ["asp", "Backups", "MediaCover", "logs.*"]
+        }
+      }
+    }
+
+    recyclarr = {
+      volumes = {
+        (incus_storage_volume.recyclarr_data.name) = {
+          excludes = ["repositories", "resources"]
+        }
+      }
+    }
+
+    seerr = {
+      volumes = {
+        (incus_storage_volume.seerr_data.name) = {
+          excludes = [".local/share/pnpm"]
+        }
+      }
+    }
+
+    sonarr = {
+      volumes = {
+        (incus_storage_volume.sonarr_data.name) = {
+          excludes = ["asp", "Backups", "MediaCover", "logs.*"]
+        }
+      }
+    }
+  }
+}
+
 output "ingress" {
   value = {
     name = "servarr"

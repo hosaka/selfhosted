@@ -42,11 +42,11 @@ resource "incus_storage_volume" "forgejo_data" {
   name = "forgejo-data"
   pool = "linstor"
 
-  config = {
+  config = merge({
     "size"        = "24GiB"
     "initial.uid" = "1000"
     "initial.gid" = "1000"
-  }
+  }, var.snapshots)
 }
 
 resource "incus_instance" "forgejo" {
@@ -141,11 +141,11 @@ resource "incus_storage_volume" "forgejo_db" {
   name = "forgejo-db"
   pool = "linstor"
 
-  config = {
+  config = merge({
     # postgres user in alpine
     "initial.uid" = "70"
     "initial.gid" = "70"
-  }
+  }, var.snapshots)
 }
 
 resource "incus_instance" "forgejo_database" {
@@ -194,6 +194,20 @@ output "probes" {
     "https://code.${var.public_domain}/api/healthz",
     "https://code.${var.private_domain}/api/healthz",
   ]
+}
+
+output "backups" {
+  value = {
+    forgejo = {
+      volumes = {
+        (incus_storage_volume.forgejo_data.name) = {
+          excludes = ["repo-archive"]
+        }
+        (incus_storage_volume.forgejo_db.name) = {}
+      }
+      databases = [incus_instance.forgejo_database.name]
+    }
+  }
 }
 
 output "ingress" {

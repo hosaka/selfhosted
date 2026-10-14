@@ -102,11 +102,11 @@ resource "incus_storage_volume" "immich_db" {
   name = "immich-db"
   pool = "linstor"
 
-  config = {
+  config = merge({
     # postgres user in debian
     "initial.uid" = "999"
     "initial.gid" = "999"
-  }
+  }, var.snapshots)
 }
 
 resource "incus_instance" "immich_database" {
@@ -212,6 +212,17 @@ output "probes" {
     "https://immich.${var.public_domain}/api/server/ping",
     "https://immich.${var.private_domain}/api/server/ping",
   ]
+}
+
+output "backups" {
+  value = {
+    immich = {
+      volumes = {
+        (incus_storage_volume.immich_db.name) = {}
+      }
+      databases = [incus_instance.immich_database.name]
+    }
+  }
 }
 
 output "ingress" {

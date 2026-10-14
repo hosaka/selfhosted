@@ -8,6 +8,8 @@ locals {
 resource "incus_storage_volume" "homeassistant_data" {
   name = "homeassistant-data"
   pool = "linstor"
+
+  config = var.snapshots
 }
 
 resource "incus_instance" "homeassistant" {
@@ -91,6 +93,18 @@ resource "incus_instance" "homeassistant" {
 #     "user.access_interface" = "eth0"
 #   }
 # }
+
+output "backups" {
+  value = {
+    homeassistant = {
+      volumes = {
+        (incus_storage_volume.homeassistant_data.name) = {
+          excludes = ["backups", "home-assistant.log.*"]
+        }
+      }
+    }
+  }
+}
 
 output "ingress" {
   value = {

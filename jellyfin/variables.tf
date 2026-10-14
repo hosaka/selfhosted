@@ -10,6 +10,11 @@ variable "target" {
   type = string
 }
 
+variable "snapshots" {
+  type    = map(string)
+  default = {}
+}
+
 variable "timezone" {
   type    = string
   default = "UTC"

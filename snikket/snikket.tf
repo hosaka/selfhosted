@@ -24,6 +24,8 @@ locals {
 resource "incus_storage_volume" "snikket_data" {
   name = "snikket-data"
   pool = "linstor"
+
+  config = var.snapshots
 }
 
 resource "incus_instance" "snikket_server" {
@@ -142,6 +144,16 @@ output "probes" {
     "https://groups.chat.${var.public_domain}/",
     "https://share.chat.${var.public_domain}/",
   ]
+}
+
+output "backups" {
+  value = {
+    snikket = {
+      volumes = {
+        (incus_storage_volume.snikket_data.name) = {}
+      }
+    }
+  }
 }
 
 output "ingress" {

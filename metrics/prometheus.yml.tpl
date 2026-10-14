@@ -101,6 +101,24 @@ scrape_configs:
         target_label: __name__
         replacement: "immich_repository_duration_milliseconds_$3"
 
+  # each backup plan's latest snapshot and the restic repositories' totals. the exporter only
+  # refreshes them hourly. backrest tags snapshots with their plan first, `plan:<plan>-<repository>`,
+  # and snapshot_hash (host, user and paths) is enough to tell apart a plan's older snapshots
+  # with different paths, so the other labels go
+  - job_name: "restic"
+    scrape_interval: 60s
+    static_configs:
+%{~ for repository, addr in restic_targets }
+      - targets: ["${addr}"]
+        labels: { repository: "${repository}" }
+%{~ endfor }
+    metric_relabel_configs:
+      - source_labels: [snapshot_tag]
+        regex: "plan:(.+)"
+        target_label: plan
+      - regex: "client_.+|snapshot_tags?|snapshot_paths"
+        action: labeldrop
+
   # service health checks, probed through the blackbox exporter
   - job_name: "blackbox"
     scrape_interval: 60s

@@ -7,6 +7,8 @@ locals {
 resource "incus_storage_volume" "navidrome_data" {
   name = "navidrome-data"
   pool = "linstor"
+
+  config = var.snapshots
 }
 
 resource "incus_instance" "navidrome" {
@@ -64,6 +66,16 @@ output "probes" {
     "https://navidrome.${var.public_domain}/ping",
     "https://navidrome.${var.private_domain}/ping",
   ]
+}
+
+output "backups" {
+  value = {
+    navidrome = {
+      volumes = {
+        (incus_storage_volume.navidrome_data.name) = {}
+      }
+    }
+  }
 }
 
 output "ingress" {

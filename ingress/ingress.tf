@@ -66,10 +66,10 @@ resource "incus_storage_volume" "caddy_data" {
   name = "caddy-data"
   pool = "linstor"
 
-  config = {
+  config = merge({
     "initial.uid" = "1000"
     "initial.gid" = "1000"
-  }
+  }, var.snapshots)
 }
 
 resource "incus_instance" "caddy" {
@@ -139,6 +139,18 @@ resource "null_resource" "frpc_reload" {
   }
 
   depends_on = [incus_instance.frpc]
+}
+
+output "backups" {
+  value = {
+    caddy = {
+      volumes = {
+        (incus_storage_volume.caddy_data.name) = {
+          excludes = ["Caddyfile", "caddy/locks", "caddy/last_clean.json", "caddy/autosave.json"]
+        }
+      }
+    }
+  }
 }
 
 output "caddy_metrics_address" {

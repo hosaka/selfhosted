@@ -36,6 +36,7 @@ module "ingress" {
   versions       = var.versions.ingress
   secrets        = var.secrets.ingress
   target         = var.cluster.node-3.target
+  snapshots      = local.daily_snapshot
   public_domain  = var.public_domain
   private_domain = var.private_domain
   timezone       = var.timezone
@@ -76,14 +77,51 @@ module "backups" {
   restic_pool         = incus_storage_pool.nas.name
   cluster_address     = local.members[var.cluster.node-4.target].address
   cluster_certificate = file("${path.root}/incus/cluster.crt")
+  gotify_address      = module.notify.gotify_address
   private_domain      = var.private_domain
   timezone            = var.timezone
   depends_on          = [null_resource.post_server, module.linstor]
 
-  sources = [
+  sources = merge(
+    module.atuin.backups,
     module.auth.backups,
+    module.forgejo.backups,
+    # module.homeassistant.backups,
+    module.immich.backups,
+    module.ingress.backups,
+    module.jellyfin.backups,
+    module.kavita.backups,
+    module.metrics.backups,
+    module.navidrome.backups,
     module.notify.backups,
-  ]
+    module.paperless.backups,
+    module.qbittorrent.backups,
+    module.sabnzbd.backups,
+    module.servarr.backups,
+    module.slskd.backups,
+    module.snikket.backups,
+    module.syncstorage.backups,
+    module.vaultwarden.backups,
+    module.wakapi.backups,
+  )
+
+  # on the nas pool, so they only go to the s3 repo
+  nas_sources = {
+    immich-library = {
+      pool     = incus_storage_volume.immich.pool
+      volume   = incus_storage_volume.immich.name
+      excludes = ["backups/*.sql.gz"]
+    }
+    # private = {
+    #   pool   = incus_storage_volume.private.pool
+    #   volume = incus_storage_volume.private.name
+    # }
+    media = {
+      pool   = incus_storage_volume.media.pool
+      volume = incus_storage_volume.media.name
+      paths  = ["collection/music", "collection/books"]
+    }
+  }
 }
 
 # Service authentication layer
@@ -92,6 +130,7 @@ module "auth" {
   versions       = var.versions.auth
   secrets        = var.secrets.auth
   target         = var.cluster.node-3.target
+  snapshots      = local.daily_snapshot
   public_domain  = var.public_domain
   private_domain = var.private_domain
   timezone       = var.timezone
@@ -103,6 +142,7 @@ module "atuin" {
   versions       = var.versions.atuin
   secrets        = var.secrets.atuin
   target         = var.cluster.node-1.target
+  snapshots      = local.daily_snapshot
   public_domain  = var.public_domain
   private_domain = var.private_domain
   timezone       = var.timezone
@@ -114,6 +154,7 @@ module "forgejo" {
   versions        = var.versions.forgejo
   secrets         = var.secrets.forgejo
   target          = var.cluster.node-1.target
+  snapshots       = local.daily_snapshot
   public_domain   = var.public_domain
   private_domain  = var.private_domain
   timezone        = var.timezone
@@ -125,6 +166,7 @@ module "forgejo" {
 #   source         = "./homeassistant"
 #   versions       = var.versions.homeassistant
 #   target         = var.cluster.node-1.target
+#   snapshots      = local.daily_snapshot
 #   private_domain = var.private_domain
 #   timezone       = var.timezone
 #   depends_on     = [null_resource.post_server, module.linstor]
@@ -135,6 +177,7 @@ module "immich" {
   versions       = var.versions.immich
   secrets        = var.secrets.immich
   target         = var.cluster.node-4.target
+  snapshots      = local.daily_snapshot
   storage_pool   = incus_storage_volume.immich.pool
   storage_source = incus_storage_volume.immich.name
   public_domain  = var.public_domain
@@ -148,6 +191,7 @@ module "jellyfin" {
   versions       = var.versions.jellyfin
   secrets        = var.secrets.jellyfin
   target         = var.cluster.node-4.target
+  snapshots      = local.daily_snapshot
   media_pool     = incus_storage_volume.media.pool
   media_source   = incus_storage_volume.media.name
   private_domain = var.private_domain
@@ -159,6 +203,7 @@ module "kavita" {
   source         = "./kavita"
   versions       = var.versions.kavita
   target         = var.cluster.node-4.target
+  snapshots      = local.daily_snapshot
   media_pool     = incus_storage_volume.media.pool
   media_source   = incus_storage_volume.media.name
   private_domain = var.private_domain
@@ -172,6 +217,7 @@ module "metrics" {
   secrets        = var.secrets.metrics
   members        = local.members
   target         = var.cluster.node-2.target
+  snapshots      = local.daily_snapshot
   public_domain  = var.public_domain
   private_domain = var.private_domain
   timezone       = var.timezone
@@ -200,11 +246,12 @@ module "metrics" {
       "/dev/disk/by-id/ata-WDC_WD80EFAX-68KNBN0_VDJ0YV7K",
     ]
   }
-  linstor_address  = module.linstor.linstor_api_address
-  caddy_address    = module.ingress.caddy_metrics_address
-  frps_address     = module.ingress.frps_metrics_address
-  authelia_address = module.auth.authelia_metrics_address
-  immich_addresses = module.immich.metrics_addresses
+  linstor_address           = module.linstor.linstor_api_address
+  caddy_address             = module.ingress.caddy_metrics_address
+  frps_address              = module.ingress.frps_metrics_address
+  authelia_address          = module.auth.authelia_metrics_address
+  immich_addresses          = module.immich.metrics_addresses
+  restic_exporter_addresses = module.backups.restic_exporter_addresses
   probes = {
     auth        = module.auth.probes
     atuin       = module.atuin.probes
@@ -238,6 +285,7 @@ module "navidrome" {
   versions       = var.versions.navidrome
   secrets        = var.secrets.navidrome
   target         = var.cluster.node-4.target
+  snapshots      = local.daily_snapshot
   media_pool     = incus_storage_volume.media.pool
   media_source   = incus_storage_volume.media.name
   public_domain  = var.public_domain
@@ -250,7 +298,7 @@ module "notify" {
   versions       = var.versions.notify
   secrets        = var.secrets.notify
   target         = var.cluster.node-2.target
-  snapshots      = local.volume_snapshots
+  snapshots      = local.daily_snapshot
   public_domain  = var.public_domain
   private_domain = var.private_domain
   timezone       = var.timezone
@@ -262,6 +310,7 @@ module "paperless" {
   versions       = var.versions.paperless
   secrets        = var.secrets.paperless
   target         = var.cluster.node-3.target
+  snapshots      = local.daily_snapshot
   public_domain  = var.public_domain
   private_domain = var.private_domain
   timezone       = var.timezone
@@ -273,6 +322,7 @@ module "qbittorrent" {
   versions       = var.versions.qbittorrent
   secrets        = var.secrets.qbittorrent
   target         = var.cluster.node-4.target
+  snapshots      = local.daily_snapshot
   media_pool     = incus_storage_volume.media.pool
   media_source   = incus_storage_volume.media.name
   private_domain = var.private_domain
@@ -284,6 +334,7 @@ module "sabnzbd" {
   source         = "./sabnzbd"
   versions       = var.versions.sabnzbd
   target         = var.cluster.node-4.target
+  snapshots      = local.daily_snapshot
   media_pool     = incus_storage_volume.media.pool
   media_source   = incus_storage_volume.media.name
   private_domain = var.private_domain
@@ -307,6 +358,7 @@ module "servarr" {
   versions       = var.versions.servarr
   secrets        = var.secrets.servarr
   target         = var.cluster.node-4.target
+  snapshots      = local.daily_snapshot
   media_pool     = incus_storage_volume.media.pool
   media_source   = incus_storage_volume.media.name
   private_domain = var.private_domain
@@ -319,6 +371,7 @@ module "slskd" {
   versions       = var.versions.slskd
   secrets        = var.secrets.slskd
   target         = var.cluster.node-4.target
+  snapshots      = local.daily_snapshot
   media_pool     = incus_storage_volume.media.pool
   media_source   = incus_storage_volume.media.name
   public_domain  = var.public_domain
@@ -330,6 +383,7 @@ module "snikket" {
   source        = "./snikket"
   versions      = var.versions.snikket
   target        = var.cluster.node-2.target
+  snapshots     = local.daily_snapshot
   public_domain = var.public_domain
   timezone      = var.timezone
   depends_on    = [null_resource.post_server, module.linstor]
@@ -340,6 +394,7 @@ module "syncstorage" {
   versions       = var.versions.syncstorage
   secrets        = var.secrets.syncstorage
   target         = var.cluster.node-1.target
+  snapshots      = local.daily_snapshot
   public_domain  = var.public_domain
   private_domain = var.private_domain
   timezone       = var.timezone
@@ -351,6 +406,7 @@ module "vaultwarden" {
   versions       = var.versions.vaultwarden
   secrets        = var.secrets.vaultwarden
   target         = var.cluster.node-3.target
+  snapshots      = local.daily_snapshot
   public_domain  = var.public_domain
   private_domain = var.private_domain
   timezone       = var.timezone
@@ -373,6 +429,7 @@ module "wakapi" {
   versions       = var.versions.wakapi
   secrets        = var.secrets.wakapi
   target         = var.cluster.node-2.target
+  snapshots      = local.daily_snapshot
   public_domain  = var.public_domain
   private_domain = var.private_domain
   timezone       = var.timezone

@@ -14,10 +14,10 @@ resource "incus_storage_volume" "prowlarr_data" {
   name = "prowlarr-data"
   pool = "linstor"
 
-  config = {
+  config = merge({
     "initial.uid" = "1000"
     "initial.gid" = "1000"
-  }
+  }, var.snapshots)
 }
 
 resource "incus_instance" "prowlarr" {

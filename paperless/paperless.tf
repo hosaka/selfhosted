@@ -10,20 +10,20 @@ resource "incus_storage_volume" "paperless_data" {
   name = "paperless-data"
   pool = "linstor"
 
-  config = {
+  config = merge({
     "initial.uid" = "1000"
     "initial.gid" = "1000"
-  }
+  }, var.snapshots)
 }
 
 resource "incus_storage_volume" "paperless_media" {
   name = "paperless-media"
   pool = "linstor"
 
-  config = {
+  config = merge({
     "initial.uid" = "1000"
     "initial.gid" = "1000"
-  }
+  }, var.snapshots)
 }
 
 resource "incus_instance" "paperless" {
@@ -106,11 +106,11 @@ resource "incus_storage_volume" "paperless_db" {
   name = "paperless-db"
   pool = "linstor"
 
-  config = {
+  config = merge({
     # postgres user in alpine
     "initial.uid" = "70"
     "initial.gid" = "70"
-  }
+  }, var.snapshots)
 }
 
 resource "incus_instance" "paperless_database" {
@@ -203,6 +203,21 @@ output "probes" {
   value = [
     "https://paperless.${var.public_domain}/",
   ]
+}
+
+output "backups" {
+  value = {
+    paperless = {
+      volumes = {
+        (incus_storage_volume.paperless_data.name) = {
+          excludes = [".index_version", "index/.tantivy-*.lock", "migration_lock"]
+        }
+        (incus_storage_volume.paperless_media.name) = {}
+        (incus_storage_volume.paperless_db.name)    = {}
+      }
+      databases = [incus_instance.paperless_database.name]
+    }
+  }
 }
 
 output "ingress" {

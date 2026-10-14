@@ -192,6 +192,12 @@ stop instance: (onpath 'incus')
 restart instance: (onpath 'incus')
     incus restart {{ instance }}
 
+[arg('volume', help='Volume to restore, e.g. gotify-data')]
+[arg('snapshot', help='Snapshot ID from the Backrest UI, or latest')]
+[doc('restore a volume in place from the nas repo, replacing its contents (destructive)')]
+restore-volume volume snapshot: (onpath 'incus')
+    incus exec -t backrest -- restore-volume {{ volume }} {{ snapshot }}
+
 [arg('target', pattern='all|auth|keys|recovery|restic|secrets', help='target to entrypt')]
 [doc('encrypt files for storing them in git repository')]
 encrypt target: (onpath 'sops') (onpath 'age') (onpath 'age-plugin-yubikey')

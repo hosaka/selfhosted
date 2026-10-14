@@ -4,6 +4,16 @@ output "probes" {
   ]
 }
 
+output "backups" {
+  value = {
+    grafana = {
+      volumes = {
+        (incus_storage_volume.grafana_data.name) = {}
+      }
+    }
+  }
+}
+
 output "ingress" {
   value = {
     name  = "metrics"

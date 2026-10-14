@@ -8,10 +8,10 @@ resource "incus_storage_volume" "sabnzbd_data" {
   name = "sabnzbd-data"
   pool = "linstor"
 
-  config = {
+  config = merge({
     "initial.uid" = "1000"
     "initial.gid" = "1000"
-  }
+  }, var.snapshots)
 }
 
 resource "incus_instance" "sabnzbd" {
@@ -57,6 +57,18 @@ output "probes" {
   value = [
     "https://nzb.${var.private_domain}/",
   ]
+}
+
+output "backups" {
+  value = {
+    sabnzbd = {
+      volumes = {
+        (incus_storage_volume.sabnzbd_data.name) = {
+          excludes = ["history", "*.bak"]
+        }
+      }
+    }
+  }
 }
 
 output "ingress" {

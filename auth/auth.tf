@@ -89,11 +89,11 @@ resource "incus_storage_volume" "authelia_db" {
   name = "authelia-db"
   pool = "linstor"
 
-  config = {
+  config = merge({
     # postgres user in alpine
     "initial.uid" = "70"
     "initial.gid" = "70"
-  }
+  }, var.snapshots)
 }
 
 resource "incus_instance" "authelia_database" {
@@ -186,10 +186,10 @@ resource "incus_storage_volume" "lldap_data" {
   name = "lldap-data"
   pool = "linstor"
 
-  config = {
+  config = merge({
     "initial.uid" = "1000"
     "initial.gid" = "1000"
-  }
+  }, var.snapshots)
 }
 
 # todo: figure out how to create default authelia user/pwd with lldap_password_manager gruop
@@ -250,7 +250,18 @@ output "probes" {
 
 output "backups" {
   value = {
-    databases = [incus_instance.authelia_database.name]
+    authelia = {
+      volumes = {
+        (incus_storage_volume.authelia_db.name) = {}
+      }
+      databases = [incus_instance.authelia_database.name]
+    }
+
+    lldap = {
+      volumes = {
+        (incus_storage_volume.lldap_data.name) = {}
+      }
+    }
   }
 }
 

@@ -8,10 +8,10 @@ resource "incus_storage_volume" "jellyfin_data" {
   name = "jellyfin-data"
   pool = "linstor"
 
-  config = {
+  config = merge({
     "initial.uid" = "1000"
     "initial.gid" = "1000"
-  }
+  }, var.snapshots)
 }
 
 resource "incus_instance" "jellyfin" {
@@ -67,6 +67,18 @@ output "probes" {
   value = [
     "https://jellyfin.${var.private_domain}/health",
   ]
+}
+
+output "backups" {
+  value = {
+    jellyfin = {
+      volumes = {
+        (incus_storage_volume.jellyfin_data.name) = {
+          excludes = ["dlna"]
+        }
+      }
+    }
+  }
 }
 
 output "ingress" {

@@ -7,6 +7,8 @@ locals {
 resource "incus_storage_volume" "kavita_data" {
   name = "kavita-data"
   pool = "linstor"
+
+  config = var.snapshots
 }
 
 resource "incus_instance" "kavita" {
@@ -53,6 +55,18 @@ output "probes" {
   value = [
     "https://kavita.${var.private_domain}/api/health",
   ]
+}
+
+output "backups" {
+  value = {
+    kavita = {
+      volumes = {
+        (incus_storage_volume.kavita_data.name) = {
+          excludes = ["backups"]
+        }
+      }
+    }
+  }
 }
 
 output "ingress" {

@@ -9,6 +9,11 @@ variable "target" {
   type = string
 }
 
+variable "snapshots" {
+  type    = map(string)
+  default = {}
+}
+
 variable "public_domain" {
   type = string
 }

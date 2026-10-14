@@ -7,6 +7,8 @@ locals {
 resource "incus_storage_volume" "vaultwarden_data" {
   name = "vaultwarden-data"
   pool = "linstor"
+
+  config = var.snapshots
 }
 
 resource "incus_instance" "vaultwarden" {
@@ -68,6 +70,18 @@ output "probes" {
     "https://vaultwarden.${var.public_domain}/alive",
     "https://vaultwarden.${var.private_domain}/alive",
   ]
+}
+
+output "backups" {
+  value = {
+    vaultwarden = {
+      volumes = {
+        (incus_storage_volume.vaultwarden_data.name) = {
+          excludes = ["tmp"]
+        }
+      }
+    }
+  }
 }
 
 output "ingress" {

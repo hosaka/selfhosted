@@ -20,6 +20,11 @@ variable "target" {
   type = string
 }
 
+variable "snapshots" {
+  type    = map(string)
+  default = {}
+}
+
 variable "timezone" {
   type    = string
   default = "UTC"
@@ -79,6 +84,12 @@ variable "authelia_address" {
 # Immich's api and job worker metrics, as <address>:<port> by worker.
 variable "immich_addresses" {
   type = map(string)
+}
+
+# restic-exporter's metrics, as <address>:<port> by restic repository.
+variable "restic_exporter_addresses" {
+  type    = map(string)
+  default = {}
 }
 
 # Health check URLs the blackbox exporter probes, by the module that serves them.
