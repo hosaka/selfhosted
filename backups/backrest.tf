@@ -10,9 +10,8 @@ locals {
   nas_path     = "/source" # the nas pool's volumes are attached read-only under here
   nas_repo     = "/repos/nas"
 
-  incus_conf   = "/etc/incus"
-  nas_password = "/etc/backrest/nas.password"
-  s3_password  = "/etc/backrest/s3.password"
+  incus_conf      = "/etc/incus"
+  restic_password = "/etc/backrest/restic.password" # both repos share it, but could be different
 
   # common patterns to exclude
   excludes = ["*.db-shm", "*.pid", "*.log", "logs", "log", "cache", ".cache"]
@@ -101,7 +100,7 @@ locals {
         id          = "nas"
         uri         = local.nas_repo
         guid        = random_id.nas_repo.hex
-        env         = ["RESTIC_PASSWORD_FILE=${local.nas_password}"]
+        env         = ["RESTIC_PASSWORD_FILE=${local.restic_password}"]
         autoUnlock  = true
         prunePolicy = { schedule = { cron = "0 3 * * 0" }, maxUnusedPercent = 10 }
         checkPolicy = { schedule = { cron = "30 3 * * 0" }, structureOnly = true }
@@ -112,7 +111,7 @@ locals {
         uri  = var.secrets.s3_repository
         guid = random_id.s3_repo.hex
         env = [
-          "RESTIC_PASSWORD_FILE=${local.s3_password}",
+          "RESTIC_PASSWORD_FILE=${local.restic_password}",
           "AWS_ACCESS_KEY_ID=${var.secrets.s3_access_key_id}",
           "AWS_SECRET_ACCESS_KEY=${var.secrets.s3_secret_access_key}",
         ]
@@ -153,25 +152,24 @@ locals {
     )
 
     auth = {
-      users = [{ name = var.secrets.username, passwordBcrypt = var.secrets.password_bcrypt }]
+      users = [{ name = var.secrets.backrest_username, passwordBcrypt = var.secrets.backrest_password_bcrypt }]
     }
   })
 
   start_script = templatefile("${path.module}/start.sh.tpl", {
     wait_for = [
       "/config/config.json",
-      local.nas_password,
-      local.s3_password,
+      local.restic_password,
       "${local.incus_conf}/config.yml",
       "${local.incus_conf}/client.crt",
       "${local.incus_conf}/client.key",
       "${local.incus_conf}/servercerts/cluster.crt",
     ]
-    data_path     = local.data_path
-    incus_version = var.versions.incus
-    incus_sha256  = var.versions.incus_sha256
-    nas_repo      = local.nas_repo
-    nas_password  = local.nas_password
+    data_path       = local.data_path
+    incus_version   = var.versions.incus
+    incus_sha256    = var.versions.incus_sha256
+    nas_repo        = local.nas_repo
+    restic_password = local.restic_password
   })
 
   scripts = {
@@ -186,12 +184,12 @@ locals {
       dumps_path = local.dumps_path
     })
     restore-volume = templatefile("${path.module}/restore-volume.sh.tpl", {
-      instance     = "backrest"
-      apps_path    = local.apps_path
-      restore_path = local.restore_path
-      nas_repo     = local.nas_repo
-      nas_password = local.nas_password
-      excludes     = local.excludes
+      instance        = "backrest"
+      apps_path       = local.apps_path
+      restore_path    = local.restore_path
+      nas_repo        = local.nas_repo
+      restic_password = local.restic_password
+      excludes        = local.excludes
       # anchored at the volume's root
       volumes = { for v, c in local.volumes : v => [for e in c.excludes : "/${e}"] }
     })
@@ -274,15 +272,8 @@ resource "incus_instance" "backrest" {
   }
 
   file {
-    content            = sensitive(var.secrets.restic_password_nas)
-    target_path        = local.nas_password
-    mode               = "0600"
-    create_directories = true
-  }
-
-  file {
-    content            = sensitive(var.secrets.restic_password_s3)
-    target_path        = local.s3_password
+    content            = sensitive(var.secrets.restic_password)
+    target_path        = local.restic_password
     mode               = "0600"
     create_directories = true
   }

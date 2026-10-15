@@ -20,7 +20,7 @@ ln -sf "$bin" /usr/local/bin/incus
 
 # initialise the nas repository
 if grep -q " ${nas_repo} " /proc/mounts && [ ! -f "${nas_repo}/config" ]; then
-  RESTIC_PASSWORD_FILE="${nas_password}" restic init --repo "${nas_repo}"
+  RESTIC_PASSWORD_FILE="${restic_password}" restic init --repo "${nas_repo}"
 fi
 
 exec /docker-entrypoint /backrest

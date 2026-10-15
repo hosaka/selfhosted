@@ -1,13 +1,12 @@
 variable "secrets" {
   type = object({
-    username             = string
-    password_bcrypt      = string # base64 of a bcrypt hash
-    restic_password_nas  = string
-    gotify_token         = string # of the Backrest application
-    s3_repository        = string # restic's s3:https://<endpoint>/<bucket> uri
-    restic_password_s3   = string
-    s3_access_key_id     = string
-    s3_secret_access_key = string
+    backrest_username        = string
+    backrest_password_bcrypt = string # base64 of a bcrypt hash
+    restic_password          = string
+    gotify_token             = string # of the Backrest application
+    s3_repository            = string # restic's s3:https://<endpoint>/<bucket> uri
+    s3_access_key_id         = string
+    s3_secret_access_key     = string
   })
 }
 

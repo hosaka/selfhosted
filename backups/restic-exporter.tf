@@ -31,7 +31,7 @@ resource "incus_instance" "restic_exporter_nas" {
 
   config = {
     "environment.RESTIC_REPOSITORY" = local.nas_repo
-    "environment.RESTIC_PASSWORD"   = sensitive(var.secrets.restic_password_nas)
+    "environment.RESTIC_PASSWORD"   = sensitive(var.secrets.restic_password)
     "environment.TZ"                = var.timezone
 
     # backrest already checks the repository weekly
@@ -55,7 +55,7 @@ resource "incus_instance" "restic_exporter_s3" {
 
   config = {
     "environment.RESTIC_REPOSITORY"     = sensitive(var.secrets.s3_repository)
-    "environment.RESTIC_PASSWORD"       = sensitive(var.secrets.restic_password_s3)
+    "environment.RESTIC_PASSWORD"       = sensitive(var.secrets.restic_password)
     "environment.AWS_ACCESS_KEY_ID"     = sensitive(var.secrets.s3_access_key_id)
     "environment.AWS_SECRET_ACCESS_KEY" = sensitive(var.secrets.s3_secret_access_key)
     "environment.TZ"                    = var.timezone

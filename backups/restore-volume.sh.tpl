@@ -14,7 +14,7 @@ source="${apps_path}/$volume"
 target="${restore_path}/$volume"
 device=restore-$volume
 export RESTIC_REPOSITORY="${nas_repo}"
-export RESTIC_PASSWORD_FILE="${nas_password}"
+export RESTIC_PASSWORD_FILE="${restic_password}"
 
 excludes=$(mktemp)
 busy=
