@@ -73,6 +73,9 @@ definitions:
       expression: '"immich_admin" in groups ? "admin" : "user"'
     vaultwarden_role:
       expression: '"vaultwarden_admin" in groups ? ["admin"] : "vaultwarden_user" in groups ? ["user"] : [""]'
+    # opencloud creates a group for every group it's sent
+    opencloud_groups:
+      expression: 'groups.filter(group, group.startsWith("opencloud_"))'
 
 identity_providers:
   oidc:
@@ -91,6 +94,9 @@ identity_providers:
         id_token: ["vaultwarden_role"]
         custom_claims:
           vaultwarden_role: {}
+      opencloud:
+        custom_claims:
+          opencloud_groups: {}
 
     scopes:
       immich:
@@ -99,6 +105,32 @@ identity_providers:
       vaultwarden:
         claims:
           - vaultwarden_role
+      opencloud:
+        claims:
+          - opencloud_groups
+
+    authorization_policies:
+      opencloud:
+        default_policy: deny
+        rules:
+          - policy: two_factor
+            subject:
+              - group:opencloud_admin
+              - group:opencloud_user
+
+    lifespans:
+      custom:
+        opencloud_apps:
+          refresh_token: 30d
+
+    # the opencloud web ui exchanges and refreshes its tokens from the browser
+    cors:
+      endpoints:
+        - token
+        - revocation
+        - userinfo
+      allowed_origins:
+        - "https://cloud.${public_domain}"
 
     clients:
       - client_name: grafana
@@ -322,3 +354,64 @@ identity_providers:
         access_token_signed_response_alg: none
         userinfo_signed_response_alg: none
         token_endpoint_auth_method: client_secret_basic
+
+      - client_name: opencloud
+        client_id: "${opencloud_client_id}"
+        claims_policy: opencloud
+        public: true
+        authorization_policy: opencloud
+        # implicit consent is discouraged for public clients, remember it instead
+        pre_configured_consent_duration: 1y
+        require_pkce: true
+        pkce_challenge_method: S256
+        redirect_uris:
+          - "https://cloud.${public_domain}/"
+          - "https://cloud.${public_domain}/oidc-callback.html"
+          - "https://cloud.${public_domain}/oidc-silent-redirect.html"
+        scopes:
+          - openid
+          - email
+          - profile
+          - groups
+          - opencloud
+          - offline_access
+        response_types:
+          - code
+        grant_types:
+          - authorization_code
+          - refresh_token
+        access_token_signed_response_alg: RS256
+        userinfo_signed_response_alg: none
+        token_endpoint_auth_method: none
+
+      - client_name: opencloud-apps
+        client_id: "${opencloud_apps_client_id}"
+        claims_policy: opencloud
+        public: true
+        lifespan: opencloud_apps
+        authorization_policy: opencloud
+        # implicit consent is discouraged for public clients, remember it instead
+        pre_configured_consent_duration: 1y
+        require_pkce: true
+        pkce_challenge_method: S256
+        redirect_uris:
+          - "oc://android.opencloud.eu"
+          - "oc://ios.opencloud.eu"
+          - "oc.ios://ios.opencloud.eu"
+          - "http://127.0.0.1"
+          - "http://localhost"
+        scopes:
+          - openid
+          - email
+          - profile
+          - groups
+          - opencloud
+          - offline_access
+        response_types:
+          - code
+        grant_types:
+          - authorization_code
+          - refresh_token
+        access_token_signed_response_alg: RS256
+        userinfo_signed_response_alg: none
+        token_endpoint_auth_method: none

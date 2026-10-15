@@ -54,6 +54,7 @@ module "ingress" {
     module.metrics.ingress,
     module.navidrome.ingress,
     module.notify.ingress,
+    module.opencloud.ingress,
     module.paperless.ingress,
     module.qbittorrent.ingress,
     module.sabnzbd.ingress,
@@ -94,6 +95,7 @@ module "backups" {
     module.metrics.backups,
     module.navidrome.backups,
     module.notify.backups,
+    module.opencloud.backups,
     module.paperless.backups,
     module.qbittorrent.backups,
     module.sabnzbd.backups,
@@ -112,14 +114,14 @@ module "backups" {
       volume   = incus_storage_volume.immich.name
       excludes = ["backups/*.sql.gz"]
     }
-    # private = {
-    #   pool   = incus_storage_volume.private.pool
-    #   volume = incus_storage_volume.private.name
-    # }
     media = {
       pool   = incus_storage_volume.media.pool
       volume = incus_storage_volume.media.name
       paths  = ["collection/music", "collection/books"]
+    }
+    opencloud-files = {
+      pool   = incus_storage_volume.opencloud.pool
+      volume = incus_storage_volume.opencloud.name
     }
   }
 }
@@ -263,6 +265,7 @@ module "metrics" {
     metrics     = module.metrics.probes
     navidrome   = module.navidrome.probes
     notify      = module.notify.probes
+    opencloud   = module.opencloud.probes
     paperless   = module.paperless.probes
     qbittorrent = module.qbittorrent.probes
     sabnzbd     = module.sabnzbd.probes
@@ -302,6 +305,18 @@ module "notify" {
   public_domain  = var.public_domain
   private_domain = var.private_domain
   timezone       = var.timezone
+  depends_on     = [null_resource.post_server, module.linstor]
+}
+
+module "opencloud" {
+  source         = "./opencloud"
+  versions       = var.versions.opencloud
+  secrets        = var.secrets.opencloud
+  target         = var.cluster.node-4.target
+  snapshots      = local.daily_snapshot
+  storage_pool   = incus_storage_volume.opencloud.pool
+  storage_source = incus_storage_volume.opencloud.name
+  public_domain  = var.public_domain
   depends_on     = [null_resource.post_server, module.linstor]
 }
 

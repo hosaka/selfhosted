@@ -50,6 +50,8 @@ locals {
     jellyfin_client_secret_hash    = var.secrets.jellyfin_client_secret_hash
     kavita_client_id               = var.secrets.kavita_client_id
     kavita_client_secret_hash      = var.secrets.kavita_client_secret_hash
+    opencloud_client_id            = var.secrets.opencloud_client_id
+    opencloud_apps_client_id       = var.secrets.opencloud_apps_client_id
     paperless_client_id            = var.secrets.paperless_client_id
     paperless_client_secret_hash   = var.secrets.paperless_client_secret_hash
     vaultwarden_client_id          = var.secrets.vaultwarden_client_id

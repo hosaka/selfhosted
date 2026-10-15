@@ -105,9 +105,9 @@ resource "incus_storage_volume" "media" {
   ]
 }
 
-resource "incus_storage_volume" "private" {
-  name         = "private"
-  description  = "Private cloud storage"
+resource "incus_storage_volume" "opencloud" {
+  name         = "opencloud"
+  description  = "OpenCloud user files"
   target       = "node-4"
   pool         = incus_storage_pool.nas.name
   type         = "custom"
@@ -116,6 +116,8 @@ resource "incus_storage_volume" "private" {
   config = merge(local.daily_snapshot, {
     "security.shifted" = "true"
     "snapshots.expiry" = "30d"
+    "initial.uid"      = "1000" # opencloud user in the image
+    "initial.gid"      = "1000"
   })
 
   depends_on = [
@@ -150,7 +152,7 @@ resource "null_resource" "post_storage_volumes" {
 
     incus_storage_volume.immich,
     incus_storage_volume.media,
-    incus_storage_volume.private,
+    incus_storage_volume.opencloud,
     incus_storage_volume.voidrepo,
   ]
 }

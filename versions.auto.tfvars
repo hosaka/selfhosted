@@ -58,6 +58,9 @@ versions = {
     gotify = "3.0.0"
     diun   = "4.33"
   }
+  opencloud = {
+    opencloud = "8.1.0"
+  }
   paperless = {
     paperless = "3.0.4"
     db        = "18-alpine"

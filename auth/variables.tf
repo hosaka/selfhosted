@@ -47,6 +47,8 @@ variable "secrets" {
     jellyfin_client_secret_hash    = string
     kavita_client_id               = string
     kavita_client_secret_hash      = string
+    opencloud_client_id            = string # public client, no secret
+    opencloud_apps_client_id       = string # public client, no secret
     paperless_client_id            = string
     paperless_client_secret_hash   = string
     vaultwarden_client_id          = string
