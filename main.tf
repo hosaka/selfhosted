@@ -254,6 +254,7 @@ module "metrics" {
   authelia_address          = module.auth.authelia_metrics_address
   immich_addresses          = module.immich.metrics_addresses
   restic_exporter_addresses = module.backups.restic_exporter_addresses
+  gotify_address            = module.notify.gotify_address
   probes = {
     auth        = module.auth.probes
     atuin       = module.atuin.probes

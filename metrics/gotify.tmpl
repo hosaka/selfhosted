@@ -1,0 +1,78 @@
+{{- /*
+  The webhook contact point's custom payload: a Gotify message, posted to its /message endpoint.
+  See https://gotify.net/docs/msgextras for the extras.
+
+  Priority goes by the firing alerts' severity label. On Android, 8 and up makes a sound, 4-7 is
+  a default notification and 1-3 a silent one.
+*/ -}}
+
+{{ define "gotify.payload" -}}
+{{- $priority := 2 -}}
+{{- range .Alerts.Firing -}}
+  {{- if eq .Labels.severity "critical" -}}
+    {{- $priority = 8 -}}
+  {{- else if and (ne .Labels.severity "info") (lt $priority 5) -}}
+    {{- $priority = 5 -}}
+  {{- end -}}
+{{- end -}}
+{{- coll.Dict
+  "title" (tmpl.Exec "gotify.title" .)
+  "message" (tmpl.Exec "gotify.message" . | trimSpace)
+  "priority" $priority
+  "extras" (coll.Dict
+    "client::display" (coll.Dict "contentType" "text/markdown")
+    "client::notification" (coll.Dict "click" (coll.Dict "url" (tmpl.Exec "gotify.url" .)))
+  )
+  | data.ToJSON -}}
+{{- end }}
+
+{{- /* [FIRING] Site down: immich, from the rule's name and what all of the alerts are about */}}
+{{ define "gotify.title" -}}
+[{{ if eq .Status "firing" }}FIRING{{ else }}RESOLVED{{ end }}]
+{{- with .CommonLabels.alertname }} {{ . }}{{ else }} {{ len .Alerts }} alerts{{ end }}
+{{- $sep := ": " -}}
+{{- range stringSlice "service" "name" "node" "device" "rulename" -}}
+  {{- with index $.CommonLabels . }}{{ $sep }}{{ . }}{{ $sep = ", " }}{{ end -}}
+{{- end }}
+{{- end }}
+
+{{- /* a line per alert, the resolved ones apart when the group still has firing ones */}}
+{{ define "gotify.message" -}}
+{{ range .Alerts.Firing }}
+- {{ template "gotify.alert" . }}
+{{- end }}
+{{- if and .Alerts.Firing .Alerts.Resolved }}
+
+**Resolved**
+{{- end }}
+{{- range .Alerts.Resolved }}
+- {{ template "gotify.alert" . }}
+{{- end }}
+{{- end }}
+
+{{- /*
+  the summary annotation, or the alert's labels when a rule has none. A rule whose query fails or
+  returns nothing alerts as DatasourceError or DatasourceNoData, with its summary left unrendered.
+*/}}
+{{ define "gotify.alert" -}}
+{{ if eq .Labels.alertname "DatasourceError" }}{{ .Labels.rulename }}'s query failed: {{ .Annotations.Error }}
+{{- else if eq .Labels.alertname "DatasourceNoData" }}{{ .Labels.rulename }}'s query returned nothing
+{{- else if .Annotations.summary }}{{ .Annotations.summary }}
+{{- else }}{{ .Labels.alertname }}
+  {{- range (.Labels.Remove (stringSlice "alertname" "grafana_folder" "severity")).SortedPairs }} {{ .Name }}={{ .Value }}{{ end }}
+{{- end }}
+{{- end }}
+
+{{- /*
+  where tapping the notification goes: the first firing alert's panel or dashboard, or else its rule.
+  Provisioned rules only get a panel URL from the __dashboardUid__ and __panelId__ annotations.
+*/}}
+{{ define "gotify.url" -}}
+{{- $alert := index .Alerts 0 -}}
+{{- with .Alerts.Firing }}{{ $alert = index . 0 }}{{ end -}}
+{{- if $alert.PanelURL }}{{ $alert.PanelURL }}
+{{- else if $alert.DashboardURL }}{{ $alert.DashboardURL }}
+{{- else if $alert.GeneratorURL }}{{ $alert.GeneratorURL }}
+{{- else }}{{ .ExternalURL }}
+{{- end }}
+{{- end }}

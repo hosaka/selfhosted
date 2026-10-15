@@ -48,7 +48,7 @@
       "id": 1,
       "type": "table",
       "title": "Cluster members",
-      "description": "RAM leaves out the ZFS ARC, which ZFS gives back under memory pressure. Disk is the IncusOS root filesystem; ZFS pools is online when every pool on the member is.",
+      "description": "RAM leaves out the ZFS ARC, which ZFS gives back under memory pressure. Disk is the IncusOS root filesystem; ZFS pools is online when every pool on the member is. CPU temp is the hottest CPU sensor (coretemp, k10temp). OOM kills counts processes the kernel killed for lack of memory, on the host or in an instance.",
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
@@ -72,6 +72,17 @@
           "range": false
         },
         {
+          "refId": "cpu_temp",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max by (node) (node_hwmon_temp_celsius{job=\"cluster\"} * on (node, chip) group_left max by (node, chip) (node_hwmon_chip_names{job=\"cluster\", chip_name=~\"coretemp|k10temp\"}))",
+          "format": "table",
+          "instant": true,
+          "range": false
+        },
+        {
           "refId": "ram",
           "datasource": {
             "type": "prometheus",
@@ -89,6 +100,17 @@
             "uid": "prometheus"
           },
           "expr": "sum by (node) (node_memory_MemTotal_bytes{job=\"cluster\"})",
+          "format": "table",
+          "instant": true,
+          "range": false
+        },
+        {
+          "refId": "oom",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max by (node) (clamp_min(node_vmstat_oom_kill{job=\"cluster\"} - node_vmstat_oom_kill{job=\"cluster\"} offset 1d, 0))",
           "format": "table",
           "instant": true,
           "range": false
@@ -152,12 +174,14 @@
             "indexByName": {
               "node": 0,
               "Value #cpu": 1,
-              "Value #ram": 2,
-              "Value #ram_total": 3,
-              "Value #disk": 4,
-              "Value #disk_total": 5,
-              "Value #pools": 6,
-              "Value #instances": 7
+              "Value #cpu_temp": 2,
+              "Value #ram": 3,
+              "Value #ram_total": 4,
+              "Value #oom": 5,
+              "Value #disk": 6,
+              "Value #disk_total": 7,
+              "Value #pools": 8,
+              "Value #instances": 9
             }
           }
         }
@@ -235,6 +259,60 @@
           {
             "matcher": {
               "id": "byName",
+              "options": "Value #cpu_temp"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "CPU temp"
+              },
+              {
+                "id": "unit",
+                "value": "celsius"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 75
+                    },
+                    {
+                      "color": "red",
+                      "value": 85
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 100
+              },
+              {
+                "id": "custom.align",
+                "value": "right"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
               "options": "Value #ram"
             },
             "properties": [
@@ -284,6 +362,52 @@
               {
                 "id": "custom.align",
                 "value": "right"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #oom"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "OOM kills (24h)"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 130
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
               }
             ]
           },

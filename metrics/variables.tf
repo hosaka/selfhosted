@@ -9,6 +9,7 @@ variable "secrets" {
     oidc_client_secret = string
     frps_user          = string
     frps_password      = string
+    gotify_token       = string # of the Grafana application
   })
 }
 
@@ -90,6 +91,11 @@ variable "immich_addresses" {
 variable "restic_exporter_addresses" {
   type    = map(string)
   default = {}
+}
+
+# Gotify the alert notifications go to, as http://<address>:<port>
+variable "gotify_address" {
+  type = string
 }
 
 # Health check URLs the blackbox exporter probes, by the module that serves them.

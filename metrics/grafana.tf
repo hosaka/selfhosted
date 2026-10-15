@@ -54,6 +54,24 @@ resource "incus_instance" "grafana" {
   }
 
   file {
+    content            = local.grafana_notifications
+    uid                = 472
+    gid                = 0
+    target_path        = "/etc/grafana/provisioning/alerting/notifications.yml"
+    mode               = "0600"
+    create_directories = true
+  }
+
+  file {
+    content            = local.grafana_alert_rules
+    uid                = 472
+    gid                = 0
+    target_path        = "/etc/grafana/provisioning/alerting/rules.yml"
+    mode               = "0600"
+    create_directories = true
+  }
+
+  file {
     content            = file("${path.module}/dashboards/incus.json")
     uid                = 472
     gid                = 0
@@ -209,8 +227,10 @@ resource "incus_instance" "grafana" {
 
 resource "null_resource" "grafana_restart" {
   triggers = {
-    config      = nonsensitive(sha1(local.grafana_config))
-    datasources = sha1(local.grafana_datasources)
+    config        = nonsensitive(sha1(local.grafana_config))
+    datasources   = sha1(local.grafana_datasources)
+    notifications = nonsensitive(sha1(local.grafana_notifications))
+    alert_rules   = sha1(local.grafana_alert_rules)
   }
 
   provisioner "local-exec" {
