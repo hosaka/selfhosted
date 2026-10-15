@@ -94,14 +94,6 @@ output "ingress" {
 				header {
 					# enable HTTP Strict Transport Security (HSTS)
 					Strict-Transport-Security "max-age=31536000; preload"
-					# disable enable cross-site filter (XSS)
-					X-XSS-Protection "0"
-					# disallow sniffing of X-Content-Type-Options
-					X-Content-Type-Options "nosniff"
-					# disallow the site to be rendered within a frame (clickjacking protection)
-					X-Frame-Options "SAMEORIGIN"
-					# prevent search engines from indexing
-					X-Robots-Tag "none"
 					# remove server name
 					-Server
 				}
