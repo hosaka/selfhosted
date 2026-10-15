@@ -33,7 +33,7 @@ My selfhosted config.
 
 M920q PCs are clustered together using [IncusOS](https://linuxcontainers.org/incus-os/) responsible for OCI and VM instances that run individual services while the mITX machine takes on the NAS responsibilities. [OpenTofu](https://opentofu.org) is used for "Infra as Code" configuration.
 
-> I have previously ran the services with docker compose but decided to switch to a virtualization platform due to running out of compute power on the NAS and having to deal with outages when the NAS had to either go down for maintenance or otherwise had a bad day and would bring my whole stack down. I initially reached for [Proxmox VE](https://www.proxmox.com) as a battle tested hypervisor but settled on [IncusOS](https://linuxcontainers.org/incus-os/) for its simplicity, immutability and being able to almost entirely set it up using IaC. For the last docker compose version see commit `5bed864b9d`.
+> I have previously ran the services with docker compose but decided to switch to a virtualization platform due to running out of compute power on the NAS and having to deal with outages when the NAS had to either go down for maintenance or otherwise had a bad day and would bring my whole stack down. I initially reached for [Proxmox VE](https://www.proxmox.com) as a battle tested hypervisor but settled on [IncusOS](https://linuxcontainers.org/incus-os/) for its simplicity, immutability and being able to almost entirely set it up using IaC. My Docker to Incus migration is documented in [docs/incus-migration](docs/incus-migration.md). For the last docker compose version see commit `5bed864b9d`.
 
 > I have previously attempted to run containers using rootless podman with moderate success, but inter-container networking was difficult and at times too slow (slurp4netns). The fact that other tools like kustomize are needed to have a flexible configuration was another downside. Podman Quadlets have been available since but requires systemd. Perhaps I will revisit podman again someday. For the last podman version see commit `9dcddc6c6d`.
 
@@ -134,6 +134,8 @@ just encrypt secrets
 > Prior to commit `6adee98aed` SOPS with PGP backend was used.
 
 ## Backups
+
+My backup solution is a mix of Incus snapshots and [Backrest](https://github.com/garethgeorge/backrest). Backups are stored both locally and remotely. For details on how it all works see [docs/backups](docs/backups.md).
 
 > I have previously managed backups using `restic` and `resticprofile`. See the [archive/restic/README.md](archive/restic/README.md) for details.
 
