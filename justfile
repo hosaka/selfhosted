@@ -198,7 +198,7 @@ restart instance: (onpath 'incus')
 restore-volume volume snapshot: (onpath 'incus')
     incus exec -t backrest -- restore-volume {{ volume }} {{ snapshot }}
 
-[arg('target', pattern='all|auth|keys|recovery|restic|secrets', help='target to entrypt')]
+[arg('target', pattern='all|auth|keys|recovery|secrets', help='target to entrypt')]
 [doc('encrypt files for storing them in git repository')]
 encrypt target: (onpath 'sops') (onpath 'age') (onpath 'age-plugin-yubikey')
     @just _encrypt-{{ target }}
@@ -215,10 +215,6 @@ _encrypt-keys:
     sops encrypt ./backups/backup.key > ./backups/backup.key.enc
 
 [private]
-_encrypt-restic:
-    sops encrypt ./restic/.env > ./restic/default.env
-
-[private]
 _encrypt-recovery:
     sops encrypt ./incus/node-1/recovery.key > ./incus/node-1/recovery.key.enc
     sops encrypt ./incus/node-2/recovery.key > ./incus/node-2/recovery.key.enc
@@ -230,9 +226,9 @@ _encrypt-auth:
     sops encrypt ./auth/private.pem > ./auth/private.pem.enc
 
 [private]
-_encrypt-all: _encrypt-secrets _encrypt-keys _encrypt-recovery _encrypt-restic _encrypt-auth
+_encrypt-all: _encrypt-secrets _encrypt-keys _encrypt-recovery _encrypt-auth
 
-[arg('target', pattern='all|auth|keys|recovery|restic|secrets', help='target to decrypt')]
+[arg('target', pattern='all|auth|keys|recovery|secrets', help='target to decrypt')]
 [doc('decrypt files stored in git repository')]
 decrypt target: (onpath 'sops') (onpath 'age') (onpath 'age-plugin-yubikey')
     @just _decrypt-{{ target }}
@@ -256,15 +252,11 @@ _decrypt-recovery:
     sops decrypt ./incus/node-4/recovery.key.enc > ./incus/node-4/recovery.key
 
 [private]
-_decrypt-restic:
-    sops decrypt ./restic/default.env > ./restic/.env
-
-[private]
 _decrypt-auth:
     sops decrypt ./auth/private.pem.enc > ./auth/private.pem
 
 [private]
-_decrypt-all: _decrypt-secrets _decrypt-keys _decrypt-recovery _decrypt-restic _decrypt-auth
+_decrypt-all: _decrypt-secrets _decrypt-keys _decrypt-recovery _decrypt-auth
 
 [doc('generate random OIDC client id (assumes authelia instance is runnig)')]
 genid: (onpath 'incus')
