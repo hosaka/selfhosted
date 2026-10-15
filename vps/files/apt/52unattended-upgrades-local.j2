@@ -1,0 +1,5 @@
+// Debian's 50unattended-upgrades only takes security updates, this mails the runs that fail
+Unattended-Upgrade::Mail "{{ mail_to }}";
+Unattended-Upgrade::MailReport "only-on-error";
+// the SMTP relay only takes mail from our own addresses
+Unattended-Upgrade::Sender "{{ mail_from }}";

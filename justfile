@@ -180,6 +180,14 @@ apply module *args: (onpath 'tofu')
 destroy module *args: (onpath 'tofu')
     tofu destroy -target=module.{{ module }} {{ args }}
 
+[doc('show what deploying the VPS would change')]
+vps-diff *args: (onpath 'uv')
+    uv run pyinfra --chdir vps inventory.py deploy.py --dry --diff {{ args }}
+
+[doc('deploy the VPS, asks before changing anything')]
+vps *args: (onpath 'uv')
+    uv run pyinfra --chdir vps inventory.py deploy.py --diff {{ args }}
+
 [doc('follow logs of an instance')]
 logs instance: (onpath 'incus')
     incus console --show-log {{ instance }}

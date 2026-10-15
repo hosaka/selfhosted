@@ -3,6 +3,7 @@
 
 # pyinfra
 *-debug.log
+__pycache__/
 
 # terraform
 .terraform/

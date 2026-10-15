@@ -1,0 +1,97 @@
+*filter
+:ufw6-user-input - [0:0]
+:ufw6-user-output - [0:0]
+:ufw6-user-forward - [0:0]
+:ufw6-before-logging-input - [0:0]
+:ufw6-before-logging-output - [0:0]
+:ufw6-before-logging-forward - [0:0]
+:ufw6-user-logging-input - [0:0]
+:ufw6-user-logging-output - [0:0]
+:ufw6-user-logging-forward - [0:0]
+:ufw6-after-logging-input - [0:0]
+:ufw6-after-logging-output - [0:0]
+:ufw6-after-logging-forward - [0:0]
+:ufw6-logging-deny - [0:0]
+:ufw6-logging-allow - [0:0]
+:ufw6-user-limit - [0:0]
+:ufw6-user-limit-accept - [0:0]
+### RULES ###
+
+### tuple ### allow tcp 7000 ::/0 any ::/0 in
+-A ufw6-user-input -p tcp --dport 7000 -j ACCEPT
+
+### tuple ### allow udp 7000 ::/0 any ::/0 in
+-A ufw6-user-input -p udp --dport 7000 -j ACCEPT
+
+### tuple ### allow tcp 80 ::/0 any ::/0 in
+-A ufw6-user-input -p tcp --dport 80 -j ACCEPT
+
+### tuple ### allow tcp 443 ::/0 any ::/0 in
+-A ufw6-user-input -p tcp --dport 443 -j ACCEPT
+
+### tuple ### limit tcp 3912 ::/0 any ::/0 in
+-A ufw6-user-input -p tcp --dport 3912 -m conntrack --ctstate NEW -m recent --set
+-A ufw6-user-input -p tcp --dport 3912 -m conntrack --ctstate NEW -m recent --update --seconds 30 --hitcount 6 -j ufw6-user-limit
+-A ufw6-user-input -p tcp --dport 3912 -j ufw6-user-limit-accept
+
+### tuple ### limit tcp 5638 ::/0 any ::/0 in
+-A ufw6-user-input -p tcp --dport 5638 -m conntrack --ctstate NEW -m recent --set
+-A ufw6-user-input -p tcp --dport 5638 -m conntrack --ctstate NEW -m recent --update --seconds 30 --hitcount 6 -j ufw6-user-limit
+-A ufw6-user-input -p tcp --dport 5638 -j ufw6-user-limit-accept
+
+### tuple ### allow tcp 80 ::/0 any ::/0 Snikket - in
+-A ufw6-user-input -p tcp --dport 80 -j ACCEPT -m comment --comment 'dapp_Snikket'
+
+### tuple ### allow tcp 443 ::/0 any ::/0 Snikket - in
+-A ufw6-user-input -p tcp --dport 443 -j ACCEPT -m comment --comment 'dapp_Snikket'
+
+### tuple ### allow tcp 5222 ::/0 any ::/0 Snikket - in
+-A ufw6-user-input -p tcp --dport 5222 -j ACCEPT -m comment --comment 'dapp_Snikket'
+
+### tuple ### allow tcp 5269 ::/0 any ::/0 Snikket - in
+-A ufw6-user-input -p tcp --dport 5269 -j ACCEPT -m comment --comment 'dapp_Snikket'
+
+### tuple ### allow tcp 5000 ::/0 any ::/0 Snikket - in
+-A ufw6-user-input -p tcp --dport 5000 -j ACCEPT -m comment --comment 'dapp_Snikket'
+
+### tuple ### allow any 3478 ::/0 any ::/0 Snikket - in
+-A ufw6-user-input -p tcp --dport 3478 -j ACCEPT -m comment --comment 'dapp_Snikket'
+-A ufw6-user-input -p udp --dport 3478 -j ACCEPT -m comment --comment 'dapp_Snikket'
+
+### tuple ### allow any 3479 ::/0 any ::/0 Snikket - in
+-A ufw6-user-input -p tcp --dport 3479 -j ACCEPT -m comment --comment 'dapp_Snikket'
+-A ufw6-user-input -p udp --dport 3479 -j ACCEPT -m comment --comment 'dapp_Snikket'
+
+### tuple ### allow any 5349 ::/0 any ::/0 Snikket - in
+-A ufw6-user-input -p tcp --dport 5349 -j ACCEPT -m comment --comment 'dapp_Snikket'
+-A ufw6-user-input -p udp --dport 5349 -j ACCEPT -m comment --comment 'dapp_Snikket'
+
+### tuple ### allow any 5350 ::/0 any ::/0 Snikket - in
+-A ufw6-user-input -p tcp --dport 5350 -j ACCEPT -m comment --comment 'dapp_Snikket'
+-A ufw6-user-input -p udp --dport 5350 -j ACCEPT -m comment --comment 'dapp_Snikket'
+
+### tuple ### allow udp 60000:60010 ::/0 any ::/0 Snikket - in
+-A ufw6-user-input -p udp -m multiport --dports 60000:60010 -j ACCEPT -m comment --comment 'dapp_Snikket'
+
+### tuple ### allow tcp 50300 ::/0 any ::/0 in
+-A ufw6-user-input -p tcp --dport 50300 -j ACCEPT
+
+### tuple ### allow tcp 41080 ::/0 any ::/0 in
+-A ufw6-user-input -p tcp --dport 41080 -j ACCEPT
+
+### END RULES ###
+
+### LOGGING ###
+-A ufw6-after-logging-input -j LOG --log-prefix "[UFW BLOCK] " -m limit --limit 3/min --limit-burst 10
+-A ufw6-after-logging-forward -j LOG --log-prefix "[UFW BLOCK] " -m limit --limit 3/min --limit-burst 10
+-I ufw6-logging-deny -m conntrack --ctstate INVALID -j RETURN -m limit --limit 3/min --limit-burst 10
+-A ufw6-logging-deny -j LOG --log-prefix "[UFW BLOCK] " -m limit --limit 3/min --limit-burst 10
+-A ufw6-logging-allow -j LOG --log-prefix "[UFW ALLOW] " -m limit --limit 3/min --limit-burst 10
+### END LOGGING ###
+
+### RATE LIMITING ###
+-A ufw6-user-limit -m limit --limit 3/minute -j LOG --log-prefix "[UFW LIMIT BLOCK] "
+-A ufw6-user-limit -j REJECT
+-A ufw6-user-limit-accept -j ACCEPT
+### END RATE LIMITING ###
+COMMIT

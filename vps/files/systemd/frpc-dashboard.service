@@ -1,0 +1,13 @@
+[Unit]
+Description = frp client publishing the frps dashboard
+After = frps.service
+Wants = frps.service
+
+[Service]
+Type = simple
+ExecStart = /usr/local/bin/frpc -c /etc/frp/frpc-dashboard.toml
+Restart = on-failure
+RestartSec = 5s
+
+[Install]
+WantedBy = multi-user.target

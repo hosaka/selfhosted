@@ -1,0 +1,10 @@
+serverAddr = "127.0.0.1"
+serverPort = 7000
+auth.token = "{{ auth_token }}"
+
+[[proxies]]
+name = "frps-dashboard"
+type = "stcp"
+secretKey = "{{ secret_key }}"
+localIP = "127.0.0.1"
+localPort = 7500

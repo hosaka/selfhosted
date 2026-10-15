@@ -1,3 +1,0 @@
-- hosts: frps
-  roles:
-    - frps

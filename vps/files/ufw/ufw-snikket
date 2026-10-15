@@ -1,0 +1,4 @@
+[Snikket]
+title=Snikket Server
+description=Simple XMPP Server
+ports=80/tcp|443/tcp|5222/tcp|5269/tcp|5000/tcp|3478|3479|5349|5350|60000:60010/udp

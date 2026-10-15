@@ -1,0 +1,107 @@
+#!/bin/bash
+# Checks from the VPS that frp is running and that cluster services answer through the tunnel.
+# Mails once a check has failed THRESHOLD times in a row, and again once it passes.
+#
+#   cluster-watchdog --service frps.service --url metrics=https://metrics.example.com/api/health
+#
+# Runs from cluster-watchdog.timer: failure counts live in $STATE_DIRECTORY, mail goes to postfix
+# over SMTP since with NoNewPrivileges it can't run sendmail's setgid postdrop.
+set -euo pipefail
+
+: "${STATE_DIRECTORY:?}" "${MAIL_FROM:?}" "${MAIL_TO:?}"
+threshold=${THRESHOLD:-3}
+smtp=${SMTP_URL:-smtp://127.0.0.1:25}
+
+names=() kinds=() targets=()
+while (($#)); do
+  case $1 in
+  --service) names+=("$2") kinds+=(service) targets+=("$2") ;;
+  --url) names+=("${2%%=*}") kinds+=(url) targets+=("${2#*=}") ;;
+  *)
+    echo "unknown argument: $1" >&2
+    exit 2
+    ;;
+  esac
+  shift 2
+done
+
+# join SEPARATOR ITEM...
+join() {
+  local sep=$1 out
+  shift
+  printf -v out "%s$sep" "$@"
+  echo "${out%"$sep"}"
+}
+
+# prints why the check failed
+check() {
+  local out
+  case $1 in
+  service) out=$(systemctl is-active "$2") || {
+    echo "$2 is $out"
+    return 1
+  } ;;
+  url)
+    # only a 2xx counts, a health URL redirecting somewhere means something's wrong
+    out=$(curl --silent --max-time 20 --output /dev/null --write-out '%{http_code} %{errormsg}' "$2") || true
+    case $out in
+    2??\ *) ;;
+    000\ *)
+      echo "${out#000 }"
+      return 1
+      ;;
+    *)
+      echo "HTTP ${out%% *}"
+      return 1
+      ;;
+    esac
+    ;;
+  esac
+}
+
+down=() up=() still=() counts=()
+for i in "${!names[@]}"; do
+  name=${names[i]}
+  failures=$(cat "$STATE_DIRECTORY/$name" 2>/dev/null || echo 0)
+  if reason=$(check "${kinds[i]}" "${targets[i]}"); then
+    if ((failures >= threshold)); then
+      up+=("$name is back")
+    fi
+    failures=0
+  else
+    failures=$((failures + 1))
+    echo "$name failed ($failures/$threshold): $reason"
+    if ((failures == threshold)); then
+      down+=("$name: $reason")
+    elif ((failures > threshold)); then
+      still+=("$name")
+    fi
+  fi
+  counts+=("$failures")
+done
+
+if ((${#down[@]} + ${#up[@]})); then
+  summary=()
+  if ((${#down[@]})); then
+    summary+=("down: $(join ", " "${down[@]%%:*}")")
+  fi
+  if ((${#up[@]})); then
+    summary+=("back: $(join ", " "${up[@]% is back}")")
+  fi
+  {
+    printf 'From: %s\nTo: %s\nSubject: [%s] %s\nDate: %s\n\n' \
+      "$MAIL_FROM" "$MAIL_TO" "$(hostname)" "$(join "; " "${summary[@]}")" "$(date -R)"
+    printf '%s\n' "${down[@]}" "${up[@]}"
+    if ((${#still[@]})); then
+      printf '\nStill down: %s\n' "$(join ", " "${still[@]}")"
+    fi
+    printf '\nChecked every 5 minutes from %s, reported after %s failures in a row.\n' "$(hostname)" "$threshold"
+  } | curl --silent --show-error --max-time 30 --crlf "$smtp" \
+    --mail-from "$MAIL_FROM" --mail-rcpt "$MAIL_TO" --upload-file -
+  echo "mailed $MAIL_TO: $(join "; " "${summary[@]}")"
+fi
+
+# only once the mail went out, so a failed send is retried on the next run
+for i in "${!names[@]}"; do
+  echo "${counts[i]}" >"$STATE_DIRECTORY/${names[i]}"
+done

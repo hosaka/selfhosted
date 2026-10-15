@@ -1,0 +1,23 @@
+[Unit]
+Description=Check that frp, Grafana and Gotify are up and mail when they aren't
+Wants=network-online.target
+After=network-online.target postfix.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/cluster-watchdog \
+    --service frps \
+    --service frpc-dashboard \
+    --url metrics=https://metrics.{{ public_domain }}/api/health \
+    --url gotify=https://gotify.{{ public_domain }}/health
+Environment=MAIL_FROM={{ mail_from }} MAIL_TO={{ mail_to }}
+# its own user rather than DynamicUser: dbus-daemon can't resolve a dynamic user without
+# libnss-systemd, and `systemctl is-active` needs dbus. The failure counts go in
+# /var/lib/cluster-watchdog, the rest of the system is read-only to it
+User=cluster-watchdog
+Group=cluster-watchdog
+StateDirectory=cluster-watchdog
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+NoNewPrivileges=yes

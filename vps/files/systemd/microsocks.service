@@ -1,0 +1,17 @@
+[Unit]
+Description=microsocks SOCKS5 proxy
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+EnvironmentFile=/etc/microsocks.env
+ExecStart=/usr/bin/microsocks -i 0.0.0.0 -p 41080 -u ${MICROSOCKS_USER} -P ${MICROSOCKS_PASSWORD}
+Restart=on-failure
+DynamicUser=yes
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target

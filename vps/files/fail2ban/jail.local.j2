@@ -1,0 +1,23 @@
+# See man 5 jail.conf for details.
+
+[DEFAULT]
+destemail = {{ mail_to }}
+sender = {{ mail_from }}
+mta = mail
+# ban, email, log
+action = %(action_mwl)s
+
+# "maxretry" is the number of failures before a host get banned.
+maxretry = 3
+# "bantime" is ban duration
+bantime = 1h
+# banned if a host has reached "maxretry" during the last "findtime"
+findtime = 10m
+
+[sshd]
+enabled = true
+# sshd's Port, not the default `ssh` (22), or bans don't block anything
+port = 5638
+filter = sshd
+backend=systemd
+logpath = /var/log/auth.log
