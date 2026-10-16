@@ -27,13 +27,6 @@ resource "incus_network" "incusbr0" {
 }
 
 locals {
-  memberUplinkInterface = {
-    (var.cluster.node-1.target) = var.cluster.uplink
-    (var.cluster.node-2.target) = var.cluster.uplink
-    (var.cluster.node-3.target) = var.cluster.uplink
-    # node-4 may differ - keep the map structure for that reason
-  }
-
   # meshbr0 subnet, passed to services that need to trust or bypass mesh traffic
   mesh_cidr = format("10.%d.%d.0/24", random_integer.meshbr0-v4-subnet-2.result, random_integer.meshbr0-v4-subnet-3.result)
 
@@ -80,7 +73,7 @@ resource "incus_network" "meshbr0_per_node" {
   type   = "bridge"
 
   config = {
-    "tunnel.mesh.interface" = local.memberUplinkInterface[each.key]
+    "tunnel.mesh.interface" = var.cluster.uplink
   }
 
   depends_on = [
@@ -123,7 +116,7 @@ resource "incus_network" "lan_per_node" {
   target = each.key
 
   config = {
-    parent = local.memberUplinkInterface[each.key]
+    parent = var.cluster.uplink
   }
 
   depends_on = [
