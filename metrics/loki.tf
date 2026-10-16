@@ -50,6 +50,7 @@ resource "incus_instance" "loki" {
     type = "nic"
     properties = {
       network = "meshbr0"
+      hwaddr  = "10:66:6a:d7:62:16"
     }
   }
 

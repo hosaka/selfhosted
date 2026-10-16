@@ -37,11 +37,22 @@ resource "incus_instance" "frpc" {
   type = "container"
 
   target   = var.target
-  profiles = ["default", "mesh"]
+  profiles = ["default"]
   image    = "ghcr:fatedier/frpc:v${var.versions.frpc}"
 
   lifecycle {
     prevent_destroy = true
+  }
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
+      name           = "eth1"
+      network        = "meshbr0"
+      "ipv4.gateway" = "none"
+      hwaddr         = "10:66:6a:eb:f7:d4"
+    }
   }
 
   file {
@@ -77,7 +88,7 @@ resource "incus_instance" "caddy" {
   type = "container"
 
   target   = var.target
-  profiles = ["default", "mesh"]
+  profiles = ["default"]
   image    = "ghcr:hotio/caddy:release-${var.versions.caddy}"
 
   lifecycle {
@@ -100,6 +111,17 @@ resource "incus_instance" "caddy" {
     properties = {
       hwaddr  = "10:66:6a:08:77:c0"
       network = "lan"
+    }
+  }
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
+      name           = "eth1"
+      network        = "meshbr0"
+      "ipv4.gateway" = "none"
+      hwaddr         = "10:66:6a:9b:06:fe"
     }
   }
 

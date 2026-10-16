@@ -12,8 +12,19 @@ resource "incus_instance" "syncstorage" {
   type = "container"
 
   target   = var.target
-  profiles = ["default", "mesh"]
+  profiles = ["default"]
   image    = "ghcr:mozilla-services/syncstorage-rs/syncserver-postgres:${var.versions.syncstorage}"
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
+      name           = "eth1"
+      network        = "meshbr0"
+      "ipv4.gateway" = "none"
+      hwaddr         = "10:66:6a:43:e2:4d"
+    }
+  }
 
   wait_for {
     type = "ipv4"
@@ -73,6 +84,7 @@ resource "incus_instance" "syncstorage_database" {
     type = "nic"
     properties = {
       network = "incusbr0"
+      hwaddr  = "10:66:6a:bb:99:91"
     }
   }
 

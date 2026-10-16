@@ -21,7 +21,7 @@ resource "incus_instance" "wakapi" {
   type = "container"
 
   target   = var.target
-  profiles = ["default", "mesh"]
+  profiles = ["default"]
   image    = "ghcr:muety/wakapi:${var.versions.wakapi}"
 
   device {
@@ -31,6 +31,17 @@ resource "incus_instance" "wakapi" {
       path   = "/app/data"
       pool   = incus_storage_volume.wakapi_data.pool
       source = incus_storage_volume.wakapi_data.name
+    }
+  }
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
+      name           = "eth1"
+      network        = "meshbr0"
+      "ipv4.gateway" = "none"
+      hwaddr         = "10:66:6a:62:f6:36"
     }
   }
 

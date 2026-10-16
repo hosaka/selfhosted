@@ -31,6 +31,6 @@ output "ingress" {
 }
 
 output "prometheus_address" {
-  description = "Prometheus API on the mesh network, only reachable inside the cluster. The instance's ipv4_address is its incusbr0 one, which other nodes can't reach."
-  value       = "${one([for a in incus_instance.prometheus.interfaces["eth1"].ip_addresses : a.address if a.family == "inet"])}:${local.prometheus_ports.api}"
+  description = "Prometheus API on the mesh network, only reachable inside the cluster."
+  value       = "${incus_instance.prometheus.ipv4_address}:${local.prometheus_ports.api}"
 }

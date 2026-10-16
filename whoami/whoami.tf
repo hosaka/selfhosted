@@ -17,6 +17,7 @@ resource "incus_instance" "whoami" {
     type = "nic"
     properties = {
       network = "meshbr0"
+      hwaddr  = "10:66:6a:db:01:fb"
     }
   }
 

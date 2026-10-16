@@ -14,7 +14,7 @@ resource "incus_instance" "immich" {
   type = "container"
 
   target   = var.target
-  profiles = ["default", "mesh"]
+  profiles = ["default"]
   image    = "ghcr:immich-app/immich-server:v${var.versions.immich}"
 
   device {
@@ -33,6 +33,17 @@ resource "incus_instance" "immich" {
     type = "gpu"
     properties = {
       gputype = "physical"
+    }
+  }
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
+      name           = "eth1"
+      network        = "meshbr0"
+      "ipv4.gateway" = "none"
+      hwaddr         = "10:66:6a:c5:be:fa"
     }
   }
 
@@ -86,6 +97,7 @@ resource "incus_instance" "immich_machine_learning" {
     type = "nic"
     properties = {
       network = "incusbr0"
+      hwaddr  = "10:66:6a:fb:94:c6"
     }
   }
 
@@ -133,6 +145,7 @@ resource "incus_instance" "immich_database" {
     type = "nic"
     properties = {
       network = "incusbr0"
+      hwaddr  = "10:66:6a:2a:a0:b4"
     }
   }
 
@@ -185,6 +198,7 @@ resource "incus_instance" "immich_valkey" {
     type = "nic"
     properties = {
       network = "incusbr0"
+      hwaddr  = "10:66:6a:3d:49:83"
     }
   }
 

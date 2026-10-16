@@ -66,8 +66,19 @@ resource "incus_instance" "authelia" {
   type = "container"
 
   target   = var.target
-  profiles = ["default", "mesh"]
+  profiles = ["default"]
   image    = "ghcr:authelia/authelia:${var.versions.authelia}"
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
+      name           = "eth1"
+      network        = "meshbr0"
+      "ipv4.gateway" = "none"
+      hwaddr         = "10:66:6a:68:64:31"
+    }
+  }
 
   file {
     content            = local.authelia_config
@@ -121,6 +132,7 @@ resource "incus_instance" "authelia_database" {
     type = "nic"
     properties = {
       network = "incusbr0"
+      hwaddr  = "10:66:6a:3a:9d:99"
     }
   }
 
@@ -172,6 +184,7 @@ resource "incus_instance" "authelia_valkey" {
     type = "nic"
     properties = {
       network = "incusbr0"
+      hwaddr  = "10:66:6a:77:84:d5"
     }
   }
 
@@ -201,7 +214,7 @@ resource "incus_instance" "lldap" {
   type = "container"
 
   target   = var.target
-  profiles = ["default", "mesh"]
+  profiles = ["default"]
   image    = "ghcr:lldap/lldap:v${var.versions.lldap}-alpine"
 
   device {
@@ -211,6 +224,17 @@ resource "incus_instance" "lldap" {
       path   = "/data"
       pool   = incus_storage_volume.lldap_data.pool
       source = incus_storage_volume.lldap_data.name
+    }
+  }
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
+      name           = "eth1"
+      network        = "meshbr0"
+      "ipv4.gateway" = "none"
+      hwaddr         = "10:66:6a:60:db:34"
     }
   }
 

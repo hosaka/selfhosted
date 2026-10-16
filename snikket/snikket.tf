@@ -33,7 +33,7 @@ resource "incus_instance" "snikket_server" {
   type = "container"
 
   target   = var.target
-  profiles = ["default", "mesh"]
+  profiles = ["default"]
   image    = "docker:snikket/snikket-server:${var.versions.snikket}"
 
   device {
@@ -43,6 +43,17 @@ resource "incus_instance" "snikket_server" {
       path   = "/snikket"
       pool   = incus_storage_volume.snikket_data.pool
       source = incus_storage_volume.snikket_data.name
+    }
+  }
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
+      name           = "eth1"
+      network        = "meshbr0"
+      "ipv4.gateway" = "none"
+      hwaddr         = "10:66:6a:91:b6:cf"
     }
   }
 
@@ -119,6 +130,7 @@ resource "incus_instance" "snikket_web" {
     type = "nic"
     properties = {
       network = "meshbr0"
+      hwaddr  = "10:66:6a:aa:76:d6"
     }
   }
 

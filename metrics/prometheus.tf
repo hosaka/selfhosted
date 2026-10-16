@@ -73,8 +73,19 @@ resource "incus_instance" "prometheus" {
   type = "container"
 
   target   = var.target
-  profiles = ["default", "mesh"]
+  profiles = ["default"]
   image    = "ghcr:prometheus/prometheus:v${var.versions.prometheus}"
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
+      name           = "eth1"
+      network        = "meshbr0"
+      "ipv4.gateway" = "none"
+      hwaddr         = "10:66:6a:23:75:b2"
+    }
+  }
 
   file {
     content            = local.prometheus_config
@@ -136,6 +147,7 @@ resource "incus_instance" "prometheus" {
     type = "nic"
     properties = {
       network = "incusbr0"
+      hwaddr  = "10:66:6a:cb:22:67"
     }
   }
 
@@ -147,7 +159,7 @@ resource "incus_instance" "prometheus" {
     // enable-lifecycle allows reloading config by POSTing to `/-/reload`
     "oci.entrypoint" = local.prometheus_command
 
-    "user.access_interface" = "eth0"
+    "user.access_interface" = "eth1"
   }
 
   depends_on = [incus_server.metrics, incus_certificate.metrics_key]
@@ -174,8 +186,11 @@ resource "null_resource" "ingress_targets" {
   }
 
   triggers = {
-    targets    = jsonencode([{ targets = [each.value] }])
-    prometheus = incus_instance.prometheus.mac_address
+    targets = jsonencode([{ targets = [each.value] }])
+  }
+
+  lifecycle {
+    replace_triggered_by = [incus_instance.prometheus]
   }
 
   provisioner "local-exec" {

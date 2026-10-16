@@ -25,7 +25,7 @@ resource "incus_instance" "seerr" {
   type = "container"
 
   target   = var.target
-  profiles = ["default", "mesh"]
+  profiles = ["default"]
   image    = "ghcr:hotio/seerr:release-${var.versions.seerr}"
 
   device {
@@ -35,6 +35,17 @@ resource "incus_instance" "seerr" {
       path   = "/config"
       pool   = incus_storage_volume.seerr_data.pool
       source = incus_storage_volume.seerr_data.name
+    }
+  }
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
+      name           = "eth1"
+      network        = "meshbr0"
+      "ipv4.gateway" = "none"
+      hwaddr         = "10:66:6a:ac:03:83"
     }
   }
 

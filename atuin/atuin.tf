@@ -10,8 +10,19 @@ resource "incus_instance" "atuin" {
   type = "container"
 
   target   = var.target
-  profiles = ["default", "mesh"]
+  profiles = ["default"]
   image    = "ghcr:atuinsh/atuin:${var.versions.atuin}"
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
+      name           = "eth1"
+      network        = "meshbr0"
+      "ipv4.gateway" = "none"
+      hwaddr         = "10:66:6a:fe:55:8a"
+    }
+  }
 
   wait_for {
     type = "ipv4"
@@ -62,6 +73,7 @@ resource "incus_instance" "atuin_database" {
     type = "nic"
     properties = {
       network = "incusbr0"
+      hwaddr  = "10:66:6a:5c:3d:15"
     }
   }
 

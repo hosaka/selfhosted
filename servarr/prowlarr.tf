@@ -25,7 +25,7 @@ resource "incus_instance" "prowlarr" {
   type = "container"
 
   target   = var.target
-  profiles = ["default", "mesh"]
+  profiles = ["default"]
   image    = "ghcr:hotio/prowlarr:release-${var.versions.prowlarr}"
 
   device {
@@ -45,6 +45,17 @@ resource "incus_instance" "prowlarr" {
       path   = "/data/media"
       pool   = var.media_pool
       source = var.media_source
+    }
+  }
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
+      name           = "eth1"
+      network        = "meshbr0"
+      "ipv4.gateway" = "none"
+      hwaddr         = "10:66:6a:4f:fb:26"
     }
   }
 

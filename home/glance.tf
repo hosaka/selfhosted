@@ -44,8 +44,19 @@ resource "incus_instance" "glance" {
   type = "container"
 
   target   = var.target
-  profiles = ["default", "mesh"]
+  profiles = ["default"]
   image    = "docker:glanceapp/glance:v${var.versions.glance}"
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
+      name           = "eth1"
+      network        = "meshbr0"
+      "ipv4.gateway" = "none"
+      hwaddr         = "10:66:6a:c2:de:0e"
+    }
+  }
 
   file {
     content            = local.glance_config

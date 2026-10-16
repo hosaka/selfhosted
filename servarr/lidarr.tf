@@ -25,7 +25,7 @@ resource "incus_instance" "lidarr" {
   type = "container"
 
   target   = var.target
-  profiles = ["default", "mesh"]
+  profiles = ["default"]
   image    = "ghcr:hotio/lidarr:${var.versions.lidarr}"
 
   device {
@@ -45,6 +45,17 @@ resource "incus_instance" "lidarr" {
       path   = "/data/media"
       pool   = var.media_pool
       source = var.media_source
+    }
+  }
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
+      name           = "eth1"
+      network        = "meshbr0"
+      "ipv4.gateway" = "none"
+      hwaddr         = "10:66:6a:13:0e:c4"
     }
   }
 

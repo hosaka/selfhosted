@@ -22,7 +22,7 @@ resource "incus_instance" "recyclarr" {
   type = "container"
 
   target   = var.target
-  profiles = ["default", "mesh"]
+  profiles = ["default"]
   image    = "ghcr:recyclarr/recyclarr:${var.versions.recyclarr}"
 
   device {
@@ -32,6 +32,17 @@ resource "incus_instance" "recyclarr" {
       path   = "/config"
       pool   = incus_storage_volume.recyclarr_data.pool
       source = incus_storage_volume.recyclarr_data.name
+    }
+  }
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
+      name           = "eth1"
+      network        = "meshbr0"
+      "ipv4.gateway" = "none"
+      hwaddr         = "10:66:6a:36:21:56"
     }
   }
 

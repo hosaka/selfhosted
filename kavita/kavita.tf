@@ -16,7 +16,7 @@ resource "incus_instance" "kavita" {
   type = "container"
 
   target   = var.target
-  profiles = ["default", "mesh"]
+  profiles = ["default"]
   image    = "ghcr:kareadita/kavita:${var.versions.kavita}"
 
   device {
@@ -37,6 +37,17 @@ resource "incus_instance" "kavita" {
       pool     = var.media_pool
       source   = "${var.media_source}/collection/books"
       readonly = "true"
+    }
+  }
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
+      name           = "eth1"
+      network        = "meshbr0"
+      "ipv4.gateway" = "none"
+      hwaddr         = "10:66:6a:0e:79:c2"
     }
   }
 

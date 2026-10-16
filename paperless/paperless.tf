@@ -31,7 +31,7 @@ resource "incus_instance" "paperless" {
   type = "container"
 
   target   = var.target
-  profiles = ["default", "mesh"]
+  profiles = ["default"]
   image    = "ghcr:paperless-ngx/paperless-ngx:${var.versions.paperless}"
 
   device {
@@ -51,6 +51,17 @@ resource "incus_instance" "paperless" {
       path   = "/usr/src/paperless/media"
       pool   = incus_storage_volume.paperless_media.pool
       source = incus_storage_volume.paperless_media.name
+    }
+  }
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
+      name           = "eth1"
+      network        = "meshbr0"
+      "ipv4.gateway" = "none"
+      hwaddr         = "10:66:6a:9f:e1:84"
     }
   }
 
@@ -136,6 +147,7 @@ resource "incus_instance" "paperless_database" {
     type = "nic"
     properties = {
       network = "incusbr0"
+      hwaddr  = "10:66:6a:14:b9:93"
     }
   }
 
@@ -187,6 +199,7 @@ resource "incus_instance" "paperless_valkey" {
     type = "nic"
     properties = {
       network = "incusbr0"
+      hwaddr  = "10:66:6a:74:96:4b"
     }
   }
 

@@ -61,7 +61,7 @@ resource "incus_instance" "opencloud" {
   type = "container"
 
   target   = var.target
-  profiles = ["default", "mesh"]
+  profiles = ["default"]
   image    = "docker:opencloudeu/opencloud-rolling:${var.versions.opencloud}"
 
   device {
@@ -81,6 +81,17 @@ resource "incus_instance" "opencloud" {
       path   = local.opencloud_files_path
       pool   = var.storage_pool
       source = var.storage_source
+    }
+  }
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
+      name           = "eth1"
+      network        = "meshbr0"
+      "ipv4.gateway" = "none"
+      hwaddr         = "10:66:6a:66:55:4a"
     }
   }
 

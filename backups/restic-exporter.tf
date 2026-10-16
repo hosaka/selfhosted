@@ -10,7 +10,7 @@ resource "incus_instance" "restic_exporter_nas" {
   type = "container"
 
   target   = var.target
-  profiles = ["default", "mesh"]
+  profiles = ["default"]
   image    = "docker:ngosang/restic-exporter:${var.versions.restic_exporter}"
 
   # the exporter does not write to the repository
@@ -22,6 +22,17 @@ resource "incus_instance" "restic_exporter_nas" {
       pool     = incus_storage_volume.restic.pool
       source   = incus_storage_volume.restic.name
       readonly = "true"
+    }
+  }
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
+      name           = "eth1"
+      network        = "meshbr0"
+      "ipv4.gateway" = "none"
+      hwaddr         = "10:66:6a:e8:a1:2f"
     }
   }
 
@@ -46,8 +57,19 @@ resource "incus_instance" "restic_exporter_s3" {
   type = "container"
 
   target   = var.target
-  profiles = ["default", "mesh"]
+  profiles = ["default"]
   image    = "docker:ngosang/restic-exporter:${var.versions.restic_exporter}"
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
+      name           = "eth1"
+      network        = "meshbr0"
+      "ipv4.gateway" = "none"
+      hwaddr         = "10:66:6a:97:c6:a8"
+    }
+  }
 
   wait_for {
     type = "ipv4"

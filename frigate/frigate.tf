@@ -16,7 +16,7 @@ resource "incus_instance" "frigate" {
   type = "container"
 
   target   = var.target
-  profiles = ["default", "mesh"]
+  profiles = ["default"]
   image    = "ghcr:blakeblackshear/frigate:${var.versions.frigate}"
 
   device {
@@ -64,6 +64,17 @@ resource "incus_instance" "frigate" {
     properties = {
       source = "/dev/apex_1"
       path   = "/dev/apex_1"
+    }
+  }
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
+      name           = "eth1"
+      network        = "meshbr0"
+      "ipv4.gateway" = "none"
+      hwaddr         = "02:a6:25:c8:93:13"
     }
   }
 

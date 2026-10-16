@@ -15,8 +15,19 @@ resource "incus_instance" "forgejo_anubis" {
   type = "container"
 
   target   = var.target
-  profiles = ["default", "mesh"]
+  profiles = ["default"]
   image    = "ghcr:techarohq/anubis:v${var.versions.anubis}"
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
+      name           = "eth1"
+      network        = "meshbr0"
+      "ipv4.gateway" = "none"
+      hwaddr         = "10:66:6a:1b:e3:3d"
+    }
+  }
 
   file {
     content            = file("${path.module}/anubis.yml")
@@ -54,7 +65,7 @@ resource "incus_instance" "forgejo" {
   type = "container"
 
   target   = var.target
-  profiles = ["default", "mesh"]
+  profiles = ["default"]
   image    = "codeberg:forgejo/forgejo:${var.versions.forgejo}-rootless"
 
   device {
@@ -64,6 +75,17 @@ resource "incus_instance" "forgejo" {
       path   = "/var/lib/gitea"
       pool   = incus_storage_volume.forgejo_data.pool
       source = incus_storage_volume.forgejo_data.name
+    }
+  }
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
+      name           = "eth1"
+      network        = "meshbr0"
+      "ipv4.gateway" = "none"
+      hwaddr         = "10:66:6a:3b:e5:1e"
     }
   }
 
@@ -171,6 +193,7 @@ resource "incus_instance" "forgejo_database" {
     type = "nic"
     properties = {
       network = "incusbr0"
+      hwaddr  = "10:66:6a:35:22:69"
     }
   }
 

@@ -19,7 +19,7 @@ resource "incus_instance" "sabnzbd" {
   type = "container"
 
   target   = var.target
-  profiles = ["default", "mesh"]
+  profiles = ["default"]
   image    = "ghcr:hotio/sabnzbd:release-${var.versions.sabnzbd}"
 
   device {
@@ -39,6 +39,17 @@ resource "incus_instance" "sabnzbd" {
       path   = "/data/media"
       pool   = var.media_pool
       source = var.media_source
+    }
+  }
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
+      name           = "eth1"
+      network        = "meshbr0"
+      "ipv4.gateway" = "none"
+      hwaddr         = "10:66:6a:fb:50:7e"
     }
   }
 

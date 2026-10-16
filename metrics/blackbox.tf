@@ -15,6 +15,15 @@ resource "incus_instance" "blackbox" {
   profiles = ["default"]
   image    = "docker:prom/blackbox-exporter:v${var.versions.blackbox_exporter}"
 
+  device {
+    name = "eth0"
+    type = "nic"
+    properties = {
+      network = "incusbr0"
+      hwaddr  = "10:66:6a:18:91:d9"
+    }
+  }
+
   file {
     content            = local.blackbox_config
     target_path        = "/etc/blackbox_exporter/config.yml"

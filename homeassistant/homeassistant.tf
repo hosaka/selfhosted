@@ -17,7 +17,7 @@ resource "incus_instance" "homeassistant" {
   type = "container"
 
   target   = var.target
-  profiles = ["default", "mesh"]
+  profiles = ["default"]
   image    = "ghcr:home-assistant/home-assistant:${var.versions.homeassistant}"
 
   device {
@@ -31,6 +31,17 @@ resource "incus_instance" "homeassistant" {
   }
 
   # todo: if the service relies on mDNS or device discovery, it probably needs a NIC on lan
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
+      name           = "eth1"
+      network        = "meshbr0"
+      "ipv4.gateway" = "none"
+      hwaddr         = "02:4c:75:78:f0:14"
+    }
+  }
 
   wait_for {
     type = "ipv4"

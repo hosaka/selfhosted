@@ -10,8 +10,19 @@ resource "incus_instance" "searxng" {
   type = "container"
 
   target   = var.target
-  profiles = ["default", "mesh"]
+  profiles = ["default"]
   image    = "ghcr:searxng/searxng:${var.versions.searxng}"
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
+      name           = "eth1"
+      network        = "meshbr0"
+      "ipv4.gateway" = "none"
+      hwaddr         = "10:66:6a:95:f4:6f"
+    }
+  }
 
   file {
     content            = file("${path.module}/settings.yml")
@@ -77,6 +88,7 @@ resource "incus_instance" "searxng_valkey" {
     type = "nic"
     properties = {
       network = "incusbr0"
+      hwaddr  = "10:66:6a:87:93:b6"
     }
   }
 

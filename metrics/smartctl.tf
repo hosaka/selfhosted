@@ -3,6 +3,13 @@ locals {
     metrics = 9633
   }
 
+  smartctl_hwaddrs = {
+    "node-1" = "10:66:6a:9c:6b:4e"
+    "node-2" = "10:66:6a:2c:22:e1"
+    "node-3" = "10:66:6a:b1:18:30"
+    "node-4" = "10:66:6a:7e:ad:ae"
+  }
+
   smartctl_targets = {
     for name, instance in incus_instance.smartctl_exporter :
     name => "${instance.ipv4_address}:${local.smartctl_ports.metrics}"
@@ -19,7 +26,7 @@ resource "incus_instance" "smartctl_exporter" {
   type = "container"
 
   target   = each.key
-  profiles = ["default", "mesh"]
+  profiles = ["default"]
   image    = "docker:prometheuscommunity/smartctl-exporter:v${var.versions.smartctl_exporter}"
 
   dynamic "device" {
@@ -32,6 +39,17 @@ resource "incus_instance" "smartctl_exporter" {
         source = device.value
         path   = device.value
       }
+    }
+  }
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
+      name           = "eth1"
+      network        = "meshbr0"
+      "ipv4.gateway" = "none"
+      hwaddr         = local.smartctl_hwaddrs[each.key]
     }
   }
 

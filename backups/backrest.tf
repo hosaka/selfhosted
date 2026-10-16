@@ -254,8 +254,19 @@ resource "incus_instance" "backrest" {
   type = "container"
 
   target   = var.target
-  profiles = ["default", "mesh"]
+  profiles = ["default"]
   image    = "ghcr:garethgeorge/backrest:v${var.versions.backrest}"
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
+      name           = "eth1"
+      network        = "meshbr0"
+      "ipv4.gateway" = "none"
+      hwaddr         = "10:66:6a:05:47:c1"
+    }
+  }
 
   file {
     content            = local.start_script

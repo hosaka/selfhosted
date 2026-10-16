@@ -57,7 +57,7 @@ resource "incus_instance" "voidrepo" {
   type = "container"
 
   target   = var.target
-  profiles = ["default", "mesh"]
+  profiles = ["default"]
   image    = "docker:caddy:${var.versions.caddy}-alpine"
 
   device {
@@ -68,6 +68,17 @@ resource "incus_instance" "voidrepo" {
       pool     = var.storage_pool
       source   = var.storage_source
       readonly = "true"
+    }
+  }
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
+      name           = "eth1"
+      network        = "meshbr0"
+      "ipv4.gateway" = "none"
+      hwaddr         = "10:66:6a:90:ac:b2"
     }
   }
 

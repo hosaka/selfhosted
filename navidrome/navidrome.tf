@@ -16,7 +16,7 @@ resource "incus_instance" "navidrome" {
   type = "container"
 
   target   = var.target
-  profiles = ["default", "mesh"]
+  profiles = ["default"]
   image    = "ghcr:navidrome/navidrome:${var.versions.navidrome}"
 
   device {
@@ -37,6 +37,17 @@ resource "incus_instance" "navidrome" {
       pool     = var.media_pool
       source   = "${var.media_source}/collection/music"
       readonly = "true"
+    }
+  }
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
+      name           = "eth1"
+      network        = "meshbr0"
+      "ipv4.gateway" = "none"
+      hwaddr         = "10:66:6a:6d:71:5b"
     }
   }
 

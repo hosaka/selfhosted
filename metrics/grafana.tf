@@ -32,8 +32,19 @@ resource "incus_instance" "grafana" {
   type = "container"
 
   target   = var.target
-  profiles = ["default", "mesh"]
+  profiles = ["default"]
   image    = "docker:grafana/grafana:${var.versions.grafana}"
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
+      name           = "eth1"
+      network        = "meshbr0"
+      "ipv4.gateway" = "none"
+      hwaddr         = "10:66:6a:80:26:9c"
+    }
+  }
 
   file {
     content            = local.grafana_datasources

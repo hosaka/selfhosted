@@ -4,6 +4,13 @@ locals {
     syslog = 1514
   }
 
+  alloy_hwaddrs = {
+    "node-1" = "10:66:6a:7d:c3:b0"
+    "node-2" = "10:66:6a:16:ee:a9"
+    "node-3" = "10:66:6a:04:a8:c4"
+    "node-4" = "10:66:6a:fc:35:7e"
+  }
+
   alloy_configs = {
     for node in var.log_collectors :
     node => templatefile("${path.module}/alloy.alloy.tpl", {
@@ -23,7 +30,7 @@ resource "incus_instance" "alloy" {
   type = "container"
 
   target   = each.key
-  profiles = ["default", "mesh"]
+  profiles = ["default"]
   image    = "docker:grafana/alloy:v${var.versions.alloy}"
 
   device {
@@ -34,6 +41,17 @@ resource "incus_instance" "alloy" {
       pool     = "local"
       source   = "logs"
       readonly = "true"
+    }
+  }
+
+  device {
+    name = "eth1"
+    type = "nic"
+    properties = {
+      name           = "eth1"
+      network        = "meshbr0"
+      "ipv4.gateway" = "none"
+      hwaddr         = local.alloy_hwaddrs[each.key]
     }
   }
 
