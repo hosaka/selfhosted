@@ -24,6 +24,9 @@ versions = {
   frigate = {
     frigate = "0.17.2"
   }
+  home = {
+    glance = "0.8.7"
+  }
   homeassistant = {
     homeassistant = "2026.7.4"
     mosquitto     = "2.0.22"

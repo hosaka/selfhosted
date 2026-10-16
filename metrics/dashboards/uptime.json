@@ -113,11 +113,11 @@
               },
               {
                 "color": "orange",
-                "value": 0.99
+                "value": 0.9
               },
               {
                 "color": "green",
-                "value": 0.999
+                "value": 0.95
               }
             ]
           }
@@ -725,11 +725,11 @@
                     },
                     {
                       "color": "orange",
-                      "value": 0.99
+                      "value": 0.9
                     },
                     {
                       "color": "green",
-                      "value": 0.999
+                      "value": 0.95
                     }
                   ]
                 }

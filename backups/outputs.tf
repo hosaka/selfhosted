@@ -22,3 +22,8 @@ output "restic_exporter_addresses" {
     s3  = "${incus_instance.restic_exporter_s3.ipv4_address}:${local.restic_exporter_ports.metrics}"
   }
 }
+
+output "schedules" {
+  description = "Cron schedule of each repository's backup plans"
+  value       = { for name, repo in local.repos : name => repo.schedule }
+}

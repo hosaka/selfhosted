@@ -47,6 +47,7 @@ module "ingress" {
     module.atuin.ingress,
     module.backups.ingress,
     module.forgejo.ingress,
+    module.home.ingress,
     # module.homeassistant.ingress,
     module.immich.ingress,
     module.jellyfin.ingress,
@@ -164,6 +165,29 @@ module "forgejo" {
   depends_on      = [null_resource.post_server, module.linstor]
 }
 
+module "home" {
+  source         = "./home"
+  versions       = var.versions.home
+  target         = var.cluster.node-3.target
+  public_domain  = var.public_domain
+  private_domain = var.private_domain
+  timezone       = var.timezone
+
+  # every service is optional
+  services = {
+    prometheus = { address = module.metrics.prometheus_address }
+    sonarr     = { address = module.servarr.api_addresses.sonarr, api_key = var.secrets.servarr.sonarr_api_key }
+    radarr     = { address = module.servarr.api_addresses.radarr, api_key = var.secrets.servarr.radarr_api_key }
+    lidarr     = { address = module.servarr.api_addresses.lidarr, api_key = var.secrets.servarr.lidarr_api_key }
+    prowlarr   = { address = module.servarr.api_addresses.prowlarr, api_key = var.secrets.servarr.prowlarr_api_key }
+  }
+
+  forward_auth = module.auth.authelia_address
+  storage      = { sources = [for m, source in local.nas_sources : m if source == "nas/incus"] }
+  backups      = { repository = "s3", schedule = module.backups.schedules.s3 }
+  depends_on   = [null_resource.post_server]
+}
+
 # module "homeassistant" {
 #   source         = "./homeassistant"
 #   versions       = var.versions.homeassistant
@@ -260,6 +284,7 @@ module "metrics" {
     atuin       = module.atuin.probes
     backups     = module.backups.probes
     forgejo     = module.forgejo.probes
+    home        = module.home.probes
     immich      = module.immich.probes
     jellyfin    = module.jellyfin.probes
     kavita      = module.kavita.probes

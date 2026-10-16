@@ -1,0 +1,65 @@
+/* Two equal columns for the stat widgets, so values line up from one widget to the next */
+.stats-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  text-align: center;
+}
+
+/* Glance has no warning color, this is Tokyo Night's yellow (and its day variant) */
+.stats-warn {
+  color: #e0af68;
+}
+
+:root[data-scheme="light"] .stats-warn {
+  color: #8c6c3e;
+}
+
+/* Glance always adds its own default-dark and default-light presets to the picker, with no setting to turn
+   them off. Hide them so the choices are the Tokyo Night pair: "default" (dark) and tokyo-night-light. */
+.theme-choices .theme-preset[data-key="default-dark"],
+.theme-choices .theme-preset[data-key="default-light"] {
+  display: none;
+}
+
+/* Glance switches the picker to three columns once it has a third child, hidden ones count too. Same selector,
+   loaded after Glance's styles, so this wins. */
+.theme-choices:has(> :nth-child(3)) {
+  --presets-per-row: 2;
+}
+
+/* Rows of an app's name followed by its values (Media), in columns that line up from row to row */
+.app-row {
+  display: grid;
+  grid-template-columns: 6rem repeat(2, 1fr);
+  align-items: center;
+  text-align: center;
+}
+
+/* rows come and go with their services, so the spacing between them can't sit on a fixed one */
+.app-row + .app-row {
+  margin-top: 1.5rem;
+}
+
+.app-row > .app-name {
+  text-align: left;
+  font-size: var(--font-size-h5);
+  color: var(--color-text-highlight);
+}
+
+/* each value cell is the value with its label under it */
+.app-row > div > :first-child {
+  font-size: var(--font-size-h4);
+}
+
+/* :where() leaves no specificity, so a color-positive or color-negative on the value wins */
+:where(.app-row > div > :first-child) {
+  color: var(--color-text-highlight);
+}
+
+.app-row > div > :last-child {
+  font-size: var(--font-size-h6);
+}
+
+.app-row > .span-2 {
+  grid-column: span 2;
+}

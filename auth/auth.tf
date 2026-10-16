@@ -281,6 +281,11 @@ output "ingress" {
   }
 }
 
+output "authelia_address" {
+  description = "Authelia's API endpoint, only reachable inside the cluster"
+  value       = "${incus_instance.authelia.ipv4_address}:${local.authelia_ports.api}"
+}
+
 output "authelia_metrics_address" {
   description = "Authelia's prometheus metrics endpoint, only reachable inside the cluster"
   value       = "${incus_instance.authelia.ipv4_address}:${local.authelia_ports.metrics}"
