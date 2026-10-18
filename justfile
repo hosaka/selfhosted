@@ -200,6 +200,49 @@ stop instance: (onpath 'incus')
 restart instance: (onpath 'incus')
     incus restart {{ instance }}
 
+[doc('delete cached images no instance was created from, Incus would expire them after 10 days')]
+prune: (onpath 'incus') (onpath 'jq')
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    # projects without their own images use the default project's
+    declare -A image_project
+    while IFS=$'\t' read -r project own; do
+      if [ "$own" = "true" ]; then image_project[$project]=$project; else image_project[$project]=default; fi
+    done < <(incus project list -f json | jq -r '.[] | [.name, .config["features.images"] // "false"] | @tsv')
+
+    declare -A used
+    while IFS=, read -r project fingerprint; do
+      if [ -n "$fingerprint" ]; then used["${image_project[$project]}/$fingerprint"]=1; fi
+    done < <(incus list --all-projects -f csv -c e,config:volatile.base_image)
+
+    # only images cached from a remote, imported and published ones never expire and stay
+    prune=()
+    total=0
+    while IFS=$'\t' read -r project fingerprint size last_used source; do
+      if [ -n "${used[$project/$fingerprint]:-}" ]; then continue; fi
+      prune+=("$project $fingerprint")
+      total=$((total + size))
+      printf '%-9s %.12s %5s MiB  last used %s  %s\n' "$project" "$fingerprint" $((size / 1048576)) "$last_used" "$source"
+    done < <(for project in $(printf '%s\n' "${image_project[@]}" | sort -u); do
+      incus image list --project "$project" -f json | jq -r --arg project "$project" \
+        '.[] | select(.cached) | [$project, .fingerprint, .size, .last_used_at[0:10], .update_source.alias // ""] | @tsv'
+    done | sort -t $'\t' -k5,5)
+
+    if [ ${#prune[@]} -eq 0 ]; then
+      echo "no unused images"
+      exit 0
+    fi
+
+    read -rp "delete these ${#prune[@]} images ($((total / 1048576)) MiB)? [y/N] " ok
+    [ "$ok" = "y" ] || exit 1
+
+    for entry in "${prune[@]}"; do
+      read -r project fingerprint <<<"$entry"
+      incus image delete --project "$project" "$fingerprint"
+    done
+    echo "deleted ${#prune[@]} images"
+
 [arg('volume', help='Volume to restore, e.g. gotify-data')]
 [arg('snapshot', help='Snapshot ID from the Backrest UI, or latest')]
 [doc('restore a volume in place from the nas repo, replacing its contents (destructive)')]
