@@ -38,7 +38,7 @@ images format='img':
 image node format='img': _flasher-tool (onpath 'tar')
     tar --directory=incus/ -cvf seed-{{ node }}.tar \
       applications.yml incus.yml update.yml \
-      --directory={{ node }}/ install.yml network.yml
+      --directory={{ node }}/ install.yml network.yml services.yml
     flasher-tool --channel=stable --format={{ format }} --seed=seed-{{ node }}.tar
     mv IncusOS_*.{{ format }} incus-os-{{ node }}.{{ format }}
     rm seed-{{ node }}.tar
@@ -265,6 +265,40 @@ _decrypt-auth:
 
 [private]
 _decrypt-all: _decrypt-secrets _decrypt-keys _decrypt-recovery _decrypt-auth
+
+[arg('name', help='Instance name the line starts with')]
+[arg('kind', pattern='address', help='What to generate')]
+[doc('generate a free OVN address and an unused MAC for addresses.auto.tfvars')]
+new kind name='service': (onpath 'tofu') (onpath 'openssl') (onpath 'git')
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    # the lowest free address in the static range: from .10 up to where the DHCP range starts
+    ipv4=$(tofu console -lock=false <<'EOF' | tr -d '"'
+    try([
+      for i in range(
+        10,
+        index(
+          [for j in range(pow(2, 32 - tonumber(split("/", var.ovn.subnet)[1]))) : cidrhost(var.ovn.subnet, j)],
+          split("-", var.ovn.dhcp_range)[0],
+        ),
+      ) : cidrhost(var.ovn.subnet, i)
+      if !contains(flatten([for m in values(var.addresses) : values(m)[*].ipv4]), cidrhost(var.ovn.subnet, i))
+    ][0], "")
+    EOF
+    )
+    if [ -z "$ipv4" ]; then
+      echo "no free address left in the static range" >&2
+      exit 1
+    fi
+
+    # a random locally administered MAC, rolled again if any file in the repo already has it
+    while
+      hwaddr="02:$(openssl rand -hex 5 | sed 's/../&:/g; s/:$//')"
+      git grep -qiF --untracked "$hwaddr"
+    do :; done
+
+    printf '%s = { hwaddr = "%s", ipv4 = "%s" }\n' {{ quote(name) }} "$hwaddr" "$ipv4"
 
 [doc('generate random OIDC client id (assumes authelia instance is runnig)')]
 genid: (onpath 'incus')

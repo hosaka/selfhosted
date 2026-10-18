@@ -1,8 +1,8 @@
 locals {
   recyclarr_config = templatefile("${path.module}/recyclarr.yml.tpl", {
-    radarr_url     = "http://${incus_instance.radarr.ipv4_address}:${local.radarr_ports.webui}"
+    radarr_url     = "http://${var.addresses.radarr.ipv4}:${local.radarr_ports.webui}"
     radarr_api_key = sensitive(var.secrets.radarr_api_key)
-    sonarr_url     = "http://${incus_instance.sonarr.ipv4_address}:${local.sonarr_ports.webui}"
+    sonarr_url     = "http://${var.addresses.sonarr.ipv4}:${local.sonarr_ports.webui}"
     sonarr_api_key = sensitive(var.secrets.sonarr_api_key)
   })
 }
@@ -22,7 +22,7 @@ resource "incus_instance" "recyclarr" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci"]
   image    = "ghcr:recyclarr/recyclarr:${var.versions.recyclarr}"
 
   device {
@@ -36,14 +36,9 @@ resource "incus_instance" "recyclarr" {
   }
 
   device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      name           = "eth1"
-      network        = "meshbr0"
-      "ipv4.gateway" = "none"
-      hwaddr         = "10:66:6a:36:21:56"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.recyclarr.nic
   }
 
   file {
@@ -62,7 +57,7 @@ resource "incus_instance" "recyclarr" {
   config = {
     # files are pushed after the instance starts, wait for the config before running the cron
     "oci.entrypoint" = "/sbin/tini -- /bin/sh -c 'while [ ! -f /config/recyclarr.yml ]; do sleep 1; done; exec /entrypoint.sh'"
-
-    "user.access_interface" = "eth1"
   }
+
+  depends_on = [incus_instance.radarr, incus_instance.sonarr]
 }

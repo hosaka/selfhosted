@@ -1,6 +1,8 @@
 dns:
   domain: hosaka.cc
   hostname: node-4
+  nameservers:
+    - 10.10.0.1
 time:
   timezone: Asia/Tokyo
 interfaces:
@@ -8,8 +10,11 @@ interfaces:
   - name: uplink
     hwaddr: d8:5e:d3:fc:77:70
     addresses:
-      - dhcp4
+      - 10.10.0.104/24
       - slaac
+    routes:
+      - to: 0.0.0.0/0
+        via: 10.10.0.1
     roles:
       - management
       - cluster

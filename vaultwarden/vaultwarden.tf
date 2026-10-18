@@ -16,7 +16,7 @@ resource "incus_instance" "vaultwarden" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci"]
   image    = "ghcr:dani-garcia/vaultwarden:${var.versions.vaultwarden}-alpine"
 
   device {
@@ -30,14 +30,9 @@ resource "incus_instance" "vaultwarden" {
   }
 
   device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      name           = "eth1"
-      network        = "meshbr0"
-      "ipv4.gateway" = "none"
-      hwaddr         = "10:66:6a:f1:38:84"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.vaultwarden.nic
   }
 
   wait_for {
@@ -71,8 +66,6 @@ resource "incus_instance" "vaultwarden" {
     "environment.YUBICO_CLIENT_ID"  = var.secrets.yubico_client_id
     "environment.YUBICO_SECRET_KEY" = sensitive(var.secrets.yubico_secret_key)
     "environment.TZ"                = var.timezone
-
-    "user.access_interface" = "eth1"
   }
 }
 
@@ -117,7 +110,7 @@ output "ingress" {
 				respond @admin "401 - {remote_host} is not an allowed IP" 401
 
 				# proxy everything to Rocket
-				reverse_proxy ${incus_instance.vaultwarden.ipv4_address}:${local.vaultwarden_ports.webui} {
+				reverse_proxy ${var.addresses.vaultwarden.ipv4}:${local.vaultwarden_ports.webui} {
 					# send the true remote IP to Rocket, so fail2ban can ban collect IPs from the log
 					header_up X-Real-IP {remote_host}
 				}

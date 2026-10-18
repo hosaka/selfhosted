@@ -10,18 +10,13 @@ resource "incus_instance" "searxng" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci"]
   image    = "ghcr:searxng/searxng:${var.versions.searxng}"
 
   device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      name           = "eth1"
-      network        = "meshbr0"
-      "ipv4.gateway" = "none"
-      hwaddr         = "10:66:6a:95:f4:6f"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.searxng.nic
   }
 
   file {
@@ -47,10 +42,10 @@ resource "incus_instance" "searxng" {
   config = {
     "environment.SEARXNG_SECRET"     = sensitive(var.secrets.secret)
     "environment.SEARXNG_BASE_URL"   = "https://search.${var.public_domain}"
-    "environment.SEARXNG_VALKEY_URL" = "valkey://${incus_instance.searxng_valkey.ipv4_address}:${local.searxng_ports.valkey}/0"
-
-    "user.access_interface" = "eth1"
+    "environment.SEARXNG_VALKEY_URL" = "valkey://${var.addresses.searxng_valkey.ipv4}:${local.searxng_ports.valkey}/0"
   }
+
+  depends_on = [incus_instance.searxng_valkey]
 }
 
 resource "incus_storage_volume" "searxng_cache" {
@@ -70,7 +65,7 @@ resource "incus_instance" "searxng_valkey" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci", "datastore"]
   image    = "docker:valkey/valkey:${var.versions.cache}"
 
   device {
@@ -84,12 +79,9 @@ resource "incus_instance" "searxng_valkey" {
   }
 
   device {
-    name = "eth0"
-    type = "nic"
-    properties = {
-      network = "incusbr0"
-      hwaddr  = "10:66:6a:87:93:b6"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.searxng_valkey.nic
   }
 
   wait_for {
@@ -99,8 +91,6 @@ resource "incus_instance" "searxng_valkey" {
   config = {
     # snapshot to disk every 30s if at least one key changed, as in searxng's own compose
     "oci.entrypoint" = "tini -- docker-entrypoint.sh valkey-server --save 30 1 --loglevel warning"
-
-    "user.access_interface" = "eth0"
   }
 }
 
@@ -190,7 +180,7 @@ output "ingress" {
 
 				handle {
 					encode zstd gzip
-					reverse_proxy ${incus_instance.searxng.ipv4_address}:${local.searxng_ports.webui} {
+					reverse_proxy ${var.addresses.searxng.ipv4}:${local.searxng_ports.webui} {
 						header_up X-Forwarded-Port {http.request.port}
 						header_up X-Forwarded-Proto {http.request.scheme}
 						header_up X-Real-IP {remote_host}

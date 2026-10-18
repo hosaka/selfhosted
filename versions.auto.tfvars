@@ -64,6 +64,9 @@ versions = {
   opencloud = {
     opencloud = "8.1.0"
   }
+  ovn = {
+    ovn = "26.09"
+  }
   paperless = {
     paperless = "3.3.2"
     db        = "18-alpine"

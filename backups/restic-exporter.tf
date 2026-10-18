@@ -10,7 +10,7 @@ resource "incus_instance" "restic_exporter_nas" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci"]
   image    = "docker:ngosang/restic-exporter:${var.versions.restic_exporter}"
 
   # the exporter does not write to the repository
@@ -26,14 +26,9 @@ resource "incus_instance" "restic_exporter_nas" {
   }
 
   device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      name           = "eth1"
-      network        = "meshbr0"
-      "ipv4.gateway" = "none"
-      hwaddr         = "10:66:6a:e8:a1:2f"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.restic_exporter_nas.nic
   }
 
   wait_for {
@@ -47,8 +42,6 @@ resource "incus_instance" "restic_exporter_nas" {
 
     # backrest already checks the repository weekly
     "environment.NO_CHECK" = "true"
-
-    "user.access_interface" = "eth1"
   }
 }
 
@@ -57,18 +50,13 @@ resource "incus_instance" "restic_exporter_s3" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci"]
   image    = "docker:ngosang/restic-exporter:${var.versions.restic_exporter}"
 
   device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      name           = "eth1"
-      network        = "meshbr0"
-      "ipv4.gateway" = "none"
-      hwaddr         = "10:66:6a:97:c6:a8"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.restic_exporter_s3.nic
   }
 
   wait_for {
@@ -84,7 +72,5 @@ resource "incus_instance" "restic_exporter_s3" {
 
     # backrest already checks the repository monthly, and a full check would download the data
     "environment.NO_CHECK" = "true"
-
-    "user.access_interface" = "eth1"
   }
 }

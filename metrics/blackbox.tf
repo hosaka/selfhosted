@@ -12,16 +12,13 @@ resource "incus_instance" "blackbox" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci"]
   image    = "docker:prom/blackbox-exporter:v${var.versions.blackbox_exporter}"
 
   device {
-    name = "eth0"
-    type = "nic"
-    properties = {
-      network = "incusbr0"
-      hwaddr  = "10:66:6a:18:91:d9"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.blackbox.nic
   }
 
   file {
@@ -37,8 +34,6 @@ resource "incus_instance" "blackbox" {
 
   config = {
     "oci.entrypoint" = "/bin/sh -c 'while [ ! -f /etc/blackbox_exporter/config.yml ]; do sleep 1; done; exec /bin/blackbox_exporter --config.file=/etc/blackbox_exporter/config.yml --web.listen-address=:${local.blackbox_ports.api}'"
-
-    "user.access_interface" = "eth0"
   }
 }
 

@@ -33,7 +33,7 @@ resource "incus_instance" "snikket_server" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci"]
   image    = "docker:snikket/snikket-server:${var.versions.snikket}"
 
   device {
@@ -47,14 +47,9 @@ resource "incus_instance" "snikket_server" {
   }
 
   device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      name           = "eth1"
-      network        = "meshbr0"
-      "ipv4.gateway" = "none"
-      hwaddr         = "10:66:6a:91:b6:cf"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.snikket_server.nic
   }
 
   wait_for {
@@ -76,8 +71,6 @@ resource "incus_instance" "snikket_server" {
     # increases security and speed, but a lot of clients do not have SASL2 support
     # "environment.SNIKKET_TWEAK_REQUIRE_SASL2" = "1"
     "environment.SNIKKET_UPDATE_CHECK" = "0"
-
-    "user.access_interface" = "eth1"
   }
 }
 
@@ -99,14 +92,6 @@ resource "incus_instance" "snikket_server" {
 #     }
 #   }
 #
-#   device {
-#     name = "eth0"
-#     type = "nic"
-#     properties = {
-#       network = "incusbr0"
-#     }
-#   }
-#
 #   wait_for {
 #     type = "ipv4"
 #   }
@@ -122,16 +107,13 @@ resource "incus_instance" "snikket_web" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci"]
   image    = "docker:snikket/snikket-web-portal:${var.versions.snikket}"
 
   device {
-    name = "eth0"
-    type = "nic"
-    properties = {
-      network = "meshbr0"
-      hwaddr  = "10:66:6a:aa:76:d6"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.snikket_web.nic
   }
 
   wait_for {
@@ -144,10 +126,10 @@ resource "incus_instance" "snikket_web" {
     "environment.SNIKKET_TWEAK_PORTAL_INTERNAL_HTTP_INTERFACE" = "0.0.0.0"
     "environment.SNIKKET_TWEAK_PORTAL_INTERNAL_HTTP_PORT"      = "${local.snikket_ports.webui}"
     # should point to the same port as SNIKKET_TWEAK_INTERNAL_HTTP_PORT
-    "environment.SNIKKET_WEB_PROSODY_ENDPOINT" = "http://${incus_instance.snikket_server.ipv4_address}:${local.snikket_ports.api}"
-
-    "user.access_interface" = "eth0"
+    "environment.SNIKKET_WEB_PROSODY_ENDPOINT" = "http://${var.addresses.snikket_server.ipv4}:${local.snikket_ports.api}"
   }
+
+  depends_on = [incus_instance.snikket_server]
 }
 
 output "probes" {
@@ -176,12 +158,12 @@ output "ingress" {
 				# Prosody endpoints on the chat and share*/upload domain
 				@prosody path /upload* /admin_api* /invites_api* /invites_bootstrap* /http-bind* /xmpp-websocket* /.well-known/host-meta /.well-known/host-meta.json
 				handle @prosody {
-					reverse_proxy ${incus_instance.snikket_server.ipv4_address}:${local.snikket_ports.api}
+					reverse_proxy ${var.addresses.snikket_server.ipv4}:${local.snikket_ports.api}
 				}
 
 				# everything else goes to web portal
 				handle {
-					reverse_proxy ${incus_instance.snikket_web.ipv4_address}:${local.snikket_ports.webui}
+					reverse_proxy ${var.addresses.snikket_web.ipv4}:${local.snikket_ports.webui}
 				}
 			}
     EOT
@@ -189,77 +171,77 @@ output "ingress" {
     [[proxies]]
     name = "snikket-xmpp-c2s"
     type = "tcp"
-    localIP = "${incus_instance.snikket_server.ipv4_address}"
+    localIP = "${var.addresses.snikket_server.ipv4}"
     localPort = ${local.snikket_ports.c2s}
     remotePort = ${local.snikket_ports.c2s}
 
     [[proxies]]
     name = "snikket-xmpp-s2s"
     type = "tcp"
-    localIP = "${incus_instance.snikket_server.ipv4_address}"
+    localIP = "${var.addresses.snikket_server.ipv4}"
     localPort = ${local.snikket_ports.s2s}
     remotePort = ${local.snikket_ports.s2s}
 
     [[proxies]]
     name = "snikket-proxy65"
     type = "tcp"
-    localIP = "${incus_instance.snikket_server.ipv4_address}"
+    localIP = "${var.addresses.snikket_server.ipv4}"
     localPort = ${local.snikket_ports.proxy65}
     remotePort = ${local.snikket_ports.proxy65}
 
     [[proxies]]
     name = "snikket-stun-tcp"
     type = "tcp"
-    localIP = "${incus_instance.snikket_server.ipv4_address}"
+    localIP = "${var.addresses.snikket_server.ipv4}"
     localPort = 3478
     remotePort = 3478
 
     [[proxies]]
     name = "snikket-stun-udp"
     type = "udp"
-    localIP = "${incus_instance.snikket_server.ipv4_address}"
+    localIP = "${var.addresses.snikket_server.ipv4}"
     localPort = 3478
     remotePort = 3478
 
     [[proxies]]
     name = "snikket-turn-tcp"
     type = "tcp"
-    localIP = "${incus_instance.snikket_server.ipv4_address}"
+    localIP = "${var.addresses.snikket_server.ipv4}"
     localPort = 3479
     remotePort = 3479
 
     [[proxies]]
     name = "snikket-turn-udp"
     type = "udp"
-    localIP = "${incus_instance.snikket_server.ipv4_address}"
+    localIP = "${var.addresses.snikket_server.ipv4}"
     localPort = 3479
     remotePort = 3479
 
     [[proxies]]
     name = "snikket-stuns-tcp"
     type = "tcp"
-    localIP = "${incus_instance.snikket_server.ipv4_address}"
+    localIP = "${var.addresses.snikket_server.ipv4}"
     localPort = 5349
     remotePort = 5349
 
     [[proxies]]
     name = "snikket-stuns-udp"
     type = "udp"
-    localIP = "${incus_instance.snikket_server.ipv4_address}"
+    localIP = "${var.addresses.snikket_server.ipv4}"
     localPort = 5349
     remotePort = 5349
 
     [[proxies]]
     name = "snikket-turns-tcp"
     type = "tcp"
-    localIP = "${incus_instance.snikket_server.ipv4_address}"
+    localIP = "${var.addresses.snikket_server.ipv4}"
     localPort = 5350
     remotePort = 5350
 
     [[proxies]]
     name = "snikket-turns-udp"
     type = "udp"
-    localIP = "${incus_instance.snikket_server.ipv4_address}"
+    localIP = "${var.addresses.snikket_server.ipv4}"
     localPort = 5350
     remotePort = 5350
 
@@ -267,7 +249,7 @@ output "ingress" {
     [[proxies]]
     name = "snikket-data-{{ $v.First }}"
     type = "udp"
-    localIP = "${incus_instance.snikket_server.ipv4_address}"
+    localIP = "${var.addresses.snikket_server.ipv4}"
     localPort = {{ $v.First }}
     remotePort = {{ $v.Second }}
     {{- end }}

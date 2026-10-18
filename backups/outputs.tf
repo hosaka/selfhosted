@@ -9,7 +9,7 @@ output "ingress" {
     name  = "backup"
     caddy = <<-EOT
 			backup.${var.private_domain} {
-				reverse_proxy ${incus_instance.backrest.ipv4_address}:${local.backrest_ports.webui}
+				reverse_proxy ${var.addresses.backrest.ipv4}:${local.backrest_ports.webui}
 			}
     EOT
   }
@@ -18,8 +18,8 @@ output "ingress" {
 output "restic_exporter_addresses" {
   description = "restic-exporter's metrics endpoint by restic repository, only reachable inside the cluster"
   value = {
-    nas = "${incus_instance.restic_exporter_nas.ipv4_address}:${local.restic_exporter_ports.metrics}"
-    s3  = "${incus_instance.restic_exporter_s3.ipv4_address}:${local.restic_exporter_ports.metrics}"
+    nas = "${var.addresses.restic_exporter_nas.ipv4}:${local.restic_exporter_ports.metrics}"
+    s3  = "${var.addresses.restic_exporter_s3.ipv4}:${local.restic_exporter_ports.metrics}"
   }
 }
 

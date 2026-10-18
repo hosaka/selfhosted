@@ -9,16 +9,13 @@ resource "incus_instance" "whoami" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci"]
   image    = "ghcr:traefik/whoami:v${var.versions.whoami}"
 
   device {
-    name = "eth0"
-    type = "nic"
-    properties = {
-      network = "meshbr0"
-      hwaddr  = "10:66:6a:db:01:fb"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.whoami.nic
   }
 
   wait_for {
@@ -38,7 +35,7 @@ output "ingress" {
     name  = "whoami"
     caddy = <<-EOT
 		whoami.${var.private_domain}, whoami.${var.public_domain} {
-			reverse_proxy ${incus_instance.whoami.ipv4_address}:${local.whoami_ports.http}
+			reverse_proxy ${var.addresses.whoami.ipv4}:${local.whoami_ports.http}
 		}
     EOT
   }

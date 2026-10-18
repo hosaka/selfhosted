@@ -76,9 +76,9 @@ output "ingress" {
 output "api_addresses" {
   description = "Web UI and API of each app, only reachable inside the cluster"
   value = {
-    lidarr   = "${incus_instance.lidarr.ipv4_address}:${local.lidarr_ports.webui}"
-    prowlarr = "${incus_instance.prowlarr.ipv4_address}:${local.prowlarr_ports.webui}"
-    radarr   = "${incus_instance.radarr.ipv4_address}:${local.radarr_ports.webui}"
-    sonarr   = "${incus_instance.sonarr.ipv4_address}:${local.sonarr_ports.webui}"
+    lidarr   = "${var.addresses.lidarr.ipv4}:${local.lidarr_ports.webui}"
+    prowlarr = "${var.addresses.prowlarr.ipv4}:${local.prowlarr_ports.webui}"
+    radarr   = "${var.addresses.radarr.ipv4}:${local.radarr_ports.webui}"
+    sonarr   = "${var.addresses.sonarr.ipv4}:${local.sonarr_ports.webui}"
   }
 }

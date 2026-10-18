@@ -19,7 +19,7 @@ resource "incus_instance" "jellyfin" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci"]
   image    = "ghcr:hotio/jellyfin:release-${var.versions.jellyfin}"
 
   device {
@@ -53,14 +53,9 @@ resource "incus_instance" "jellyfin" {
   }
 
   device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      name           = "eth1"
-      network        = "meshbr0"
-      "ipv4.gateway" = "none"
-      hwaddr         = "10:66:6a:90:59:99"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.jellyfin.nic
   }
 
   wait_for {
@@ -69,8 +64,6 @@ resource "incus_instance" "jellyfin" {
 
   config = {
     "environment.TZ" = var.timezone
-
-    "user.access_interface" = "eth1"
   }
 }
 
@@ -97,7 +90,7 @@ output "ingress" {
     name  = "jellyfin"
     caddy = <<-EOT
 			jellyfin.${var.private_domain} {
-				reverse_proxy ${incus_instance.jellyfin.ipv4_address}:${local.jellyfin_ports.webui}
+				reverse_proxy ${var.addresses.jellyfin.ipv4}:${local.jellyfin_ports.webui}
 			}
     EOT
   }

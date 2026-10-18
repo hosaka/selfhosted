@@ -4,18 +4,12 @@ locals {
     syslog = 1514
   }
 
-  alloy_hwaddrs = {
-    "node-1" = "10:66:6a:7d:c3:b0"
-    "node-2" = "10:66:6a:16:ee:a9"
-    "node-3" = "10:66:6a:04:a8:c4"
-    "node-4" = "10:66:6a:fc:35:7e"
-  }
 
   alloy_configs = {
     for node in var.log_collectors :
     node => templatefile("${path.module}/alloy.alloy.tpl", {
       node        = node
-      loki_url    = "http://${incus_instance.loki.ipv4_address}:${local.loki_ports.api}/loki/api/v1/push"
+      loki_url    = "http://${var.addresses.loki.ipv4}:${local.loki_ports.api}/loki/api/v1/push"
       syslog_port = local.alloy_ports.syslog
     })
   }
@@ -30,7 +24,7 @@ resource "incus_instance" "alloy" {
   type = "container"
 
   target   = each.key
-  profiles = ["default"]
+  profiles = ["default", "oci"]
   image    = "docker:grafana/alloy:v${var.versions.alloy}"
 
   device {
@@ -45,14 +39,9 @@ resource "incus_instance" "alloy" {
   }
 
   device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      name           = "eth1"
-      network        = "meshbr0"
-      "ipv4.gateway" = "none"
-      hwaddr         = local.alloy_hwaddrs[each.key]
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses["alloy-${each.key}"].nic
   }
 
   file {
@@ -69,8 +58,6 @@ resource "incus_instance" "alloy" {
   config = {
     # files are pushed after the instance starts
     "oci.entrypoint" = "/bin/sh -c 'while [ ! -f /etc/alloy/cluster.alloy ]; do sleep 1; done; exec /bin/alloy run /etc/alloy/cluster.alloy --storage.path=/var/lib/alloy/data --server.http.listen-addr=0.0.0.0:${local.alloy_ports.api}'"
-
-    "user.access_interface" = "eth1"
   }
 }
 
@@ -97,7 +84,7 @@ resource "null_resource" "host_syslog" {
     config = jsonencode({
       config = {
         syslog = {
-          address    = "${incus_instance.alloy[each.key].ipv4_address}:${local.alloy_ports.syslog}"
+          address    = "${var.addresses["alloy-${each.key}"].ipv4}:${local.alloy_ports.syslog}"
           protocol   = "udp"
           log_format = "rfc5424"
         }

@@ -10,9 +10,9 @@ locals {
   })
 
   grafana_datasources = templatefile("${path.module}/datasources.yml.tpl", {
-    prometheus_address = incus_instance.prometheus.ipv4_address
+    prometheus_address = var.addresses.prometheus.ipv4
     prometheus_port    = local.prometheus_ports.api
-    loki_address       = incus_instance.loki.ipv4_address
+    loki_address       = var.addresses.loki.ipv4
     loki_port          = local.loki_ports.api
   })
 }
@@ -32,18 +32,13 @@ resource "incus_instance" "grafana" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci"]
   image    = "docker:grafana/grafana:${var.versions.grafana}"
 
   device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      name           = "eth1"
-      network        = "meshbr0"
-      "ipv4.gateway" = "none"
-      hwaddr         = "10:66:6a:80:26:9c"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.grafana.nic
   }
 
   file {
@@ -108,7 +103,6 @@ resource "incus_instance" "grafana" {
     mode               = "0600"
     create_directories = true
   }
-
   file {
     content            = file("${path.module}/dashboards/incus-logs.json")
     uid                = 472
@@ -229,10 +223,6 @@ resource "incus_instance" "grafana" {
 
   wait_for {
     type = "ipv4"
-  }
-
-  config = {
-    "user.access_interface" = "eth1"
   }
 }
 

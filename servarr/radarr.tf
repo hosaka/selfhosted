@@ -5,7 +5,7 @@ locals {
 
   radarr_caddy = <<-EOT
   radarr.${var.private_domain} {
-  	reverse_proxy ${incus_instance.radarr.ipv4_address}:${local.radarr_ports.webui}
+  	reverse_proxy ${var.addresses.radarr.ipv4}:${local.radarr_ports.webui}
   }
   EOT
 }
@@ -25,7 +25,7 @@ resource "incus_instance" "radarr" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci"]
   image    = "ghcr:hotio/radarr:release-${var.versions.radarr}"
 
   device {
@@ -49,14 +49,9 @@ resource "incus_instance" "radarr" {
   }
 
   device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      name           = "eth1"
-      network        = "meshbr0"
-      "ipv4.gateway" = "none"
-      hwaddr         = "10:66:6a:ff:6e:9b"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.radarr.nic
   }
 
   wait_for {
@@ -66,7 +61,5 @@ resource "incus_instance" "radarr" {
   config = {
     "environment.RADARR__AUTH__APIKEY" = sensitive(var.secrets.radarr_api_key)
     "environment.TZ"                   = var.timezone
-
-    "user.access_interface" = "eth1"
   }
 }

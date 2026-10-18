@@ -83,38 +83,42 @@ A [frp server](https://github.com/fatedier/frp) on a VPS is the entrypoint with 
 
 > I have previously ran Cloudflare Tunnel but decided to ditch it in favour of having more control over non HTTP traffic and more control over my traffic in general. Using Fast Reverse Proxy makes TCP/UDP much easier to work with and in most cases doesn't require connecting client to install any additional software. For the last CF Tunnel version see commit `b904227fc6`.
 
-#### meshbr0 vs incusbr0
+#### OVN
 
-`meshbr0` spans all nodes, but each node acts as its own gateway on it. Outbound internet traffic through meshbr0 leaves via a random node, which breaks long-lived connections. This results in frpc's tunnel to the VPS dropping periodically.
+Every instance sits on one [OVN](https://www.ovn.org/) network, `ovn` (`10.42.0.0/24`), with a single `eth0` and a fixed address. OVN's database runs in three containers on node-1~3 (the `ovn/` module), every IncusOS node runs the OVN agent, and the network's router reaches the LAN through `lan` from one of the tinies at `10.10.0.240`, failing over between them. OpenWrt routes `10.42.0.0/24` to that address, so the LAN and the nodes reach instances directly, and instances reach the internet through OpenWrt. See [docs/ovn-migration](docs/ovn-migration.md) for how it is put together and why.
 
-Rule: `meshbr0` is for container-to-container traffic only (NAT and IPv6 off). Any instance that makes its own outbound connections keeps `eth0` on `incusbr0` (from the `default` profile), which routes out through its own node, and defines its mesh NIC itself:
+Addresses live in [addresses.auto.tfvars](addresses.auto.tfvars), a MAC and an IP per module and instance. `local.ovn_addresses` in `network.tf` turns each entry into the address and the NIC, modules take them as `addresses`:
 
 ```hcl
 resource "incus_instance" "example" {
-  profiles = ["default"]
+  profiles = ["default", "oci"]
 
   device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      name           = "eth1"               # required for ipv4.gateway to apply
-      network        = "meshbr0"
-      "ipv4.gateway" = "none"               # no default route via the mesh (Incus >= 7.2, OCI only)
-      hwaddr         = "02:12:34:56:78:9a"  # pinned, see below
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.example.nic # 10.42.0.x/24 set statically, default route via the OVN router
   }
+}
 
-  config = {
-    "user.access_interface" = "eth1"  # ipv4_address stays the mesh IP
-  }
+output "ingress" {
+  value = { caddy = "reverse_proxy ${var.addresses.example.ipv4}:8080" } # never incus_instance.example.ipv4_address
 }
 ```
 
-Pin `hwaddr` on the NIC other services reach the instance through. A new image replaces the instance, and with a random MAC it would come back on a new IP, so everything templated from its address would change with it. For a new instance use any unused locally administered MAC. The provider leaves NICs with a pinned MAC out of the `interfaces` attribute, so reference instances through `ipv4_address`.
+Validation in `variables.tf` rejects duplicate MACs or IPs and addresses outside the subnet. Services take addresses from `.10` up to the DHCP range `.200`.
 
-The same works for overriding a `default` profile NIC, e.g. Caddy keeps its own `eth0` on `lan` with a pinned `hwaddr`. Keep `user.access_interface` on the instance itself.
+For a new instance, print a line for its module's block with the lowest free address and an unused locally administered MAC. Add it to `addresses.auto.tfvars` before generating the next one, the recipe only knows the addresses already in the file:
 
-Keep `incusbr0` as `eth0`: the Incus DHCP client gives the default route to the alphabetically first interface, so the ordering still works if `ipv4.gateway` is ever dropped. Instances that only answer requests from Caddy and make no outbound connections can stay mesh-only.
+```bash
+just new address awesome
+# awesome = { hwaddr = "02:e9:01:71:61:79", ipv4 = "10.42.0.12" }
+```
+
+OCI containers with a static address skip DHCP, the `oci` profile gives them OpenWrt as DNS server and `incus` as search domain, OVN answers `<instance>.incus` itself. System containers can't have that profile, they take an address from OVN's DHCP range through the `default` profile.
+
+#### Boot order
+
+When a node boots, Incus starts its instances one by one by `boot.autostart.priority`, and stops them in batches by `boot.stop.priority` on shutdown: `linstor-controller` and the OVN central containers first and last (100/-100), databases, caches and lldap through the `datastore` profile (50/-50), everything else at 0. The `default` profile sets priority 0 on purpose, Incus starts instances without any priority first and all at once, before the prioritised ones. Give a new database the `datastore` profile.
 
 ### Configuration
 

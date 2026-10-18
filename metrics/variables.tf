@@ -60,7 +60,6 @@ variable "smart_devices" {
 variable "linstor_address" {
   type = string
 }
-
 # Members running an Alloy that ships their console output to Loki.
 variable "log_collectors" {
   type    = set(string)
@@ -102,4 +101,12 @@ variable "gotify_address" {
 variable "probes" {
   type    = map(list(string))
   default = {}
+}
+
+# Fixed OVN address and NIC per instance, see addresses.auto.tfvars
+variable "addresses" {
+  type = map(object({
+    ipv4 = string
+    nic  = map(string)
+  }))
 }

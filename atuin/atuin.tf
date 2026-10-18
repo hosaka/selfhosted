@@ -10,18 +10,13 @@ resource "incus_instance" "atuin" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci"]
   image    = "ghcr:atuinsh/atuin:${var.versions.atuin}"
 
   device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      name           = "eth1"
-      network        = "meshbr0"
-      "ipv4.gateway" = "none"
-      hwaddr         = "10:66:6a:fe:55:8a"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.atuin.nic
   }
 
   wait_for {
@@ -31,12 +26,12 @@ resource "incus_instance" "atuin" {
   config = {
     "environment.ATUIN_HOST"              = "0.0.0.0"
     "environment.ATUIN_OPEN_REGISTRATION" = "false"
-    "environment.ATUIN_DB_URI"            = "postgres://${var.secrets.db_username}:${sensitive(var.secrets.db_password)}@${incus_instance.atuin_database.ipv4_address}/${var.db_name}"
+    "environment.ATUIN_DB_URI"            = "postgres://${var.secrets.db_username}:${sensitive(var.secrets.db_password)}@${var.addresses.atuin_database.ipv4}/${var.db_name}"
 
     "oci.entrypoint" = "/usr/local/bin/atuin-server start"
-
-    "user.access_interface" = "eth1"
   }
+
+  depends_on = [incus_instance.atuin_database]
 }
 
 resource "incus_storage_volume" "atuin_db" {
@@ -55,7 +50,7 @@ resource "incus_instance" "atuin_database" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci", "datastore"]
   image    = "docker:postgres:${var.versions.db}"
 
   device {
@@ -69,12 +64,9 @@ resource "incus_instance" "atuin_database" {
   }
 
   device {
-    name = "eth0"
-    type = "nic"
-    properties = {
-      network = "incusbr0"
-      hwaddr  = "10:66:6a:5c:3d:15"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.atuin_database.nic
   }
 
   wait_for {
@@ -86,8 +78,6 @@ resource "incus_instance" "atuin_database" {
     "environment.POSTGRES_USER"     = var.secrets.db_username
     "environment.POSTGRES_PASSWORD" = sensitive(var.secrets.db_password)
     "environment.PGTZ"              = var.timezone
-
-    "user.access_interface" = "eth0"
   }
 }
 
@@ -113,7 +103,7 @@ output "ingress" {
     name  = "atuin"
     caddy = <<-EOT
 			atuin.${var.public_domain} {
-				reverse_proxy ${incus_instance.atuin.ipv4_address}:${local.atuin_ports.api}
+				reverse_proxy ${var.addresses.atuin.ipv4}:${local.atuin_ports.api}
 			}
     EOT
   }

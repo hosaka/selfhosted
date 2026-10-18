@@ -1,0 +1,6 @@
+version: "1"
+ovn:
+  enabled: true
+  database: tcp:10.10.0.241:6642,tcp:10.10.0.242:6642,tcp:10.10.0.243:6642
+  tunnel_address: 10.10.0.103
+  tunnel_protocol: geneve

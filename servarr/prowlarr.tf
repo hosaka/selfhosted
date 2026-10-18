@@ -5,7 +5,7 @@ locals {
 
   prowlarr_caddy = <<-EOT
   prowlarr.${var.private_domain} {
-  	reverse_proxy ${incus_instance.prowlarr.ipv4_address}:${local.prowlarr_ports.webui}
+  	reverse_proxy ${var.addresses.prowlarr.ipv4}:${local.prowlarr_ports.webui}
   }
   EOT
 }
@@ -25,7 +25,7 @@ resource "incus_instance" "prowlarr" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci"]
   image    = "ghcr:hotio/prowlarr:release-${var.versions.prowlarr}"
 
   device {
@@ -49,14 +49,9 @@ resource "incus_instance" "prowlarr" {
   }
 
   device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      name           = "eth1"
-      network        = "meshbr0"
-      "ipv4.gateway" = "none"
-      hwaddr         = "10:66:6a:4f:fb:26"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.prowlarr.nic
   }
 
   wait_for {
@@ -66,7 +61,5 @@ resource "incus_instance" "prowlarr" {
   config = {
     "environment.PROWLARR__AUTH__APIKEY" = sensitive(var.secrets.prowlarr_api_key)
     "environment.TZ"                     = var.timezone
-
-    "user.access_interface" = "eth1"
   }
 }

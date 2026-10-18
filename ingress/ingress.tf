@@ -25,7 +25,7 @@ locals {
     frp_server_addr           = var.secrets.frp_server_addr
     frp_auth_token            = sensitive(var.secrets.frp_auth_token)
     frps_dashboard_secret_key = sensitive(var.secrets.frps_dashboard_secret_key)
-    caddy_ip                  = incus_instance.caddy.ipv4_address
+    caddy_ip                  = var.addresses.caddy.ipv4
     caddy_ports               = local.caddy_ports
     frpc_ports                = local.frpc_ports
     services                  = var.services
@@ -37,7 +37,7 @@ resource "incus_instance" "frpc" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci"]
   image    = "ghcr:fatedier/frpc:v${var.versions.frpc}"
 
   lifecycle {
@@ -45,14 +45,9 @@ resource "incus_instance" "frpc" {
   }
 
   device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      name           = "eth1"
-      network        = "meshbr0"
-      "ipv4.gateway" = "none"
-      hwaddr         = "10:66:6a:eb:f7:d4"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.frpc.nic
   }
 
   file {
@@ -68,8 +63,6 @@ resource "incus_instance" "frpc" {
 
   config = {
     "oci.entrypoint" = "/bin/sh -c 'while [ ! -f /etc/frp/frpc.toml ]; do sleep 1; done; exec /usr/bin/frpc --config /etc/frp/frpc.toml'"
-
-    "user.access_interface" = "eth1"
   }
 }
 
@@ -88,7 +81,7 @@ resource "incus_instance" "caddy" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci"]
   image    = "ghcr:hotio/caddy:release-${var.versions.caddy}"
 
   lifecycle {
@@ -106,23 +99,9 @@ resource "incus_instance" "caddy" {
   }
 
   device {
-    name = "eth0"
-    type = "nic"
-    properties = {
-      hwaddr  = "10:66:6a:08:77:c0"
-      network = "lan"
-    }
-  }
-
-  device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      name           = "eth1"
-      network        = "meshbr0"
-      "ipv4.gateway" = "none"
-      hwaddr         = "10:66:6a:9b:06:fe"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.caddy.nic
   }
 
   file {
@@ -134,8 +113,7 @@ resource "incus_instance" "caddy" {
   }
 
   config = {
-    "environment.TZ"        = var.timezone
-    "user.access_interface" = "eth1"
+    "environment.TZ" = var.timezone
   }
 }
 
@@ -177,10 +155,10 @@ output "backups" {
 
 output "caddy_metrics_address" {
   description = "Caddy's prometheus metrics endpoint, only reachable inside the cluster"
-  value       = "${incus_instance.caddy.ipv4_address}:${local.caddy_ports.metrics}"
+  value       = "${var.addresses.caddy.ipv4}:${local.caddy_ports.metrics}"
 }
 
 output "frps_metrics_address" {
   description = "The frps dashboard and its /metrics through frpc's stcp visitor, only reachable inside the cluster"
-  value       = "${incus_instance.frpc.ipv4_address}:${local.frpc_ports.dashboard}"
+  value       = "${var.addresses.frpc.ipv4}:${local.frpc_ports.dashboard}"
 }

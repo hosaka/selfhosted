@@ -5,7 +5,7 @@ locals {
 
   lidarr_caddy = <<-EOT
   lidarr.${var.private_domain} {
-  	reverse_proxy ${incus_instance.lidarr.ipv4_address}:${local.lidarr_ports.webui}
+  	reverse_proxy ${var.addresses.lidarr.ipv4}:${local.lidarr_ports.webui}
   }
   EOT
 }
@@ -25,7 +25,7 @@ resource "incus_instance" "lidarr" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci"]
   image    = "ghcr:hotio/lidarr:${var.versions.lidarr}"
 
   device {
@@ -49,14 +49,9 @@ resource "incus_instance" "lidarr" {
   }
 
   device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      name           = "eth1"
-      network        = "meshbr0"
-      "ipv4.gateway" = "none"
-      hwaddr         = "10:66:6a:13:0e:c4"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.lidarr.nic
   }
 
   wait_for {
@@ -66,7 +61,5 @@ resource "incus_instance" "lidarr" {
   config = {
     "environment.LIDARR__AUTH__APIKEY" = sensitive(var.secrets.lidarr_api_key)
     "environment.TZ"                   = var.timezone
-
-    "user.access_interface" = "eth1"
   }
 }

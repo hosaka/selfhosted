@@ -16,7 +16,7 @@ resource "incus_instance" "frigate" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci"]
   image    = "ghcr:blakeblackshear/frigate:${var.versions.frigate}"
 
   device {
@@ -68,14 +68,9 @@ resource "incus_instance" "frigate" {
   }
 
   device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      name           = "eth1"
-      network        = "meshbr0"
-      "ipv4.gateway" = "none"
-      hwaddr         = "02:a6:25:c8:93:13"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.frigate.nic
   }
 
   file {
@@ -106,8 +101,6 @@ resource "incus_instance" "frigate" {
 
     "environment.LIBVA_DRIVER_NAME" = "radeonsi"
     "environment.TZ"                = var.timezone
-
-    "user.access_interface" = "eth1"
   }
 }
 
@@ -116,7 +109,7 @@ output "ingress" {
     name  = "frigate"
     caddy = <<-EOT
 			frigate.${var.private_domain} {
-				reverse_proxy ${incus_instance.frigate.ipv4_address}:${local.frigate_ports.webui}
+				reverse_proxy ${var.addresses.frigate.ipv4}:${local.frigate_ports.webui}
 			}
     EOT
   }

@@ -19,7 +19,7 @@ resource "incus_instance" "sabnzbd" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci"]
   image    = "ghcr:hotio/sabnzbd:release-${var.versions.sabnzbd}"
 
   device {
@@ -43,14 +43,9 @@ resource "incus_instance" "sabnzbd" {
   }
 
   device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      name           = "eth1"
-      network        = "meshbr0"
-      "ipv4.gateway" = "none"
-      hwaddr         = "10:66:6a:fb:50:7e"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.sabnzbd.nic
   }
 
   wait_for {
@@ -59,8 +54,6 @@ resource "incus_instance" "sabnzbd" {
 
   config = {
     "environment.TZ" = var.timezone
-
-    "user.access_interface" = "eth1"
   }
 }
 
@@ -87,7 +80,7 @@ output "ingress" {
     name  = "sabnzbd"
     caddy = <<-EOT
     nzb.${var.private_domain} {
-      reverse_proxy ${incus_instance.sabnzbd.ipv4_address}:${local.sabnzbd_ports.webui}
+      reverse_proxy ${var.addresses.sabnzbd.ipv4}:${local.sabnzbd_ports.webui}
     }
     EOT
   }

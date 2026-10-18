@@ -19,7 +19,7 @@ resource "incus_instance" "qbittorrent" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci"]
   image    = "ghcr:hotio/qbittorrent:release-${var.versions.qbittorrent}"
 
   device {
@@ -43,14 +43,9 @@ resource "incus_instance" "qbittorrent" {
   }
 
   device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      name           = "eth1"
-      network        = "meshbr0"
-      "ipv4.gateway" = "none"
-      hwaddr         = "10:66:6a:aa:1b:17"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.qbittorrent.nic
   }
 
   file {
@@ -86,11 +81,10 @@ resource "incus_instance" "qbittorrent" {
     "environment.VPN_ENABLED"           = "true"
     "environment.VPN_PROVIDER"          = var.vpn_provider
     "environment.VPN_AUTO_PORT_FORWARD" = "true"
+    "environment.VPN_LAN_NETWORK"       = var.lan_network
     # todo: set back to "true" once wtfismyip.com resolves again
     "environment.VPN_HEALTHCHECK_ENABLED" = "false"
     "environment.TZ"                      = var.timezone
-
-    "user.access_interface" = "eth1"
   }
 }
 
@@ -99,7 +93,7 @@ resource "incus_instance" "qbitmanage" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci"]
   image    = "ghcr:hotio/qbitmanage:release-${var.versions.qbitmanage}"
 
   device {
@@ -113,19 +107,14 @@ resource "incus_instance" "qbitmanage" {
   }
 
   device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      name           = "eth1"
-      network        = "meshbr0"
-      "ipv4.gateway" = "none"
-      hwaddr         = "10:66:6a:02:66:7f"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.qbitmanage.nic
   }
 
   file {
     content = templatefile("${path.module}/qbitmanage.yml.tpl", {
-      qbittorrent_host = "${incus_instance.qbittorrent.ipv4_address}:${local.qbittorrent_ports.webui}"
+      qbittorrent_host = "${var.addresses.qbittorrent.ipv4}:${local.qbittorrent_ports.webui}"
     })
     target_path        = "/config/config.yml"
     mode               = "0644"
@@ -140,9 +129,9 @@ resource "incus_instance" "qbitmanage" {
 
   config = {
     "environment.TZ" = var.timezone
-
-    "user.access_interface" = "eth1"
   }
+
+  depends_on = [incus_instance.qbittorrent]
 }
 
 output "probes" {
@@ -168,7 +157,7 @@ output "ingress" {
     name  = "qbittorrent"
     caddy = <<-EOT
     qbit.${var.private_domain} {
-      reverse_proxy ${incus_instance.qbittorrent.ipv4_address}:${local.qbittorrent_ports.webui}
+      reverse_proxy ${var.addresses.qbittorrent.ipv4}:${local.qbittorrent_ports.webui}
     }
     EOT
   }

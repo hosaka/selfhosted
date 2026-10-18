@@ -24,7 +24,7 @@ output "ingress" {
 					output discard
 				}
 
-				reverse_proxy ${incus_instance.grafana.ipv4_address}:${local.grafana_ports.webui}
+				reverse_proxy ${var.addresses.grafana.ipv4}:${local.grafana_ports.webui}
 			}
     EOT
   }
@@ -32,5 +32,5 @@ output "ingress" {
 
 output "prometheus_address" {
   description = "Prometheus API on the mesh network, only reachable inside the cluster."
-  value       = "${incus_instance.prometheus.ipv4_address}:${local.prometheus_ports.api}"
+  value       = "${var.addresses.prometheus.ipv4}:${local.prometheus_ports.api}"
 }

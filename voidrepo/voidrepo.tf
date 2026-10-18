@@ -57,7 +57,7 @@ resource "incus_instance" "voidrepo" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci"]
   image    = "docker:caddy:${var.versions.caddy}-alpine"
 
   device {
@@ -72,14 +72,9 @@ resource "incus_instance" "voidrepo" {
   }
 
   device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      name           = "eth1"
-      network        = "meshbr0"
-      "ipv4.gateway" = "none"
-      hwaddr         = "10:66:6a:90:ac:b2"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.voidrepo.nic
   }
 
   file {
@@ -94,8 +89,6 @@ resource "incus_instance" "voidrepo" {
 
   config = {
     "oci.entrypoint" = "/bin/sh -c 'while [ ! -f /config/Caddyfile ]; do sleep 1; done; exec caddy run --config /config/Caddyfile --adapter caddyfile'"
-
-    "user.access_interface" = "eth1"
   }
 }
 
@@ -111,7 +104,7 @@ output "ingress" {
     name  = "voidrepo"
     caddy = <<-EOT
 			mirror.${var.private_domain}, mirror.${var.public_domain} {
-				reverse_proxy ${incus_instance.voidrepo.ipv4_address}:${local.voidrepo_ports.http}
+				reverse_proxy ${var.addresses.voidrepo.ipv4}:${local.voidrepo_ports.http}
 			}
     EOT
   }

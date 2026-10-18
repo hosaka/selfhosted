@@ -30,7 +30,7 @@ resource "incus_instance" "loki" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci"]
   image    = "docker:grafana/loki:${var.versions.loki}"
 
   # note: custom config file can be added to /etc/loki/local-config.yaml
@@ -46,12 +46,9 @@ resource "incus_instance" "loki" {
   }
 
   device {
-    name = "eth0"
-    type = "nic"
-    properties = {
-      network = "meshbr0"
-      hwaddr  = "10:66:6a:d7:62:16"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.loki.nic
   }
 
   wait_for {
@@ -60,8 +57,6 @@ resource "incus_instance" "loki" {
 
   config = {
     "oci.entrypoint" = local.loki_command
-
-    "user.access_interface" = "eth0"
   }
 }
 
@@ -78,6 +73,6 @@ resource "null_resource" "loki_restart" {
 resource "incus_server" "loki" {
   config = {
     "logging.loki.target.type"    = "loki"
-    "logging.loki.target.address" = "http://${incus_instance.loki.ipv4_address}:${local.loki_ports.api}"
+    "logging.loki.target.address" = "http://${var.addresses.loki.ipv4}:${local.loki_ports.api}"
   }
 }

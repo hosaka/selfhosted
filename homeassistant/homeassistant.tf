@@ -17,7 +17,7 @@ resource "incus_instance" "homeassistant" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci"]
   image    = "ghcr:home-assistant/home-assistant:${var.versions.homeassistant}"
 
   device {
@@ -33,14 +33,9 @@ resource "incus_instance" "homeassistant" {
   # todo: if the service relies on mDNS or device discovery, it probably needs a NIC on lan
 
   device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      name           = "eth1"
-      network        = "meshbr0"
-      "ipv4.gateway" = "none"
-      hwaddr         = "02:4c:75:78:f0:14"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.homeassistant.nic
   }
 
   wait_for {
@@ -49,8 +44,6 @@ resource "incus_instance" "homeassistant" {
 
   config = {
     "environment.TZ" = var.timezone
-
-    "user.access_interface" = "eth1"
   }
 }
 
@@ -85,11 +78,9 @@ resource "incus_instance" "homeassistant" {
 #   }
 #
 #   device {
-#     name = "eth0"
-#     type = "nic"
-#     properties = {
-#       network = "incusbr0"
-#     }
+#     name       = "eth0"
+#     type       = "nic"
+#     properties = var.addresses.mosquitto.nic
 #   }
 #
 #   wait_for {
@@ -100,8 +91,6 @@ resource "incus_instance" "homeassistant" {
 #     # overriding the entrypoint drops the image's CMD, so pass the mosquitto command to the original entrypoint explicitly
 #     # mosquitto.conf points at a password file and refuses to start without one, create an empty one on a fresh volume
 #     "oci.entrypoint" = "/bin/sh -c 'while [ ! -f /mosquitto/config/mosquitto.conf ]; do sleep 1; done; [ -f /mosquitto/data/pwfile ] || install -m 0700 /dev/null /mosquitto/data/pwfile; exec /docker-entrypoint.sh /usr/sbin/mosquitto -c /mosquitto/config/mosquitto.conf'"
-#
-#     "user.access_interface" = "eth0"
 #   }
 # }
 
@@ -122,7 +111,7 @@ output "ingress" {
     name  = "homeassistant"
     caddy = <<-EOT
 			hass.${var.private_domain} {
-				reverse_proxy ${incus_instance.homeassistant.ipv4_address}:${local.homeassistant_ports.webui}
+				reverse_proxy ${var.addresses.homeassistant.ipv4}:${local.homeassistant_ports.webui}
 			}
     EOT
   }

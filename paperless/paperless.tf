@@ -31,7 +31,7 @@ resource "incus_instance" "paperless" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci"]
   image    = "ghcr:paperless-ngx/paperless-ngx:${var.versions.paperless}"
 
   device {
@@ -55,14 +55,9 @@ resource "incus_instance" "paperless" {
   }
 
   device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      name           = "eth1"
-      network        = "meshbr0"
-      "ipv4.gateway" = "none"
-      hwaddr         = "10:66:6a:9f:e1:84"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.paperless.nic
   }
 
   wait_for {
@@ -102,15 +97,15 @@ resource "incus_instance" "paperless" {
     "environment.PAPERLESS_ADMIN_USER"           = sensitive(var.secrets.admin_user)
     "environment.PAPERLESS_ADMIN_PASSWORD"       = sensitive(var.secrets.admin_password)
 
-    "environment.PAPERLESS_REDIS"     = "redis://${incus_instance.paperless_valkey.ipv4_address}:${local.paperless_ports.valkey}"
-    "environment.PAPERLESS_DBHOST"    = incus_instance.paperless_database.ipv4_address
+    "environment.PAPERLESS_REDIS"     = "redis://${var.addresses.paperless_valkey.ipv4}:${local.paperless_ports.valkey}"
+    "environment.PAPERLESS_DBHOST"    = var.addresses.paperless_database.ipv4
     "environment.PAPERLESS_DBUSER"    = var.secrets.db_username
     "environment.PAPERLESS_DBPASS"    = sensitive(var.secrets.db_password)
     "environment.PAPERLESS_DBNAME"    = var.db_name
     "environment.PAPERLESS_TIME_ZONE" = var.timezone
-
-    "user.access_interface" = "eth1"
   }
+
+  depends_on = [incus_instance.paperless_database, incus_instance.paperless_valkey]
 }
 
 resource "incus_storage_volume" "paperless_db" {
@@ -129,7 +124,7 @@ resource "incus_instance" "paperless_database" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci", "datastore"]
   image    = "docker:postgres:${var.versions.db}"
 
   device {
@@ -143,12 +138,9 @@ resource "incus_instance" "paperless_database" {
   }
 
   device {
-    name = "eth0"
-    type = "nic"
-    properties = {
-      network = "incusbr0"
-      hwaddr  = "10:66:6a:14:b9:93"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.paperless_database.nic
   }
 
   wait_for {
@@ -160,8 +152,6 @@ resource "incus_instance" "paperless_database" {
     "environment.POSTGRES_USER"     = var.secrets.db_username
     "environment.POSTGRES_PASSWORD" = sensitive(var.secrets.db_password)
     "environment.PGTZ"              = var.timezone
-
-    "user.access_interface" = "eth0"
   }
 }
 
@@ -181,7 +171,7 @@ resource "incus_instance" "paperless_valkey" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci", "datastore"]
   image    = "docker:valkey/valkey:${var.versions.cache}"
 
   device {
@@ -195,20 +185,13 @@ resource "incus_instance" "paperless_valkey" {
   }
 
   device {
-    name = "eth0"
-    type = "nic"
-    properties = {
-      network = "incusbr0"
-      hwaddr  = "10:66:6a:74:96:4b"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.paperless_valkey.nic
   }
 
   wait_for {
     type = "ipv4"
-  }
-
-  config = {
-    "user.access_interface" = "eth0"
   }
 }
 
@@ -238,7 +221,7 @@ output "ingress" {
     name  = "paperless"
     caddy = <<-EOT
 			paperless.${var.public_domain} {
-				reverse_proxy ${incus_instance.paperless.ipv4_address}:${local.paperless_ports.webui}
+				reverse_proxy ${var.addresses.paperless.ipv4}:${local.paperless_ports.webui}
 				@admin {
 					path /admin*
 					not remote_ip private_ranges

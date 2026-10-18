@@ -18,6 +18,9 @@ locals {
     for k, v in local.members : k => v
     if contains([var.cluster.node-1.target, var.cluster.node-2.target, var.cluster.node-3.target], k)
   }
+
+  # where proxied requests come from, Caddy and Anubis are on the OVN network
+  trusted_proxies = [var.ovn.subnet]
 }
 
 # Replicated storage
@@ -30,10 +33,31 @@ module "linstor" {
   depends_on = [null_resource.post_server]
 }
 
+# OVN central database, the control plane of the ovn network
+module "ovn" {
+  source          = "./ovn"
+  versions        = var.versions.ovn
+  members         = local.members
+  seeds           = { for name in keys(local.members) : name => try(yamldecode(file("${path.root}/incus/${name}/services.yml")), {}) }
+  central         = var.ovn.central
+  gateway_chassis = var.ovn.gateway_chassis
+  uplink          = incus_network.lan.name
+  subnet          = var.ovn.subnet
+  dhcp_range      = var.ovn.dhcp_range
+  gateway         = var.cluster.gateway
+  depends_on = [
+    null_resource.post_projects,
+    null_resource.post_networks,
+    null_resource.post_storage_pools,
+    incus_profile.internal_default,
+  ]
+}
+
 # This is the entrypoint for all server traffic.
 module "ingress" {
   source         = "./ingress"
   versions       = var.versions.ingress
+  addresses      = local.ovn_addresses.ingress
   secrets        = var.secrets.ingress
   target         = var.cluster.node-3.target
   snapshots      = local.daily_snapshot
@@ -74,6 +98,7 @@ module "ingress" {
 module "backups" {
   source              = "./backups"
   versions            = var.versions.backups
+  addresses           = local.ovn_addresses.backups
   secrets             = var.secrets.backups
   target              = var.cluster.node-4.target
   restic_pool         = incus_storage_pool.nas.name
@@ -131,6 +156,7 @@ module "backups" {
 module "auth" {
   source         = "./auth"
   versions       = var.versions.auth
+  addresses      = local.ovn_addresses.auth
   secrets        = var.secrets.auth
   target         = var.cluster.node-3.target
   snapshots      = local.daily_snapshot
@@ -143,6 +169,7 @@ module "auth" {
 module "atuin" {
   source         = "./atuin"
   versions       = var.versions.atuin
+  addresses      = local.ovn_addresses.atuin
   secrets        = var.secrets.atuin
   target         = var.cluster.node-1.target
   snapshots      = local.daily_snapshot
@@ -155,19 +182,21 @@ module "atuin" {
 module "forgejo" {
   source          = "./forgejo"
   versions        = var.versions.forgejo
+  addresses       = local.ovn_addresses.forgejo
   secrets         = var.secrets.forgejo
   target          = var.cluster.node-1.target
   snapshots       = local.daily_snapshot
   public_domain   = var.public_domain
   private_domain  = var.private_domain
   timezone        = var.timezone
-  trusted_proxies = local.mesh_cidr
+  trusted_proxies = local.trusted_proxies
   depends_on      = [null_resource.post_server, module.linstor]
 }
 
 module "home" {
   source         = "./home"
   versions       = var.versions.home
+  addresses      = local.ovn_addresses.home
   target         = var.cluster.node-3.target
   public_domain  = var.public_domain
   private_domain = var.private_domain
@@ -191,6 +220,7 @@ module "home" {
 # module "homeassistant" {
 #   source         = "./homeassistant"
 #   versions       = var.versions.homeassistant
+#   addresses      = local.ovn_addresses.homeassistant
 #   target         = var.cluster.node-1.target
 #   snapshots      = local.daily_snapshot
 #   private_domain = var.private_domain
@@ -201,6 +231,7 @@ module "home" {
 module "immich" {
   source         = "./immich"
   versions       = var.versions.immich
+  addresses      = local.ovn_addresses.immich
   secrets        = var.secrets.immich
   target         = var.cluster.node-4.target
   snapshots      = local.daily_snapshot
@@ -215,6 +246,7 @@ module "immich" {
 module "jellyfin" {
   source         = "./jellyfin"
   versions       = var.versions.jellyfin
+  addresses      = local.ovn_addresses.jellyfin
   secrets        = var.secrets.jellyfin
   target         = var.cluster.node-4.target
   snapshots      = local.daily_snapshot
@@ -228,6 +260,7 @@ module "jellyfin" {
 module "kavita" {
   source         = "./kavita"
   versions       = var.versions.kavita
+  addresses      = local.ovn_addresses.kavita
   target         = var.cluster.node-4.target
   snapshots      = local.daily_snapshot
   media_pool     = incus_storage_volume.media.pool
@@ -240,6 +273,7 @@ module "kavita" {
 module "metrics" {
   source         = "./metrics"
   versions       = var.versions.metrics
+  addresses      = local.ovn_addresses.metrics
   secrets        = var.secrets.metrics
   members        = local.members
   target         = var.cluster.node-2.target
@@ -312,6 +346,7 @@ module "metrics" {
 module "navidrome" {
   source         = "./navidrome"
   versions       = var.versions.navidrome
+  addresses      = local.ovn_addresses.navidrome
   secrets        = var.secrets.navidrome
   target         = var.cluster.node-4.target
   snapshots      = local.daily_snapshot
@@ -325,6 +360,7 @@ module "navidrome" {
 module "notify" {
   source         = "./notify"
   versions       = var.versions.notify
+  addresses      = local.ovn_addresses.notify
   secrets        = var.secrets.notify
   target         = var.cluster.node-2.target
   snapshots      = local.daily_snapshot
@@ -337,6 +373,7 @@ module "notify" {
 module "opencloud" {
   source         = "./opencloud"
   versions       = var.versions.opencloud
+  addresses      = local.ovn_addresses.opencloud
   secrets        = var.secrets.opencloud
   target         = var.cluster.node-4.target
   snapshots      = local.daily_snapshot
@@ -349,6 +386,7 @@ module "opencloud" {
 module "paperless" {
   source         = "./paperless"
   versions       = var.versions.paperless
+  addresses      = local.ovn_addresses.paperless
   secrets        = var.secrets.paperless
   target         = var.cluster.node-3.target
   snapshots      = local.daily_snapshot
@@ -361,6 +399,8 @@ module "paperless" {
 module "qbittorrent" {
   source         = "./qbittorrent"
   versions       = var.versions.qbittorrent
+  addresses      = local.ovn_addresses.qbittorrent
+  lan_network    = cidrsubnet(var.cluster.gateway, 0, 0)
   secrets        = var.secrets.qbittorrent
   target         = var.cluster.node-4.target
   snapshots      = local.daily_snapshot
@@ -374,6 +414,7 @@ module "qbittorrent" {
 module "sabnzbd" {
   source         = "./sabnzbd"
   versions       = var.versions.sabnzbd
+  addresses      = local.ovn_addresses.sabnzbd
   target         = var.cluster.node-4.target
   snapshots      = local.daily_snapshot
   media_pool     = incus_storage_volume.media.pool
@@ -386,17 +427,19 @@ module "sabnzbd" {
 module "searxng" {
   source          = "./searxng"
   versions        = var.versions.searxng
+  addresses       = local.ovn_addresses.searxng
   secrets         = var.secrets.searxng
   target          = var.cluster.node-1.target
   public_domain   = var.public_domain
   private_domain  = var.private_domain
-  trusted_proxies = local.mesh_cidr
+  trusted_proxies = local.trusted_proxies
   depends_on      = [null_resource.post_server, module.linstor]
 }
 
 module "servarr" {
   source         = "./servarr"
   versions       = var.versions.servarr
+  addresses      = local.ovn_addresses.servarr
   secrets        = var.secrets.servarr
   target         = var.cluster.node-4.target
   snapshots      = local.daily_snapshot
@@ -410,6 +453,7 @@ module "servarr" {
 module "slskd" {
   source         = "./slskd"
   versions       = var.versions.slskd
+  addresses      = local.ovn_addresses.slskd
   secrets        = var.secrets.slskd
   target         = var.cluster.node-4.target
   snapshots      = local.daily_snapshot
@@ -423,6 +467,7 @@ module "slskd" {
 module "snikket" {
   source        = "./snikket"
   versions      = var.versions.snikket
+  addresses     = local.ovn_addresses.snikket
   target        = var.cluster.node-2.target
   snapshots     = local.daily_snapshot
   public_domain = var.public_domain
@@ -433,6 +478,7 @@ module "snikket" {
 module "syncstorage" {
   source         = "./syncstorage"
   versions       = var.versions.syncstorage
+  addresses      = local.ovn_addresses.syncstorage
   secrets        = var.secrets.syncstorage
   target         = var.cluster.node-1.target
   snapshots      = local.daily_snapshot
@@ -445,6 +491,7 @@ module "syncstorage" {
 module "vaultwarden" {
   source         = "./vaultwarden"
   versions       = var.versions.vaultwarden
+  addresses      = local.ovn_addresses.vaultwarden
   secrets        = var.secrets.vaultwarden
   target         = var.cluster.node-3.target
   snapshots      = local.daily_snapshot
@@ -457,6 +504,7 @@ module "vaultwarden" {
 module "voidrepo" {
   source         = "./voidrepo"
   versions       = var.versions.voidrepo
+  addresses      = local.ovn_addresses.voidrepo
   target         = var.cluster.node-4.target
   storage_pool   = incus_storage_volume.voidrepo.pool
   storage_source = incus_storage_volume.voidrepo.name
@@ -468,6 +516,7 @@ module "voidrepo" {
 module "wakapi" {
   source         = "./wakapi"
   versions       = var.versions.wakapi
+  addresses      = local.ovn_addresses.wakapi
   secrets        = var.secrets.wakapi
   target         = var.cluster.node-2.target
   snapshots      = local.daily_snapshot
@@ -480,6 +529,7 @@ module "wakapi" {
 module "whoami" {
   source         = "./whoami"
   versions       = var.versions.whoami
+  addresses      = local.ovn_addresses.whoami
   target         = var.cluster.node-1.target
   public_domain  = var.public_domain
   private_domain = var.private_domain

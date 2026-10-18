@@ -29,8 +29,11 @@ resource "incus_instance" "linstor_controller" {
   project = "internal"
 
   config = {
-    "boot.autostart"            = true
-    "boot.autostart.priority"   = 100
+    # start before and stop after everything else on the node, instances need it to attach and detach their volumes
+    "boot.autostart"          = true
+    "boot.autostart.priority" = 100
+    "boot.stop.priority"      = -100
+
     "cloud-init.user-data"      = file("${path.module}/user-data.yml")
     "cloud-init.network-config" = file("${path.module}/network-config.yml")
 

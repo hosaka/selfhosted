@@ -21,7 +21,7 @@ resource "incus_instance" "wakapi" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci"]
   image    = "ghcr:muety/wakapi:${var.versions.wakapi}"
 
   device {
@@ -35,14 +35,9 @@ resource "incus_instance" "wakapi" {
   }
 
   device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      name           = "eth1"
-      network        = "meshbr0"
-      "ipv4.gateway" = "none"
-      hwaddr         = "10:66:6a:62:f6:36"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.wakapi.nic
   }
 
   wait_for {
@@ -63,8 +58,6 @@ resource "incus_instance" "wakapi" {
     "environment.WAKAPI_OIDC_PROVIDERS_0_CLIENT_SECRET" = "${sensitive(var.secrets.oidc_client_secret)}"
     "environment.WAKAPI_OIDC_PROVIDERS_0_ENDPOINT"      = "https://auth.${var.public_domain}"
     "environment.TZ"                                    = var.timezone
-
-    "user.access_interface" = "eth1"
   }
 }
 
@@ -89,7 +82,7 @@ output "ingress" {
     name  = "waka"
     caddy = <<-EOT
 			waka.${var.public_domain} {
-				reverse_proxy ${incus_instance.wakapi.ipv4_address}:${local.wakapi_ports.api}
+				reverse_proxy ${var.addresses.wakapi.ipv4}:${local.wakapi_ports.api}
 			}
     EOT
   }

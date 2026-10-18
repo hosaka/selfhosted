@@ -16,7 +16,7 @@ resource "incus_instance" "navidrome" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci"]
   image    = "ghcr:navidrome/navidrome:${var.versions.navidrome}"
 
   device {
@@ -41,14 +41,9 @@ resource "incus_instance" "navidrome" {
   }
 
   device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      name           = "eth1"
-      network        = "meshbr0"
-      "ipv4.gateway" = "none"
-      hwaddr         = "10:66:6a:6d:71:5b"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.navidrome.nic
   }
 
   wait_for {
@@ -67,8 +62,6 @@ resource "incus_instance" "navidrome" {
     "environment.ND_LASTFM_SECRET"  = sensitive(var.secrets.lastfm_secret)
     # todo: enable external auth when it supports OIDC, ForwardAuth is a pain
     # see https://www.navidrome.org/docs/usage/integration/authentication/
-
-    "user.access_interface" = "eth1"
   }
 }
 
@@ -94,7 +87,7 @@ output "ingress" {
     name  = "navidrome"
     caddy = <<-EOT
 			navidrome.${var.private_domain}, navidrome.${var.public_domain} {
-				reverse_proxy ${incus_instance.navidrome.ipv4_address}:${local.navidrome_ports.webui}
+				reverse_proxy ${var.addresses.navidrome.ipv4}:${local.navidrome_ports.webui}
 			}
     EOT
   }

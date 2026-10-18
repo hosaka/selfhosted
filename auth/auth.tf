@@ -17,13 +17,13 @@ locals {
     public_domain  = var.public_domain
     private_domain = var.private_domain
 
-    db_address             = incus_instance.authelia_database.ipv4_address
+    db_address             = var.addresses.authelia_database.ipv4
     db_name                = var.db_name
     db_password            = sensitive(var.secrets.db_password)
     db_username            = var.secrets.db_username
     jwt_secret             = sensitive(var.secrets.jwt_secret)
     jwks_key               = sensitive(indent(10, trimspace(file("${path.module}/private.pem"))))
-    lldap_address          = incus_instance.lldap.ipv4_address
+    lldap_address          = var.addresses.lldap.ipv4
     lldap_port             = local.lldap_ports.ldap
     lldap_base_dn          = local.lldap_base_dn
     lldap_password         = sensitive(var.secrets.lldap_password)
@@ -32,7 +32,7 @@ locals {
     smtp_password          = sensitive(var.secrets.smtp_password)
     smtp_sender            = coalesce(var.smtp_sender, "Authelia <auth@${var.public_domain}>")
     smtp_username          = sensitive(var.secrets.smtp_username)
-    valkey_address         = incus_instance.authelia_valkey.ipv4_address
+    valkey_address         = var.addresses.authelia_valkey.ipv4
     valkey_port            = local.authelia_ports.valkey
     storage_encryption_key = sensitive(var.secrets.storage_encryption_key)
     metrics_port           = local.authelia_ports.metrics
@@ -66,18 +66,13 @@ resource "incus_instance" "authelia" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci"]
   image    = "ghcr:authelia/authelia:${var.versions.authelia}"
 
   device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      name           = "eth1"
-      network        = "meshbr0"
-      "ipv4.gateway" = "none"
-      hwaddr         = "10:66:6a:68:64:31"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.authelia.nic
   }
 
   file {
@@ -93,9 +88,9 @@ resource "incus_instance" "authelia" {
 
   config = {
     "oci.entrypoint" = "/bin/sh -c 'while [ ! -f /config/configuration.yml ]; do sleep 1; done; exec /app/entrypoint.sh'"
-
-    "user.access_interface" = "eth1"
   }
+
+  depends_on = [incus_instance.authelia_database, incus_instance.authelia_valkey, incus_instance.lldap]
 }
 
 resource "incus_storage_volume" "authelia_db" {
@@ -114,7 +109,7 @@ resource "incus_instance" "authelia_database" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci", "datastore"]
   image    = "docker:postgres:${var.versions.db}"
 
   device {
@@ -128,12 +123,9 @@ resource "incus_instance" "authelia_database" {
   }
 
   device {
-    name = "eth0"
-    type = "nic"
-    properties = {
-      network = "incusbr0"
-      hwaddr  = "10:66:6a:3a:9d:99"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.authelia_database.nic
   }
 
   wait_for {
@@ -145,8 +137,6 @@ resource "incus_instance" "authelia_database" {
     "environment.POSTGRES_USER"     = var.secrets.db_username
     "environment.POSTGRES_PASSWORD" = sensitive(var.secrets.db_password)
     "environment.PGTZ"              = var.timezone
-
-    "user.access_interface" = "eth0"
   }
 }
 
@@ -166,7 +156,7 @@ resource "incus_instance" "authelia_valkey" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci", "datastore"]
   image    = "docker:valkey/valkey:${var.versions.cache}"
 
   device {
@@ -180,20 +170,13 @@ resource "incus_instance" "authelia_valkey" {
   }
 
   device {
-    name = "eth0"
-    type = "nic"
-    properties = {
-      network = "incusbr0"
-      hwaddr  = "10:66:6a:77:84:d5"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.authelia_valkey.nic
   }
 
   wait_for {
     type = "ipv4"
-  }
-
-  config = {
-    "user.access_interface" = "eth0"
   }
 }
 
@@ -214,7 +197,7 @@ resource "incus_instance" "lldap" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci", "datastore"]
   image    = "ghcr:lldap/lldap:v${var.versions.lldap}-alpine"
 
   device {
@@ -228,14 +211,9 @@ resource "incus_instance" "lldap" {
   }
 
   device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      name           = "eth1"
-      network        = "meshbr0"
-      "ipv4.gateway" = "none"
-      hwaddr         = "10:66:6a:60:db:34"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.lldap.nic
   }
 
   wait_for {
@@ -250,8 +228,6 @@ resource "incus_instance" "lldap" {
     "environment.UID"                  = "1000"
     "environment.GID"                  = "1000"
     "environment.TZ"                   = var.timezone
-
-    "user.access_interface" = "eth1"
   }
 }
 
@@ -296,10 +272,10 @@ output "ingress" {
     name  = "auth"
     caddy = <<-EOT
 			auth.${var.public_domain} {
-				reverse_proxy ${incus_instance.authelia.ipv4_address}:${local.authelia_ports.api}
+				reverse_proxy ${var.addresses.authelia.ipv4}:${local.authelia_ports.api}
 			}
 			users.${var.private_domain} {
-				reverse_proxy ${incus_instance.lldap.ipv4_address}:${local.lldap_ports.webui}
+				reverse_proxy ${var.addresses.lldap.ipv4}:${local.lldap_ports.webui}
 			}
     EOT
   }
@@ -307,10 +283,10 @@ output "ingress" {
 
 output "authelia_address" {
   description = "Authelia's API endpoint, only reachable inside the cluster"
-  value       = "${incus_instance.authelia.ipv4_address}:${local.authelia_ports.api}"
+  value       = "${var.addresses.authelia.ipv4}:${local.authelia_ports.api}"
 }
 
 output "authelia_metrics_address" {
   description = "Authelia's prometheus metrics endpoint, only reachable inside the cluster"
-  value       = "${incus_instance.authelia.ipv4_address}:${local.authelia_ports.metrics}"
+  value       = "${var.addresses.authelia.ipv4}:${local.authelia_ports.metrics}"
 }

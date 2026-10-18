@@ -16,7 +16,7 @@ resource "incus_instance" "kavita" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci"]
   image    = "ghcr:kareadita/kavita:${var.versions.kavita}"
 
   device {
@@ -41,14 +41,9 @@ resource "incus_instance" "kavita" {
   }
 
   device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      name           = "eth1"
-      network        = "meshbr0"
-      "ipv4.gateway" = "none"
-      hwaddr         = "10:66:6a:0e:79:c2"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.kavita.nic
   }
 
   wait_for {
@@ -57,8 +52,6 @@ resource "incus_instance" "kavita" {
 
   config = {
     "environment.TZ" = var.timezone
-
-    "user.access_interface" = "eth1"
   }
 }
 
@@ -86,7 +79,7 @@ output "ingress" {
     caddy = <<-EOT
 			kavita.${var.private_domain} {
 				encode gzip
-				reverse_proxy ${incus_instance.kavita.ipv4_address}:${local.kavita_ports.webui}
+				reverse_proxy ${var.addresses.kavita.ipv4}:${local.kavita_ports.webui}
 			}
     EOT
   }

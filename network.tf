@@ -1,109 +1,32 @@
-resource "incus_network" "incusbr0_per_node" {
-  for_each = local.founding_members
-
-  name   = "incusbr0"
-  target = each.key
-  type   = "bridge"
-
-  config = {
-  }
-
-  depends_on = [
-    null_resource.post_projects,
-  ]
-}
-
-resource "incus_network" "incusbr0" {
-  name        = "incusbr0"
-  description = "Local network bridge (NAT)"
-
-  config = {
-  }
-
-  depends_on = [
-    null_resource.post_projects,
-    incus_network.incusbr0_per_node,
-  ]
-}
-
 locals {
-  # meshbr0 subnet, passed to services that need to trust or bypass mesh traffic
-  mesh_cidr = format("10.%d.%d.0/24", random_integer.meshbr0-v4-subnet-2.result, random_integer.meshbr0-v4-subnet-3.result)
-
-  # every MAC address literal in the configuration, instances pin them with hwaddr to keep their IPs across replacements
-  pinned_hwaddrs = flatten([
-    for f in fileset(path.root, "**/*.tf") : [
-      for m in regexall("\"((?:[0-9a-f]{2}:){5}[0-9a-f]{2})\"", lower(file("${path.root}/${f}"))) : m[0]
-    ] if !startswith(f, ".terraform/")
-  ])
+  # every MAC address literal in the configuration plus the OVN ones,
+  # instances pin them with hwaddr to keep their IPs across replacements
+  pinned_hwaddrs = concat(
+    flatten([
+      for f in fileset(path.root, "**/*.tf") : [
+        for m in regexall("\"((?:[0-9a-f]{2}:){5}[0-9a-f]{2})\"", lower(file("${path.root}/${f}"))) : m[0]
+      ] if !startswith(f, ".terraform/")
+    ]),
+    flatten([for m in values(var.addresses) : [for a in values(m) : lower(a.hwaddr)]]),
+  )
   duplicate_hwaddrs = distinct([
     for mac in local.pinned_hwaddrs : mac if length([for m in local.pinned_hwaddrs : m if m == mac]) > 1
   ])
-}
 
-// Generate random values for the meshbr0 IPv4 subnet.
-resource "random_integer" "meshbr0-v4-subnet-2" {
-  min = 100
-  max = 255
-}
-resource "random_integer" "meshbr0-v4-subnet-3" {
-  min = 0
-  max = 255
-}
-
-// Generate random values for the meshbr0 IPv6 subnet.
-resource "random_integer" "meshbr0-v6-subnet-2" {
-  min = 0
-  max = 65535
-}
-resource "random_integer" "meshbr0-v6-subnet-3" {
-  min = 0
-  max = 65535
-}
-resource "random_integer" "meshbr0-v6-subnet-4" {
-  min = 0
-  max = 65535
-}
-
-resource "incus_network" "meshbr0_per_node" {
-  for_each = local.founding_members
-
-  name   = "meshbr0"
-  target = each.key
-  type   = "bridge"
-
-  config = {
-    "tunnel.mesh.interface" = var.cluster.uplink
-  }
-
-  depends_on = [
-    null_resource.post_projects,
-  ]
-}
-
-resource "incus_network" "meshbr0" {
-  name        = "meshbr0"
-  description = "Internal mesh network bridge"
-
-  config = {
-    "ipv4.address" = "${cidrhost(local.mesh_cidr, 1)}/24"
-    "ipv4.nat"     = "false"
-    "ipv6.address" = "none"
-    # "ipv6.address"         = format("fd42:%x:%x:%x::/64", random_integer.meshbr0-v6-subnet-2.result, random_integer.meshbr0-v6-subnet-3.result, random_integer.meshbr0-v6-subnet-4.result)
-    # "ipv6.nat"             = "true"
-    "tunnel.mesh.id"       = "1000"
-    "tunnel.mesh.protocol" = "vxlan"
-  }
-
-  depends_on = [
-    null_resource.post_projects,
-    incus_network.meshbr0_per_node,
-  ]
-
-  lifecycle {
-    precondition {
-      condition     = length(local.duplicate_hwaddrs) == 0
-      error_message = "MAC addresses pinned more than once: ${join(", ", local.duplicate_hwaddrs)}"
+  # fixed OVN addresses per module and instance: the address for templates and the NIC that carries it
+  ovn_addresses = {
+    for module_name, instances in var.addresses : module_name => {
+      for name, address in instances : name => {
+        ipv4 = address.ipv4
+        nic = {
+          name    = "eth0"
+          network = module.ovn.network
+          hwaddr  = address.hwaddr
+          # CIDR form, Incus configures OCI containers statically instead of over DHCP
+          "ipv4.address" = "${address.ipv4}/${split("/", var.ovn.subnet)[1]}"
+          "ipv4.gateway" = cidrhost(var.ovn.subnet, 1)
+        }
+      }
     }
   }
 }
@@ -127,18 +50,33 @@ resource "incus_network" "lan_per_node" {
 resource "incus_network" "lan" {
   name        = "lan"
   type        = "physical"
-  description = "Direct local network access (without NAT)"
+  description = "Direct local network access (without NAT) and OVN uplink"
+
+  # only used by OVN networks, instances attached to lan directly still get their addresses from the router
+  config = {
+    "ipv4.gateway"    = var.cluster.gateway
+    "dns.nameservers" = split("/", var.cluster.gateway)[0]
+    # the OVN router's address on the LAN, the router's static route for the OVN subnet points at it
+    "ipv4.ovn.ranges" = "${var.ovn.router}-${var.ovn.router}"
+    # OVN subnets that are routed instead of NATed have to be listed here
+    "ipv4.routes" = var.ovn.subnet
+  }
 
   depends_on = [
     null_resource.post_projects,
     incus_network.lan_per_node,
   ]
+
+  lifecycle {
+    precondition {
+      condition     = length(local.duplicate_hwaddrs) == 0
+      error_message = "MAC addresses pinned more than once: ${join(", ", local.duplicate_hwaddrs)}"
+    }
+  }
 }
 
 resource "null_resource" "post_networks" {
   depends_on = [
-    incus_network.incusbr0,
-    incus_network.meshbr0,
     incus_network.lan,
   ]
 }

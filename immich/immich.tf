@@ -14,7 +14,7 @@ resource "incus_instance" "immich" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci"]
   image    = "ghcr:immich-app/immich-server:v${var.versions.immich}"
 
   device {
@@ -37,14 +37,9 @@ resource "incus_instance" "immich" {
   }
 
   device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      name           = "eth1"
-      network        = "meshbr0"
-      "ipv4.gateway" = "none"
-      hwaddr         = "10:66:6a:c5:be:fa"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.immich.nic
   }
 
   wait_for {
@@ -57,16 +52,16 @@ resource "incus_instance" "immich" {
     "environment.IMMICH_TELEMETRY_INCLUDE"          = "all"
     "environment.IMMICH_API_METRICS_PORT"           = local.immich_ports.api_metrics
     "environment.IMMICH_MICROSERVICES_METRICS_PORT" = local.immich_ports.jobs_metrics
-    "environment.DB_HOSTNAME"                       = incus_instance.immich_database.ipv4_address
+    "environment.DB_HOSTNAME"                       = var.addresses.immich_database.ipv4
     "environment.DB_USERNAME"                       = var.secrets.db_username
     "environment.DB_PASSWORD"                       = sensitive(var.secrets.db_password)
     "environment.DB_DATABASE_NAME"                  = var.db_name
-    "environment.REDIS_HOSTNAME"                    = incus_instance.immich_valkey.ipv4_address
-    "environment.IMMICH_MACHINE_LEARNING_URL"       = "http://${incus_instance.immich_machine_learning.ipv4_address}:${local.immich_ports.machine_learning}"
+    "environment.REDIS_HOSTNAME"                    = var.addresses.immich_valkey.ipv4
+    "environment.IMMICH_MACHINE_LEARNING_URL"       = "http://${var.addresses.immich_machine_learning.ipv4}:${local.immich_ports.machine_learning}"
     "environment.TZ"                                = var.timezone
-
-    "user.access_interface" = "eth1"
   }
+
+  depends_on = [incus_instance.immich_database, incus_instance.immich_valkey, incus_instance.immich_machine_learning]
 }
 
 resource "incus_storage_volume" "immich_model_cache" {
@@ -79,7 +74,7 @@ resource "incus_instance" "immich_machine_learning" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci"]
   image    = "ghcr:immich-app/immich-machine-learning:v${var.versions.immich}"
 
   device {
@@ -93,20 +88,13 @@ resource "incus_instance" "immich_machine_learning" {
   }
 
   device {
-    name = "eth0"
-    type = "nic"
-    properties = {
-      network = "incusbr0"
-      hwaddr  = "10:66:6a:fb:94:c6"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.immich_machine_learning.nic
   }
 
   wait_for {
     type = "ipv4"
-  }
-
-  config = {
-    "user.access_interface" = "eth0"
   }
 }
 
@@ -126,7 +114,7 @@ resource "incus_instance" "immich_database" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci", "datastore"]
   image    = "ghcr:immich-app/postgres:${var.versions.db}"
 
   # mounted one level above PGDATA so initdb gets an empty directory
@@ -141,12 +129,9 @@ resource "incus_instance" "immich_database" {
   }
 
   device {
-    name = "eth0"
-    type = "nic"
-    properties = {
-      network = "incusbr0"
-      hwaddr  = "10:66:6a:2a:a0:b4"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.immich_database.nic
   }
 
   wait_for {
@@ -159,8 +144,6 @@ resource "incus_instance" "immich_database" {
     "environment.POSTGRES_PASSWORD"    = sensitive(var.secrets.db_password)
     "environment.POSTGRES_INITDB_ARGS" = "--data-checksums"
     "environment.PGTZ"                 = var.timezone
-
-    "user.access_interface" = "eth0"
   }
 }
 
@@ -180,7 +163,7 @@ resource "incus_instance" "immich_valkey" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci", "datastore"]
   image    = "docker:valkey/valkey:${var.versions.cache}"
 
   device {
@@ -194,20 +177,13 @@ resource "incus_instance" "immich_valkey" {
   }
 
   device {
-    name = "eth0"
-    type = "nic"
-    properties = {
-      network = "incusbr0"
-      hwaddr  = "10:66:6a:3d:49:83"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.immich_valkey.nic
   }
 
   wait_for {
     type = "ipv4"
-  }
-
-  config = {
-    "user.access_interface" = "eth0"
   }
 }
 
@@ -244,7 +220,7 @@ output "ingress" {
     name  = "immich"
     caddy = <<-EOT
 			immich.${var.private_domain}, immich.${var.public_domain} {
-				reverse_proxy ${incus_instance.immich.ipv4_address}:${local.immich_ports.webui}
+				reverse_proxy ${var.addresses.immich.ipv4}:${local.immich_ports.webui}
 			}
     EOT
   }
@@ -253,7 +229,7 @@ output "ingress" {
 output "metrics_addresses" {
   description = "Prometheus metrics of the api and the job worker, only reachable inside the cluster"
   value = {
-    api  = "${incus_instance.immich.ipv4_address}:${local.immich_ports.api_metrics}"
-    jobs = "${incus_instance.immich.ipv4_address}:${local.immich_ports.jobs_metrics}"
+    api  = "${var.addresses.immich.ipv4}:${local.immich_ports.api_metrics}"
+    jobs = "${var.addresses.immich.ipv4}:${local.immich_ports.jobs_metrics}"
   }
 }

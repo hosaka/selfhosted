@@ -44,18 +44,13 @@ resource "incus_instance" "glance" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci"]
   image    = "docker:glanceapp/glance:v${var.versions.glance}"
 
   device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      name           = "eth1"
-      network        = "meshbr0"
-      "ipv4.gateway" = "none"
-      hwaddr         = "10:66:6a:c2:de:0e"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.glance.nic
   }
 
   file {
@@ -79,8 +74,6 @@ resource "incus_instance" "glance" {
   config = merge(local.glance_environment, {
     # files are uploaded after the start, and glance refuses an assets path that doesn't exist yet
     "oci.entrypoint" = "/bin/sh -c 'while [ ! -f /app/config/glance.yml ] || [ ! -f /app/assets/glance.css ]; do sleep 1; done; exec /app/glance --config /app/config/glance.yml'"
-
-    "user.access_interface" = "eth1"
   })
 }
 
@@ -116,7 +109,7 @@ output "ingress" {
 					uri /api/authz/forward-auth
 				}
 
-				reverse_proxy ${incus_instance.glance.ipv4_address}:${local.glance_ports.webui}
+				reverse_proxy ${var.addresses.glance.ipv4}:${local.glance_ports.webui}
 			}
     EOT
   }

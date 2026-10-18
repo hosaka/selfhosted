@@ -14,8 +14,8 @@ variable "mailer_from" {
 }
 
 variable "trusted_proxies" {
-  type    = string
-  default = "127.0.0.0/8,::1/128,10.0.0.0/8"
+  type    = list(string)
+  default = ["127.0.0.0/8", "::1/128", "10.0.0.0/8"]
 }
 
 variable "secrets" {
@@ -61,4 +61,12 @@ variable "versions" {
     forgejo = string
     db      = string
   })
+}
+
+# Fixed OVN address and NIC per instance, see addresses.auto.tfvars
+variable "addresses" {
+  type = map(object({
+    ipv4 = string
+    nic  = map(string)
+  }))
 }

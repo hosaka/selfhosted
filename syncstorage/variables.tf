@@ -40,3 +40,11 @@ variable "versions" {
     db          = string
   })
 }
+
+# Fixed OVN address and NIC per instance, see addresses.auto.tfvars
+variable "addresses" {
+  type = map(object({
+    ipv4 = string
+    nic  = map(string)
+  }))
+}

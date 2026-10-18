@@ -12,18 +12,13 @@ resource "incus_instance" "syncstorage" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci"]
   image    = "ghcr:mozilla-services/syncstorage-rs/syncserver-postgres:${var.versions.syncstorage}"
 
   device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      name           = "eth1"
-      network        = "meshbr0"
-      "ipv4.gateway" = "none"
-      hwaddr         = "10:66:6a:43:e2:4d"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.syncstorage.nic
   }
 
   wait_for {
@@ -36,8 +31,8 @@ resource "incus_instance" "syncstorage" {
     "environment.SYNC_PORT"                                 = "${local.syncstorage_ports.api}"
     "environment.SYNC_HUMAN_LOGS"                           = "true"
     "environment.SYNC_MASTER_SECRET"                        = sensitive(var.secrets.master_secret)
-    "environment.SYNC_SYNCSTORAGE__DATABASE_URL"            = "postgres://${var.secrets.db_username}:${sensitive(var.secrets.db_password)}@${incus_instance.syncstorage_database.ipv4_address}:${local.syncstorage_ports.db}/${var.db_name}"
-    "environment.SYNC_TOKENSERVER__DATABASE_URL"            = "postgres://${var.secrets.db_username}:${sensitive(var.secrets.db_password)}@${incus_instance.syncstorage_database.ipv4_address}:${local.syncstorage_ports.db}/${var.db_name}"
+    "environment.SYNC_SYNCSTORAGE__DATABASE_URL"            = "postgres://${var.secrets.db_username}:${sensitive(var.secrets.db_password)}@${var.addresses.syncstorage_database.ipv4}:${local.syncstorage_ports.db}/${var.db_name}"
+    "environment.SYNC_TOKENSERVER__DATABASE_URL"            = "postgres://${var.secrets.db_username}:${sensitive(var.secrets.db_password)}@${var.addresses.syncstorage_database.ipv4}:${local.syncstorage_ports.db}/${var.db_name}"
     "environment.SYNC_TOKENSERVER__ENABLED"                 = "true"
     "environment.SYNC_TOKENSERVER__RUN_MIGRATIONS"          = "true"
     "environment.SYNC_TOKENSERVER__NODE_TYPE"               = "postgres"
@@ -45,9 +40,9 @@ resource "incus_instance" "syncstorage" {
     "environment.SYNC_TOKENSERVER__FXA_OAUTH_SERVER_URL"    = "https://oauth.accounts.firefox.com"
     "environment.SYNC_TOKENSERVER__FXA_METRICS_HASH_SECRET" = sensitive(var.secrets.metrics_hash_secret)
     "environment.SYNC_TOKENSERVER__INIT_NODE_URL"           = "https://ffs.${var.public_domain}"
-
-    "user.access_interface" = "eth1"
   }
+
+  depends_on = [incus_instance.syncstorage_database]
 }
 
 resource "incus_storage_volume" "syncstorage_db" {
@@ -66,7 +61,7 @@ resource "incus_instance" "syncstorage_database" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci", "datastore"]
   image    = "docker:postgres:${var.versions.db}"
 
   device {
@@ -80,12 +75,9 @@ resource "incus_instance" "syncstorage_database" {
   }
 
   device {
-    name = "eth0"
-    type = "nic"
-    properties = {
-      network = "incusbr0"
-      hwaddr  = "10:66:6a:bb:99:91"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.syncstorage_database.nic
   }
 
   wait_for {
@@ -97,8 +89,6 @@ resource "incus_instance" "syncstorage_database" {
     "environment.POSTGRES_USER"     = var.secrets.db_username
     "environment.POSTGRES_PASSWORD" = sensitive(var.secrets.db_password)
     "environment.PGTZ"              = var.timezone
-
-    "user.access_interface" = "eth0"
   }
 }
 
@@ -124,7 +114,7 @@ output "ingress" {
     name  = "ffs"
     caddy = <<-EOT
 			ffs.${var.public_domain} {
-				reverse_proxy ${incus_instance.syncstorage.ipv4_address}:${local.syncstorage_ports.api}
+				reverse_proxy ${var.addresses.syncstorage.ipv4}:${local.syncstorage_ports.api}
 			}
     EOT
   }

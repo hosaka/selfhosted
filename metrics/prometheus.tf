@@ -17,7 +17,7 @@ locals {
     authelia_target  = var.authelia_address
     immich_targets   = var.immich_addresses
     restic_targets   = var.restic_exporter_addresses
-    blackbox_target  = "${incus_instance.blackbox.ipv4_address}:${local.blackbox_ports.api}"
+    blackbox_target  = "${var.addresses.blackbox.ipv4}:${local.blackbox_ports.api}"
     probes = flatten([
       for service, urls in var.probes : [
         for url in urls : {
@@ -28,10 +28,10 @@ locals {
       ]
     ])
     prometheus_port = local.prometheus_ports.api
-    loki_target     = "${incus_instance.loki.ipv4_address}:${local.loki_ports.api}"
+    loki_target     = "${var.addresses.loki.ipv4}:${local.loki_ports.api}"
     alloy_targets = {
-      for node, alloy in incus_instance.alloy :
-      node => "${alloy.ipv4_address}:${local.alloy_ports.api}"
+      for node in var.log_collectors :
+      node => "${var.addresses["alloy-${node}"].ipv4}:${local.alloy_ports.api}"
     }
   })
 }
@@ -73,18 +73,13 @@ resource "incus_instance" "prometheus" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci"]
   image    = "ghcr:prometheus/prometheus:v${var.versions.prometheus}"
 
   device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      name           = "eth1"
-      network        = "meshbr0"
-      "ipv4.gateway" = "none"
-      hwaddr         = "10:66:6a:23:75:b2"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.prometheus.nic
   }
 
   file {
@@ -142,15 +137,6 @@ resource "incus_instance" "prometheus" {
     }
   }
 
-  device {
-    name = "eth0"
-    type = "nic"
-    properties = {
-      network = "incusbr0"
-      hwaddr  = "10:66:6a:cb:22:67"
-    }
-  }
-
   wait_for {
     type = "ipv4"
   }
@@ -158,8 +144,6 @@ resource "incus_instance" "prometheus" {
   config = {
     // enable-lifecycle allows reloading config by POSTing to `/-/reload`
     "oci.entrypoint" = local.prometheus_command
-
-    "user.access_interface" = "eth1"
   }
 
   depends_on = [incus_server.metrics, incus_certificate.metrics_key]

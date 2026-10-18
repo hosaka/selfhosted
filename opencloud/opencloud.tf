@@ -61,7 +61,7 @@ resource "incus_instance" "opencloud" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci"]
   image    = "docker:opencloudeu/opencloud-rolling:${var.versions.opencloud}"
 
   device {
@@ -85,14 +85,9 @@ resource "incus_instance" "opencloud" {
   }
 
   device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      name           = "eth1"
-      network        = "meshbr0"
-      "ipv4.gateway" = "none"
-      hwaddr         = "10:66:6a:66:55:4a"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.opencloud.nic
   }
 
   file {
@@ -160,8 +155,6 @@ resource "incus_instance" "opencloud" {
     "environment.NOTIFICATIONS_SMTP_SENDER"     = coalesce(var.smtp_sender, "OpenCloud <cloud@${var.public_domain}>")
     "environment.NOTIFICATIONS_SMTP_USERNAME"   = sensitive(var.secrets.smtp_username)
     "environment.NOTIFICATIONS_SMTP_PASSWORD"   = sensitive(var.secrets.smtp_password)
-
-    "user.access_interface" = "eth1"
   }
 }
 
@@ -199,7 +192,7 @@ output "ingress" {
     name  = "opencloud"
     caddy = <<-EOT
 			cloud.${var.public_domain} {
-				reverse_proxy ${incus_instance.opencloud.ipv4_address}:${local.opencloud_ports.webui}
+				reverse_proxy ${var.addresses.opencloud.ipv4}:${local.opencloud_ports.webui}
 			}
     EOT
   }

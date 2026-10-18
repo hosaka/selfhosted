@@ -254,18 +254,13 @@ resource "incus_instance" "backrest" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci"]
   image    = "ghcr:garethgeorge/backrest:v${var.versions.backrest}"
 
   device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      name           = "eth1"
-      network        = "meshbr0"
-      "ipv4.gateway" = "none"
-      hwaddr         = "10:66:6a:05:47:c1"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.backrest.nic
   }
 
   file {
@@ -375,8 +370,6 @@ resource "incus_instance" "backrest" {
     "environment.BACKREST_DATA"  = "${local.data_path}/data"
     "environment.XDG_CACHE_HOME" = "${local.data_path}/cache"
     "environment.INCUS_CONF"     = local.incus_conf
-
-    "user.access_interface" = "eth1"
   }
 
   lifecycle {

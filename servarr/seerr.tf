@@ -5,7 +5,7 @@ locals {
 
   seerr_caddy = <<-EOT
   seerr.${var.private_domain} {
-  	reverse_proxy ${incus_instance.seerr.ipv4_address}:${local.seerr_ports.webui}
+  	reverse_proxy ${var.addresses.seerr.ipv4}:${local.seerr_ports.webui}
   }
   EOT
 }
@@ -25,7 +25,7 @@ resource "incus_instance" "seerr" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci"]
   image    = "ghcr:hotio/seerr:release-${var.versions.seerr}"
 
   device {
@@ -39,14 +39,9 @@ resource "incus_instance" "seerr" {
   }
 
   device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      name           = "eth1"
-      network        = "meshbr0"
-      "ipv4.gateway" = "none"
-      hwaddr         = "10:66:6a:ac:03:83"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.seerr.nic
   }
 
   wait_for {
@@ -55,7 +50,5 @@ resource "incus_instance" "seerr" {
 
   config = {
     "environment.TZ" = var.timezone
-
-    "user.access_interface" = "eth1"
   }
 }

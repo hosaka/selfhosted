@@ -5,7 +5,7 @@ locals {
 
   sonarr_caddy = <<-EOT
   sonarr.${var.private_domain} {
-  	reverse_proxy ${incus_instance.sonarr.ipv4_address}:${local.sonarr_ports.webui}
+  	reverse_proxy ${var.addresses.sonarr.ipv4}:${local.sonarr_ports.webui}
   }
   EOT
 }
@@ -25,7 +25,7 @@ resource "incus_instance" "sonarr" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci"]
   image    = "ghcr:hotio/sonarr:release-${var.versions.sonarr}"
 
   device {
@@ -49,14 +49,9 @@ resource "incus_instance" "sonarr" {
   }
 
   device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      name           = "eth1"
-      network        = "meshbr0"
-      "ipv4.gateway" = "none"
-      hwaddr         = "10:66:6a:b3:4c:0d"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.sonarr.nic
   }
 
   wait_for {
@@ -66,7 +61,5 @@ resource "incus_instance" "sonarr" {
   config = {
     "environment.SONARR__AUTH__APIKEY" = sensitive(var.secrets.sonarr_api_key)
     "environment.TZ"                   = var.timezone
-
-    "user.access_interface" = "eth1"
   }
 }

@@ -1,6 +1,8 @@
 dns:
   domain: hosaka.cc
   hostname: node-1
+  nameservers:
+    - 10.10.0.1
 time:
   timezone: Asia/Tokyo
 bonds:
@@ -11,8 +13,12 @@ bonds:
       - enp1s0 # 2.5GbE
       - eno1 # 1GbE
     addresses:
-      - dhcp4
+      # fixed: cluster, linstor and ovn tunnels all use this address
+      - 10.10.0.101/24
       - slaac
+    routes:
+      - to: 0.0.0.0/0
+        via: 10.10.0.1
     roles:
       - management
       - cluster

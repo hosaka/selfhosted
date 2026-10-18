@@ -26,7 +26,7 @@ resource "incus_instance" "slskd" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci"]
   image    = "ghcr:slskd/slskd:${var.versions.slskd}"
 
   device {
@@ -50,14 +50,9 @@ resource "incus_instance" "slskd" {
   }
 
   device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      name           = "eth1"
-      network        = "meshbr0"
-      "ipv4.gateway" = "none"
-      hwaddr         = "10:66:6a:39:63:d6"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.slskd.nic
   }
 
   wait_for {
@@ -89,8 +84,6 @@ resource "incus_instance" "slskd" {
 
     # slskd refuses to start when the dirs are missing
     "oci.entrypoint" = "/usr/bin/tini -- /bin/sh -c 'umask ${var.umask} && mkdir -p ${join(" ", values(local.slskd_dirs))} && exec /entrypoint.sh /slskd/slskd'"
-
-    "user.access_interface" = "eth1"
   }
 }
 
@@ -118,7 +111,7 @@ output "ingress" {
 
     caddy = <<-EOT
     slskd.${var.private_domain} {
-      reverse_proxy ${incus_instance.slskd.ipv4_address}:${local.slskd_ports.webui}
+      reverse_proxy ${var.addresses.slskd.ipv4}:${local.slskd_ports.webui}
     }
     EOT
 
@@ -126,7 +119,7 @@ output "ingress" {
     [[proxies]]
     name = "slskd-xfer"
     type = "tcp"
-    localIP = "${incus_instance.slskd.ipv4_address}"
+    localIP = "${var.addresses.slskd.ipv4}"
     localPort = ${local.slskd_ports.listen}
     remotePort = ${local.slskd_ports.listen}
     EOT

@@ -15,18 +15,13 @@ resource "incus_instance" "forgejo_anubis" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci"]
   image    = "ghcr:techarohq/anubis:v${var.versions.anubis}"
 
   device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      name           = "eth1"
-      network        = "meshbr0"
-      "ipv4.gateway" = "none"
-      hwaddr         = "10:66:6a:1b:e3:3d"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.forgejo_anubis.nic
   }
 
   file {
@@ -41,12 +36,12 @@ resource "incus_instance" "forgejo_anubis" {
   }
 
   config = {
-    "environment.TARGET"           = "http://${incus_instance.forgejo.ipv4_address}:${local.forgejo_ports.webui}"
+    "environment.TARGET"           = "http://${var.addresses.forgejo.ipv4}:${local.forgejo_ports.webui}"
     "environment.SERVE_ROBOTS_TXT" = "true"
     "environment.DIFFICULTY"       = "6"
-
-    "user.access_interface" = "eth1"
   }
+
+  depends_on = [incus_instance.forgejo]
 }
 
 resource "incus_storage_volume" "forgejo_data" {
@@ -65,7 +60,7 @@ resource "incus_instance" "forgejo" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci"]
   image    = "codeberg:forgejo/forgejo:${var.versions.forgejo}-rootless"
 
   device {
@@ -79,14 +74,9 @@ resource "incus_instance" "forgejo" {
   }
 
   device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      name           = "eth1"
-      network        = "meshbr0"
-      "ipv4.gateway" = "none"
-      hwaddr         = "10:66:6a:3b:e5:1e"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.forgejo.nic
   }
 
   file {
@@ -98,14 +88,14 @@ resource "incus_instance" "forgejo" {
       db_name         = var.db_name
       db_username     = var.secrets.db_username
       db_password     = sensitive(var.secrets.db_password)
-      db_host         = incus_instance.forgejo_database.ipv4_address
+      db_host         = var.addresses.forgejo_database.ipv4
       smtp_address    = var.secrets.smtp_address
       smtp_port       = var.smtp_port
       mailer_from     = coalesce(var.mailer_from, "Code <noreply@code.${var.public_domain}>")
       mailer_user     = sensitive(var.secrets.mailer_user)
       mailer_password = sensitive(var.secrets.mailer_password)
       internal_token  = sensitive(var.secrets.internal_token)
-      trusted_proxies = var.trusted_proxies
+      trusted_proxies = join(",", var.trusted_proxies)
       secret_key      = sensitive(var.secrets.secret_key)
       lfs_jwt_secret  = sensitive(var.secrets.lfs_jwt_secret)
     })
@@ -134,8 +124,6 @@ resource "incus_instance" "forgejo" {
     "environment.USER_UID"  = "1000"
     "environment.USER_GID"  = "1000"
     "environment.GNUPGHOME" = "/var/lib/gitea/.gnupg"
-
-    "user.access_interface" = "eth1"
   }
 
   exec = {
@@ -157,6 +145,8 @@ resource "incus_instance" "forgejo" {
       gid = 1000
     }
   }
+
+  depends_on = [incus_instance.forgejo_database]
 }
 
 resource "incus_storage_volume" "forgejo_db" {
@@ -175,7 +165,7 @@ resource "incus_instance" "forgejo_database" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci", "datastore"]
   image    = "docker:postgres:${var.versions.db}"
 
   device {
@@ -189,12 +179,9 @@ resource "incus_instance" "forgejo_database" {
   }
 
   device {
-    name = "eth0"
-    type = "nic"
-    properties = {
-      network = "incusbr0"
-      hwaddr  = "10:66:6a:35:22:69"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.forgejo_database.nic
   }
 
   wait_for {
@@ -206,8 +193,6 @@ resource "incus_instance" "forgejo_database" {
     "environment.POSTGRES_USER"     = var.secrets.db_username
     "environment.POSTGRES_PASSWORD" = sensitive(var.secrets.db_password)
     "environment.PGTZ"              = var.timezone
-
-    "user.access_interface" = "eth0"
   }
 }
 
@@ -238,27 +223,27 @@ output "ingress" {
     name       = "code"
     caddy_apex = <<-EOT
 			handle_path /sh/dotinstall {
-				reverse_proxy ${incus_instance.forgejo.ipv4_address}:${local.forgejo_ports.webui}
+				reverse_proxy ${var.addresses.forgejo.ipv4}:${local.forgejo_ports.webui}
 				rewrite * /hosaka/.dotfiles/raw/branch/main/.local/bin/dotinstall
 			}
 			handle_path /public.pgp {
-				reverse_proxy ${incus_instance.forgejo.ipv4_address}:${local.forgejo_ports.webui}
+				reverse_proxy ${var.addresses.forgejo.ipv4}:${local.forgejo_ports.webui}
 				rewrite * /hosaka.gpg
 			}
 			handle_path /void/* {
-				reverse_proxy ${incus_instance.forgejo.ipv4_address}:${local.forgejo_ports.webui}
+				reverse_proxy ${var.addresses.forgejo.ipv4}:${local.forgejo_ports.webui}
 				rewrite * /api/packages/hosaka/generic/vast-packages/{path}
 			}
     EOT
     caddy      = <<-EOT
 			code.${var.public_domain} {
-				reverse_proxy ${incus_instance.forgejo_anubis.ipv4_address}:${local.forgejo_anubis_ports.proxy} {
+				reverse_proxy ${var.addresses.forgejo_anubis.ipv4}:${local.forgejo_anubis_ports.proxy} {
 					header_up X-Real-IP {remote_host}
 					header_up X-Http-Version {http.request.proto}
 				}
 			}
 			code.${var.private_domain} {
-				reverse_proxy ${incus_instance.forgejo.ipv4_address}:${local.forgejo_ports.webui}
+				reverse_proxy ${var.addresses.forgejo.ipv4}:${local.forgejo_ports.webui}
 			}
     EOT
     frpc       = <<-EOT
@@ -267,7 +252,7 @@ output "ingress" {
       type = "tcpmux"
       multiplexer = "httpconnect"
       customDomains = ["git.${var.public_domain}"]
-      localIP = "${incus_instance.forgejo.ipv4_address}"
+      localIP = "${var.addresses.forgejo.ipv4}"
       localPort = ${local.forgejo_ports.ssh}
     EOT
   }

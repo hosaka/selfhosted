@@ -18,7 +18,7 @@ resource "incus_instance" "gotify" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci"]
   image    = "ghcr:gotify/server:${var.versions.gotify}"
 
   device {
@@ -32,14 +32,9 @@ resource "incus_instance" "gotify" {
   }
 
   device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      name           = "eth1"
-      network        = "meshbr0"
-      "ipv4.gateway" = "none"
-      hwaddr         = "10:66:6a:65:54:f2"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.gotify.nic
   }
 
   wait_for {
@@ -54,8 +49,6 @@ resource "incus_instance" "gotify" {
     "environment.GOTIFY_OIDC_REDIRECTURL"   = "https://gotify.${var.public_domain}/auth/oidc/callback"
     "environment.GOTIFY_OIDC_AUTOREGISTER"  = "true"
     "environment.GOTIFY_OIDC_USERNAMECLAIM" = "preferred_username"
-
-    "user.access_interface" = "eth1"
   }
 }
 
@@ -69,7 +62,7 @@ resource "incus_instance" "diun" {
   type = "container"
 
   target   = var.target
-  profiles = ["default"]
+  profiles = ["default", "oci"]
   image    = "ghcr:crazy-max/diun:${var.versions.diun}"
 
   device {
@@ -83,14 +76,9 @@ resource "incus_instance" "diun" {
   }
 
   device {
-    name = "eth1"
-    type = "nic"
-    properties = {
-      name           = "eth1"
-      network        = "meshbr0"
-      "ipv4.gateway" = "none"
-      hwaddr         = "10:66:6a:7a:d0:dc"
-    }
+    name       = "eth0"
+    type       = "nic"
+    properties = var.addresses.diun.nic
   }
 
   wait_for {
@@ -106,7 +94,7 @@ resource "incus_instance" "diun" {
   # TODO: template this as a config file and pass it with --conifg, see https://crazymax.dev/diun/config/
 
   config = {
-    "environment.DIUN_NOTIF_GOTIFY_ENDPOINT"   = "http://${incus_instance.gotify.ipv4_address}"
+    "environment.DIUN_NOTIF_GOTIFY_ENDPOINT"   = "http://${var.addresses.gotify.ipv4}"
     "environment.DIUN_NOTIF_GOTIFY_TOKEN"      = "${sensitive(var.secrets.gotify_token)}"
     "environment.DIUN_WATCH_WORKERS"           = "10"
     "environment.DIUN_WATCH_SCHEDULE"          = "0 */6 * * *"
@@ -121,8 +109,6 @@ resource "incus_instance" "diun" {
     "environment.DIUN_PROVIDERS_FILE_FILENAME" = "/config.yml"
 
     "oci.entrypoint" = "/bin/sh -c 'while [ ! -f /config.yml ]; do sleep 1; done; exec diun serve'"
-
-    "user.access_interface" = "eth1"
   }
 }
 
@@ -147,13 +133,13 @@ output "ingress" {
     name  = "gotify"
     caddy = <<-EOT
 			gotify.${var.public_domain} {
-				reverse_proxy ${incus_instance.gotify.ipv4_address}:${local.gotify_ports.webui}
+				reverse_proxy ${var.addresses.gotify.ipv4}:${local.gotify_ports.webui}
 			}
     EOT
   }
 }
 
 output "gotify_address" {
-  description = "Gotify's address on the mesh, for services that send notifications"
-  value       = "http://${incus_instance.gotify.ipv4_address}:${local.gotify_ports.webui}"
+  description = "Gotify's address, for services that send notifications"
+  value       = "http://${var.addresses.gotify.ipv4}:${local.gotify_ports.webui}"
 }
