@@ -1,6 +1,6 @@
 versions = {
   atuin = {
-    atuin = "18.24.0"
+    atuin = "18.24.1"
     db    = "18-alpine"
   }
   backups = {
@@ -74,7 +74,7 @@ versions = {
   }
   qbittorrent = {
     qbittorrent = "5.2.4"
-    qbitmanage  = "4.13.0"
+    qbitmanage  = "4.14.0"
   }
   sabnzbd = {
     sabnzbd = "5.1.3"
