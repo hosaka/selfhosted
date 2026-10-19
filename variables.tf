@@ -10,7 +10,7 @@ variable "private_domain" {
   type = string
 }
 
-# Credentials for each module, see secrets.auto.tfvars (sops encrypted as secrets.default.tfvars).
+# Credentials for each module, see secrets.auto.tfvars (age encrypted as secrets.auto.tfvars.age).
 variable "secrets" {
   type = map(any)
 }

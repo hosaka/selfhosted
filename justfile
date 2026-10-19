@@ -162,9 +162,7 @@ bootstrap-linstor: (onpath 'incus') (onpath 'tofu') (onpath 'yq')
 
 [doc('format, validate and lint the configuration')]
 lint *args: (onpath 'tofu') (onpath 'git')
-    # sops-encrypted tfvars are JSON, which fmt can't parse
     git ls-files --cached --others --exclude-standard '*.tf' '*.tfvars' '*.tftest.hcl' \
-      | grep -vx 'secrets.default.tfvars' \
       | xargs tofu fmt -check -diff
     tofu validate -lint=all {{ args }}
 
@@ -249,65 +247,99 @@ prune: (onpath 'incus') (onpath 'jq')
 restore-volume volume snapshot: (onpath 'incus')
     incus exec -t backrest -- restore-volume {{ volume }} {{ snapshot }}
 
-[arg('target', pattern='all|auth|keys|recovery|secrets', help='target to entrypt')]
-[doc('encrypt files for storing them in git repository')]
-encrypt target: (onpath 'sops') (onpath 'age') (onpath 'age-plugin-yubikey')
-    @just _encrypt-{{ target }}
+[arg('files', help='Plaintext files or their .age copies, every .age file in the repo by default')]
+[doc('encrypt files to the YubiKeys in recipients.txt as <file>.age, by default the ones changed since')]
+[positional-arguments]
+encrypt *files: (onpath 'age') (onpath 'git')
+    #!/usr/bin/env bash
+    set -euo pipefail
 
-[private]
-_encrypt-secrets:
-    sops encrypt ./secrets.auto.tfvars > ./secrets.default.tfvars
+    if [ $# -gt 0 ]; then
+      files=("${@%.age}")
+    else
+      mapfile -t files < <(git ls-files --cached --others --exclude-standard '*.age' | sed 's/\.age$//')
+    fi
 
-[private]
-_encrypt-keys:
-    sops encrypt ./incus/client.key > ./incus/client.key.enc
-    sops encrypt ./incus/client.pfx > ./incus/client.pfx.enc
-    sops encrypt ./metrics/metrics.key > ./metrics/metrics.key.enc
-    sops encrypt ./backups/backup.key > ./backups/backup.key.enc
+    # encrypt and decrypt copy the modification time over, equal times mean the two are in sync
+    for f in "${files[@]}"; do
+      if [ $# -eq 0 ]; then
+        # not decrypted in this clone, or state.key which never is
+        if [ ! -e "$f" ]; then continue; fi
+        # a newer version came in with git that isn't decrypted yet, encrypting would undo it
+        if [ "$f.age" -nt "$f" ]; then echo "skipped $f: $f.age is newer, decrypt it first" >&2; continue; fi
+        if [ ! "$f" -nt "$f.age" ]; then continue; fi
+      fi
+      if ! git check-ignore -q "$f"; then
+        echo "$f is not ignored by git, add it to .gitignore before encrypting it" >&2
+        exit 1
+      fi
+      age --encrypt --recipients-file recipients.txt --output "$f.age" "$f"
+      touch -r "$f" "$f.age"
+      echo "encrypted $f"
+    done
 
-[private]
-_encrypt-recovery:
-    sops encrypt ./incus/node-1/recovery.key > ./incus/node-1/recovery.key.enc
-    sops encrypt ./incus/node-2/recovery.key > ./incus/node-2/recovery.key.enc
-    sops encrypt ./incus/node-3/recovery.key > ./incus/node-3/recovery.key.enc
-    sops encrypt ./incus/node-4/recovery.key > ./incus/node-4/recovery.key.enc
+[arg('files', help='Plaintext files or their .age copies, every .age file in the repo by default')]
+[doc('decrypt <file>.age files with a connected YubiKey, by default the ones changed since')]
+[positional-arguments]
+decrypt *files: (onpath 'age') (onpath 'age-plugin-yubikey') (onpath 'git')
+    #!/usr/bin/env bash
+    set -euo pipefail
+    umask 077
 
-[private]
-_encrypt-auth:
-    sops encrypt ./auth/private.pem > ./auth/private.pem.enc
+    if [ $# -gt 0 ]; then
+      files=("${@%.age}")
+    else
+      mapfile -t files < <(git ls-files --cached --others --exclude-standard '*.age' | sed 's/\.age$//')
+    fi
 
-[private]
-_encrypt-all: _encrypt-secrets _encrypt-keys _encrypt-recovery _encrypt-auth
+    identities=$(age-plugin-yubikey --identity 2>/dev/null)
+    if [[ $identities != *AGE-PLUGIN-YUBIKEY-* ]]; then echo "no YubiKey with an age identity is plugged in" >&2; exit 1; fi
 
-[arg('target', pattern='all|auth|keys|recovery|secrets', help='target to decrypt')]
-[doc('decrypt files stored in git repository')]
-decrypt target: (onpath 'sops') (onpath 'age') (onpath 'age-plugin-yubikey')
-    @just _decrypt-{{ target }}
+    for f in "${files[@]}"; do
+      # only state.key.sh decrypts it, and never to disk
+      if [ "$f" = state.key ]; then continue; fi
+      if [ $# -eq 0 ] && [ -e "$f" ]; then
+        if [ "$f" -nt "$f.age" ]; then echo "skipped $f: it has changes, encrypt it first" >&2; continue; fi
+        if [ ! "$f.age" -nt "$f" ]; then continue; fi
+      fi
+      age --decrypt --identity - --output "$f" "$f.age" <<<"$identities"
+      touch -r "$f.age" "$f"
+      echo "decrypted $f"
+    done
 
-[private]
-_decrypt-secrets:
-    sops decrypt ./secrets.default.tfvars > ./secrets.auto.tfvars
+[doc('re-encrypt every .age file to recipients.txt, after adding or removing a YubiKey')]
+rekey: (onpath 'age') (onpath 'age-plugin-yubikey') (onpath 'git')
+    #!/usr/bin/env bash
+    set -euo pipefail
 
-[private]
-_decrypt-keys:
-    sops decrypt ./incus/client.key.enc > ./incus/client.key
-    sops decrypt ./incus/client.pfx.enc > ./incus/client.pfx
-    sops decrypt ./metrics/metrics.key.enc > ./metrics/metrics.key
-    sops decrypt ./backups/backup.key.enc > ./backups/backup.key
+    mapfile -t files < <(git ls-files --cached --others --exclude-standard '*.age')
+    identities=$(age-plugin-yubikey --identity 2>/dev/null)
+    if [[ $identities != *AGE-PLUGIN-YUBIKEY-* ]]; then echo "no YubiKey with an age identity is plugged in" >&2; exit 1; fi
 
-[private]
-_decrypt-recovery:
-    sops decrypt ./incus/node-1/recovery.key.enc > ./incus/node-1/recovery.key
-    sops decrypt ./incus/node-2/recovery.key.enc > ./incus/node-2/recovery.key
-    sops decrypt ./incus/node-3/recovery.key.enc > ./incus/node-3/recovery.key
-    sops decrypt ./incus/node-4/recovery.key.enc > ./incus/node-4/recovery.key
+    for f in "${files[@]}"; do
+      # from one age straight into the other, the plaintext never touches the disk
+      age --decrypt --identity - "$f" <<<"$identities" \
+        | age --encrypt --recipients-file recipients.txt --output "$f.tmp"
+      # keep the modification time, encrypt and decrypt compare it with the plaintext's
+      touch -r "$f" "$f.tmp"
+      mv "$f.tmp" "$f"
+      echo "re-encrypted $f"
+    done
 
-[private]
-_decrypt-auth:
-    sops decrypt ./auth/private.pem.enc > ./auth/private.pem
+[doc('generate the passphrase state and plan files are encrypted with (state.tf), only needed once')]
+state-key: (onpath 'age') (onpath 'openssl')
+    #!/usr/bin/env bash
+    set -euo pipefail
 
-[private]
-_decrypt-all: _decrypt-secrets _decrypt-keys _decrypt-recovery _decrypt-auth
+    # a new passphrase can't decrypt the existing state
+    if [ -e state.key.age ]; then
+      echo "state.key.age already exists, replacing it would make the state unreadable" >&2
+      exit 1
+    fi
+
+    # piped straight into age, the passphrase is never shown or written to disk
+    openssl rand -base64 48 | tr -d '\n' | age --encrypt --recipients-file recipients.txt --output state.key.age
+    echo "created state.key.age"
 
 [arg('name', help='Instance name the line starts with')]
 [arg('kind', pattern='address', help='What to generate')]

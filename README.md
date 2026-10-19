@@ -122,17 +122,25 @@ When a node boots, Incus starts its instances one by one by `boot.autostart.prio
 
 ### Configuration
 
-All applications are configured with a single [secrets.default.tfvars](secrets.default.tfvars). This file is encrypted using [SOPS](https://getsops.io/docs/) with [age](https://age-encryption.org/) and must be decrypted first before it can be used:
+All applications are configured with a single [secrets.auto.tfvars.age](secrets.auto.tfvars.age) and encrypted with [age](https://age-encryption.org/). Same thing goes for other certs and keys ending with `.age`. They are encrypted for every YubiKey in [recipients.txt](recipients.txt) with [age-plugin-yubikey](https://github.com/str4d/age-plugin-yubikey), and any one of them can decrypt them. With a YubiKey plugged in, decrypt the files that changed since the last time:
 ```bash
-just decrypt secrets
+just decrypt
 ```
 
-When changes were made to the secrets, they can be encrypted back for git storage:
+After changing the secrets, encrypt them back for git storage. Like `decrypt`, it only touches files that changed, and a new file gets encrypted by naming it:
 ```bash
-just encrypt secrets
+just encrypt
+just encrypt path/to/new.key
 ```
 
-> Prior to commit `6adee98aed` SOPS with PGP backend was used.
+After adding or removing a YubiKey in `recipients.txt`, re-encrypt everything to the new list. Removing one doesn't revoke it, the git history still holds files it can decrypt:
+```bash
+just rekey
+```
+
+The state and saved plans are encrypted too (as configured in [state.tf](state.tf)), with a passphrase stored in `state.key.age`. OpenTofu gets it from [state.key.sh](state.key.sh) on every command that reads the state, so those need a YubiKey plugged in as well. `just state-key` generated it once, losing it means losing the state.
+
+> I have previously used `sops` to manage secrets but plain age turned out to be enough.
 
 ## Backups
 
