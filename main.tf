@@ -166,6 +166,19 @@ module "auth" {
   depends_on     = [null_resource.post_server, module.linstor]
 }
 
+# Users and groups in LLDAP, and by extension in Authelia.
+# Skip this module with -exclude=module.users then apply module.auth first on a fresh build.
+module "users" {
+  source        = "./users"
+  public_domain = var.public_domain
+
+  users = var.users
+
+  secrets = {
+    authelia_password = var.secrets.auth.lldap_password
+  }
+}
+
 module "atuin" {
   source         = "./atuin"
   versions       = var.versions.atuin

@@ -15,6 +15,12 @@ variable "secrets" {
   type = map(any)
 }
 
+# LLDAP users by username, see users/variables.tf. Set in secrets.auto.tfvars next to `secrets`.
+variable "users" {
+  type    = any
+  default = {}
+}
+
 variable "cluster" {
   type = object({
     name = optional(string, "cluster")

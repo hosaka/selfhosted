@@ -16,6 +16,11 @@ terraform {
       source  = "hashicorp/null"
       version = "~>3.3.0"
     }
+
+    lldap = {
+      source  = "tasansga/lldap"
+      version = "~>0.4.5"
+    }
   }
 }
 

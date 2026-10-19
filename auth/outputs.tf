@@ -45,3 +45,12 @@ output "authelia_metrics_address" {
   description = "Authelia's prometheus metrics endpoint, only reachable inside the cluster"
   value       = "${var.addresses.authelia.ipv4}:${local.authelia_ports.metrics}"
 }
+
+output "lldap_address" {
+  description = "LLDAP's LDAP endpoint, not exposed through Caddy"
+  value       = "${var.addresses.lldap.ipv4}:${local.lldap_ports.ldap}"
+}
+
+output "lldap_base_dn" {
+  value = local.lldap_base_dn
+}

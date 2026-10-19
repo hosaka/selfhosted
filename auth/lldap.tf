@@ -17,8 +17,7 @@ resource "incus_storage_volume" "lldap_data" {
   }, var.snapshots)
 }
 
-# todo: figure out how to create default authelia user/pwd with lldap_password_manager gruop
-# probably using the lldap bootstrap.sh script as suggested in the readme
+# users and groups are managed by the users module
 resource "incus_instance" "lldap" {
   name = "lldap"
   type = "container"
