@@ -129,6 +129,14 @@ pages:
                   - title: Void mirror
                     url: https://mirror.${public_domain}/voidlinux/
                     icon: di:void-linux
+                  - title: FRP Client
+                    url: https://frp.${private_domain}/
+                    check-url: https://frp.${private_domain}/healthz
+                    icon: di:frp
+                  - title: FRP Server
+                    url: https://frp.${public_domain}/
+                    check-url: https://frp.${public_domain}/healthz
+                    icon: di:frp
 
               - type: monitor
                 title: Media

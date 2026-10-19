@@ -10,13 +10,33 @@ locals {
     metrics = 2020
   }
 
+  # same shape as the other modules' ingress outputs,
+  # all attributes have to be set since it skips var.services defaults
+  ingress = {
+    name       = "frp"
+    caddy_apex = ""
+    caddy      = <<-EOT
+			# frps dashboard on the VPS, through frpc's stcp visitor
+			frp.${var.public_domain} {
+				reverse_proxy ${var.addresses.frpc.ipv4}:${local.frpc_ports.dashboard}
+			}
+
+			# frpc's own web UI has no login so we restrict it to private ips
+			frp.${var.private_domain} {
+				@public not remote_ip private_ranges
+				respond @public "401 - {remote_host} is not an allowed IP" 401
+				reverse_proxy ${var.addresses.frpc.ipv4}:${local.frpc_ports.webui}
+			}
+    EOT
+  }
+
   caddyfile = join("\n", concat(
     [templatefile("${path.module}/Caddyfile.tpl", {
       cf_api_email   = sensitive(var.secrets.caddy_cf_api_email)
       cf_api_token   = sensitive(var.secrets.caddy_cf_api_token)
       public_domain  = var.public_domain
       private_domain = var.private_domain
-      services       = var.services
+      services       = concat([local.ingress], var.services)
       metrics_port   = local.caddy_ports.metrics
     })],
   ))
