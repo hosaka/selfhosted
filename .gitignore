@@ -9,6 +9,7 @@ __pycache__/
 .terraform/
 *.tfstate
 *.tfstate.*
+*.tfbackend
 secrets.auto.tfvars
 
 # env

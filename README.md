@@ -59,7 +59,8 @@ just cluster 10.10.0.101 10.10.0.102 10.10.0.103
 
 Bootstrap the cluster configuration:
 ```bash
-tofu init
+just decrypt
+just init
 just bootstrap
 ```
 
@@ -139,6 +140,8 @@ just rekey
 ```
 
 The state and saved plans are encrypted too (as configured in [state.tf](state.tf)), with a passphrase stored in `state.key.age`. OpenTofu gets it from [state.key.sh](state.key.sh) on every command that reads the state, so those need a YubiKey plugged in as well. `just state-key` generated it once, losing it means losing the state.
+
+The state lives in a versioned S3 bucket, so every clone works from the latest one and earlier versions stay recoverable. The bucket, its endpoint and the credentials are in `state.s3.tfbackend`, encrypted like the secrets, and `just init` passes it to `tofu init`.
 
 > I have previously used `sops` to manage secrets but plain age turned out to be enough.
 

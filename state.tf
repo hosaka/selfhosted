@@ -4,6 +4,13 @@
 # the state needs one of them plugged in. Don't rename the key providers or methods,
 # encrypted files refer to them by name.
 terraform {
+  # the bucket is versioned so earlier states stay recoverable
+  # endpoint and credentials come from state.s3.tfbackend with `just init`
+  backend "s3" {
+    key          = "terraform.tfstate"
+    use_lockfile = true
+  }
+
   encryption {
     # decrypts state.key.age with a connected YubiKey
     key_provider "external" "age" {

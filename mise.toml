@@ -16,17 +16,3 @@ yq = "4.53.6"
 
 [settings]
 python.uv_venv_auto = "create|source"
-
-[tasks.info]
-description = "Print project information"
-run = '''
-echo "PROJECT_NAME: $PROJECT_NAME"
-'''
-
-[tasks.prep]
-description = "Prepare development environment"
-depends_post = ["info"]
-run = '''
-prek install
-git config remote.origin.prune true
-'''

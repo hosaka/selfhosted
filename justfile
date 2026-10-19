@@ -160,6 +160,12 @@ bootstrap-linstor: (onpath 'incus') (onpath 'tofu') (onpath 'yq')
 
     tofu apply -auto-approve -target=module.linstor.null_resource.post_linstor
 
+[doc('initialize tofu with the S3 state backend, decrypt state.s3.tfbackend first')]
+init *args: (onpath 'tofu')
+    prek install
+    git config remote.origin.prune true
+    tofu init -backend-config=state.s3.tfbackend {{ args }}
+
 [doc('format, validate and lint the configuration')]
 lint *args: (onpath 'tofu') (onpath 'git')
     git ls-files --cached --others --exclude-standard '*.tf' '*.tfvars' '*.tftest.hcl' \
