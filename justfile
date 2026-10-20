@@ -172,13 +172,13 @@ lint *args: (onpath 'tofu') (onpath 'git')
       | xargs tofu fmt -check -diff
     tofu validate -lint=all {{ args }}
 
-[doc('plan module changes')]
-plan module *args: (onpath 'tofu')
-    tofu plan -target=module.{{ module }} {{ args }}
+[doc('plan changes, optionally for one module')]
+plan module='' *args: (onpath 'tofu')
+    tofu plan {{ if module != '' { '-target=module.' + module } else { '' } }} {{ args }}
 
-[doc('apply module changes')]
-apply module *args: (onpath 'tofu')
-    tofu apply -target=module.{{ module }} {{ args }}
+[doc('apply changes, optionally for one module')]
+apply module='' *args: (onpath 'tofu')
+    tofu apply {{ if module != '' { '-target=module.' + module } else { '' } }} {{ args }}
 
 [doc('destroy module changes')]
 destroy module *args: (onpath 'tofu')
@@ -348,9 +348,8 @@ state-key: (onpath 'age') (onpath 'openssl')
     echo "created state.key.age"
 
 [arg('name', help='Instance name the line starts with')]
-[arg('kind', pattern='address', help='What to generate')]
 [doc('generate a free OVN address and an unused MAC for addresses.auto.tfvars')]
-new kind name='service': (onpath 'tofu') (onpath 'openssl') (onpath 'git')
+new name='service': (onpath 'tofu') (onpath 'openssl') (onpath 'git')
     #!/usr/bin/env bash
     set -euo pipefail
 
