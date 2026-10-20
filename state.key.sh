@@ -10,15 +10,19 @@ echo '{"magic":"OpenTofu-External-Key-Provider","version":1}'
 # the metadata saved with the file being decrypted, null when tofu only encrypts
 input=$(cat)
 
+# --list prints the recipient of every age slot on the connected YubiKeys
+# This runs before stderr goes to the terminal, so tofu shows the message in its error.
+connected=$(age-plugin-yubikey --list 2>/dev/null || true)
+if ! grep -qxFf <(grep '^age1' recipients.txt) <<<"$connected"; then
+  echo "No YubiKey with an identity matching recipients.txt is plugged in" >&2
+  exit 1
+fi
+
 # tofu only shows stderr when the script fails, send age's PIN and touch prompts to the terminal
 if (: >/dev/tty) 2>/dev/null; then exec 2>/dev/tty; fi
 
 # --identity reports every age slot it finds on stderr, the identities themselves go to stdout
 identities=$(age-plugin-yubikey --identity 2>/dev/null)
-if [[ $identities != *AGE-PLUGIN-YUBIKEY-* ]]; then
-  echo "no YubiKey with an age identity is plugged in" >&2
-  exit 1
-fi
 
 key=$(age --decrypt --identity - state.key.age <<<"$identities" | base64 -w0)
 
