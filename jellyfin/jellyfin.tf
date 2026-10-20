@@ -14,6 +14,18 @@ resource "incus_storage_volume" "jellyfin_data" {
   }, var.snapshots)
 }
 
+resource "incus_storage_volume" "jellyfin_transcodes" {
+  name   = "jellyfin-transcodes"
+  pool   = "local"
+  target = var.target
+
+  config = {
+    "initial.uid" = "1000"
+    "initial.gid" = "1000"
+    "size"        = "20GiB"
+  }
+}
+
 resource "incus_instance" "jellyfin" {
   name = "jellyfin"
   type = "container"
@@ -29,6 +41,16 @@ resource "incus_instance" "jellyfin" {
       path   = "/config"
       pool   = incus_storage_volume.jellyfin_data.pool
       source = incus_storage_volume.jellyfin_data.name
+    }
+  }
+
+  device {
+    name = "transcodes"
+    type = "disk"
+    properties = {
+      path   = "/config/cache/transcodes"
+      pool   = incus_storage_volume.jellyfin_transcodes.pool
+      source = incus_storage_volume.jellyfin_transcodes.name
     }
   }
 
