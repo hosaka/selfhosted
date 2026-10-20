@@ -11,8 +11,6 @@ resource "incus_storage_volume" "gotify_data" {
   config = var.snapshots
 }
 
-# todo: fails to start if authelia is not reachable
-
 resource "incus_instance" "gotify" {
   name = "gotify"
   type = "container"
@@ -42,13 +40,32 @@ resource "incus_instance" "gotify" {
   }
 
   config = {
-    "environment.GOTIFY_OIDC_ENABLED"       = "true"
-    "environment.GOTIFY_OIDC_ISSUER"        = "https://auth.${var.public_domain}"
-    "environment.GOTIFY_OIDC_CLIENTID"      = "${var.secrets.oidc_client_id}"
-    "environment.GOTIFY_OIDC_CLIENTSECRET"  = "${sensitive(var.secrets.oidc_client_secret)}"
-    "environment.GOTIFY_OIDC_REDIRECTURL"   = "https://gotify.${var.public_domain}/auth/oidc/callback"
-    "environment.GOTIFY_OIDC_AUTOREGISTER"  = "true"
-    "environment.GOTIFY_OIDC_USERNAMECLAIM" = "preferred_username"
+    "environment.GOTIFY_OIDC_ENABLED"          = "true"
+    "environment.GOTIFY_OIDC_ISSUER"           = "https://auth.${var.public_domain}"
+    "environment.GOTIFY_OIDC_CLIENTID"         = "${var.secrets.oidc_client_id}"
+    "environment.GOTIFY_OIDC_CLIENTSECRET"     = "${sensitive(var.secrets.oidc_client_secret)}"
+    "environment.GOTIFY_OIDC_REDIRECTURL"      = "https://gotify.${var.public_domain}/auth/oidc/callback"
+    "environment.GOTIFY_OIDC_AUTOREGISTER"     = "true"
+    "environment.GOTIFY_OIDC_USERNAMECLAIM"    = "preferred_username"
+    "environment.GOTIFY_OIDC_SCOPES"           = "openid,profile,email,groups"
+    "environment.GOTIFY_OIDC_GROUPS_CLAIM"     = "groups"
+    "environment.GOTIFY_OIDC_GROUPS_USER"      = "gotify_user"
+    "environment.GOTIFY_OIDC_GROUPS_ADMIN"     = "gotify_admin"
+    "environment.GOTIFY_OIDC_LINK_BY_USERNAME" = "true"
+    "environment.GOTIFY_LOCALAUTH_ENABLED"     = "false"
+
+    # gotify exits when it can't fetch the OIDC discovery document at startup
+    "oci.entrypoint" = "/bin/sh -c 'until curl -fsS https://auth.${var.public_domain}/.well-known/openid-configuration >/dev/null; do sleep 2; done; exec /app/gotify-app serve'"
+  }
+}
+
+resource "null_resource" "gotify_restart" {
+  triggers = {
+    config = nonsensitive(sha1(jsonencode(incus_instance.gotify.config)))
+  }
+
+  provisioner "local-exec" {
+    command = "incus restart ${incus_instance.gotify.name}"
   }
 }
 

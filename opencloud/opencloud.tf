@@ -131,6 +131,7 @@ resource "incus_instance" "opencloud" {
     "environment.OC_OIDC_ISSUER"                        = local.authelia_url
     "environment.OC_EXCLUDE_RUN_SERVICES"               = "idp" # authelia replaces the built-in identity provider
     "environment.PROXY_OIDC_ACCESS_TOKEN_VERIFY_METHOD" = "jwt"
+    "environment.PROXY_OIDC_AUDIENCES"                  = "https://cloud.${var.public_domain}"
     "environment.PROXY_OIDC_REWRITE_WELLKNOWN"          = "true"
     "environment.PROXY_AUTOPROVISION_ACCOUNTS"          = "true"
     "environment.PROXY_AUTOPROVISION_CLAIM_USERNAME"    = "preferred_username"

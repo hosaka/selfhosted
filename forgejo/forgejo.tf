@@ -133,7 +133,8 @@ resource "incus_instance" "forgejo" {
           --provider=openidConnect --name=Authelia \
           --key="$KEY" --secret="$SECRET" --auto-discover-url="$DISCOVERY" \
           --scopes=openid --scopes=email --scopes=profile --scopes=groups \
-          --group-claim-name=groups --admin-group=forgejo_admin --skip-local-2fa || true
+          --group-claim-name=groups --admin-group=forgejo_admin \
+          --required-claim-name=groups --required-claim-value=forgejo_user --skip-local-2fa || true
       EOT
       ]
       environment = {

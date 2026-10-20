@@ -38,8 +38,9 @@ disable_login_form = true
 [auth.generic_oauth]
 enabled = true
 name = Authelia
-; create new grafana users when using oauth
-allow_sign_up = true
+; no new grafana users through oauth, and only the grafana groups may sign in
+allow_sign_up = false
+allowed_groups = grafana_admin grafana_user
 ; bypass login screen and jump to oauth instead
 ; auto_login = true
 client_id = ${oidc_client_id}
@@ -53,7 +54,7 @@ login_attribute_path = preferred_username
 name_attribute_path = name
 email_attribute_path = email
 role_attribute_path = contains(groups[*], 'grafana_admin') && 'GrafanaAdmin'
-; groups_attribute_path = groups
+groups_attribute_path = groups
 allow_assign_grafana_admin = true
 use_pkce = true
 

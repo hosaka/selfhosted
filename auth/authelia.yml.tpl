@@ -110,6 +110,12 @@ identity_providers:
           - opencloud_groups
 
     authorization_policies:
+      kavita:
+        default_policy: deny
+        rules:
+          - policy: two_factor
+            subject:
+              - group:kavita_user
       opencloud:
         default_policy: deny
         rules:
@@ -117,6 +123,18 @@ identity_providers:
             subject:
               - group:opencloud_admin
               - group:opencloud_user
+      paperless:
+        default_policy: deny
+        rules:
+          - policy: two_factor
+            subject:
+              - group:paperless_user
+      wakapi:
+        default_policy: deny
+        rules:
+          - policy: two_factor
+            subject:
+              - group:wakapi_user
 
     lifespans:
       custom:
@@ -162,7 +180,7 @@ identity_providers:
         client_id: "${gotify_client_id}"
         client_secret: "${gotify_client_secret_hash}"
         public: false
-        authorization_policy: one_factor
+        authorization_policy: two_factor
         consent_mode: implicit
         require_pkce: true
         pkce_challenge_method: S256
@@ -173,6 +191,7 @@ identity_providers:
           - openid
           - email
           - profile
+          - groups
         response_types:
           - code
         grant_types:
@@ -209,7 +228,7 @@ identity_providers:
         client_id: "${paperless_client_id}"
         client_secret: "${paperless_client_secret_hash}"
         public: false
-        authorization_policy: one_factor
+        authorization_policy: paperless
         consent_mode: implicit
         require_pkce: true
         pkce_challenge_method: S256
@@ -254,7 +273,7 @@ identity_providers:
           - code
         grant_types:
           - authorization_code
-        access_token_signed_response_alg: RS256
+        access_token_signed_response_alg: none
         userinfo_signed_response_alg: RS256
         token_endpoint_auth_method: client_secret_post
 
@@ -287,7 +306,7 @@ identity_providers:
         client_id: "${wakapi_client_id}"
         client_secret: "${wakapi_client_secret_hash}"
         public: false
-        authorization_policy: one_factor
+        authorization_policy: wakapi
         consent_mode: implicit
         require_pkce: false
         redirect_uris:
@@ -309,7 +328,7 @@ identity_providers:
         client_id: "${kavita_client_id}"
         client_secret: "${kavita_client_secret_hash}"
         public: false
-        authorization_policy: one_factor
+        authorization_policy: kavita
         consent_mode: implicit
         require_pkce: false
         redirect_uris:
@@ -360,6 +379,9 @@ identity_providers:
         claims_policy: opencloud
         public: true
         authorization_policy: opencloud
+        audience:
+          - "https://cloud.${public_domain}"
+        requested_audience_mode: implicit
         # implicit consent is discouraged for public clients, remember it instead
         pre_configured_consent_duration: 1y
         require_pkce: true
@@ -390,6 +412,9 @@ identity_providers:
         public: true
         lifespan: opencloud_apps
         authorization_policy: opencloud
+        audience:
+          - "https://cloud.${public_domain}"
+        requested_audience_mode: implicit
         # implicit consent is discouraged for public clients, remember it instead
         pre_configured_consent_duration: 1y
         require_pkce: true

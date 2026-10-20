@@ -2,12 +2,22 @@ locals {
   # see each app's OIDC settings and the claims policies in auth/authelia.yml.tpl
   app_groups = toset([
     "forgejo_admin",
+    "forgejo_user",
+    "gotify_admin",
+    "gotify_user",
     "grafana_admin",
+    "grafana_user",
     "immich_admin",
+    "jellyfin_admin",
+    "jellyfin_user",
+    "kavita_user",
     "opencloud_admin",
+    "opencloud_family",
     "opencloud_user",
+    "paperless_user",
     "vaultwarden_admin",
     "vaultwarden_user",
+    "wakapi_user",
   ])
 }
 
