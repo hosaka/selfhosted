@@ -22,7 +22,6 @@ use_default_settings:
       - google images
       - google news
       - google videos
-      - internetarchivescholar
       - jisho
       - lemmy comments
       - lemmy communities
@@ -34,7 +33,6 @@ use_default_settings:
       - openstreetmap
       - photon
       - pubmed
-      - reddit
       - semantic scholar
       - sourcehut
       - stackoverflow
@@ -49,6 +47,8 @@ search:
   autocomplete: brave
   default_lang: en-US
 engines:
+  - name: codeberg
+    disabled: false
   - name: duckduckgo images
     disabled: false
   - name: duckduckgo news
@@ -65,6 +65,8 @@ engines:
     disabled: true
   - name: startpage
     disabled: false
+    # inactive upstream since it has to solve anubis on every search
+    inactive: true
 enabled_plugins:
   - searx.plugins.oa_doi_rewrite
   - searx.plugins.tracker_url_remover

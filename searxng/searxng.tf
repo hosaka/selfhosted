@@ -3,6 +3,11 @@ locals {
     webui  = 8080
     valkey = 6379
   }
+
+  searxng_settings = file("${path.module}/settings.yml")
+  searxng_limiter = templatefile("${path.module}/limiter.toml.tpl", {
+    trusted_proxies = var.trusted_proxies
+  })
 }
 
 resource "incus_instance" "searxng" {
@@ -20,16 +25,14 @@ resource "incus_instance" "searxng" {
   }
 
   file {
-    content            = file("${path.module}/settings.yml")
+    content            = local.searxng_settings
     target_path        = "/etc/searxng/settings.yml"
     mode               = "0600"
     create_directories = true
   }
 
   file {
-    content = templatefile("${path.module}/limiter.toml.tpl", {
-      trusted_proxies = var.trusted_proxies
-    })
+    content            = local.searxng_limiter
     target_path        = "/etc/searxng/limiter.toml"
     mode               = "0600"
     create_directories = true
@@ -40,12 +43,25 @@ resource "incus_instance" "searxng" {
   }
 
   config = {
+    "oci.entrypoint"                 = "/bin/sh -c 'while [ ! -f /etc/searxng/settings.yml ] || [ ! -f /etc/searxng/limiter.toml ]; do sleep 1; done; exec /usr/local/searxng/entrypoint.sh'"
     "environment.SEARXNG_SECRET"     = sensitive(var.secrets.secret)
     "environment.SEARXNG_BASE_URL"   = "https://search.${var.public_domain}"
     "environment.SEARXNG_VALKEY_URL" = "valkey://${var.addresses.searxng_valkey.ipv4}:${local.searxng_ports.valkey}/0"
   }
 
   depends_on = [incus_instance.searxng_valkey]
+}
+
+resource "null_resource" "searxng_restart" {
+  triggers = {
+    config   = nonsensitive(sha1(jsonencode(incus_instance.searxng.config)))
+    settings = sha1(local.searxng_settings)
+    limiter  = sha1(local.searxng_limiter)
+  }
+
+  provisioner "local-exec" {
+    command = "incus restart ${incus_instance.searxng.name}"
+  }
 }
 
 resource "incus_storage_volume" "searxng_cache" {
