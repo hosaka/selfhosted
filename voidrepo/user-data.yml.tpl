@@ -33,18 +33,16 @@ write_files:
   - path: /etc/crontabs/root
     append: true
     content: |
-      ${cron_schedule} RSYNC_ARGS="${rsync_args}" /usr/local/bin/sync.sh 2>&1 | logger -t voidrepo
+      ${cron_schedule} RSYNC_ARGS="${rsync_args}" /usr/local/bin/sync.sh >/dev/console 2>&1
 
   # sync on every boot, in the background so a long sync doesn't block the boot
   - path: /etc/local.d/voidrepo.start
     permissions: "0755"
     content: |
       #!/bin/sh
-      (RSYNC_ARGS="${rsync_args}" /usr/local/bin/sync.sh 2>&1 | logger -t voidrepo) &
+      RSYNC_ARGS="${rsync_args}" /usr/local/bin/sync.sh >/dev/console 2>&1 &
 
 runcmd:
-  - rc-update add syslog boot
-  - rc-service syslog start
   - rc-update add crond default
   - rc-service crond start
   - rc-update add local default

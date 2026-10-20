@@ -57,6 +57,7 @@ resource "incus_instance" "wakapi" {
     "environment.WAKAPI_OIDC_PROVIDERS_0_CLIENT_ID"     = "${var.secrets.oidc_client_id}"
     "environment.WAKAPI_OIDC_PROVIDERS_0_CLIENT_SECRET" = "${sensitive(var.secrets.oidc_client_secret)}"
     "environment.WAKAPI_OIDC_PROVIDERS_0_ENDPOINT"      = "https://auth.${var.public_domain}"
+    "environment.WAKAPI_LOG_FORMAT"                     = "json"
     "environment.TZ"                                    = var.timezone
   }
 }

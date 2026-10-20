@@ -11,6 +11,7 @@ locals {
       node        = node
       loki_url    = "http://${var.addresses.loki.ipv4}:${local.loki_ports.api}/loki/api/v1/push"
       syslog_port = local.alloy_ports.syslog
+      ansi        = "(?:\\\\x1b\\\\[[0-9;]*m)*"
     })
   }
 }

@@ -58,12 +58,28 @@ resource "incus_instance" "jellyfin" {
     properties = var.addresses.jellyfin.nic
   }
 
+  file {
+    content     = file("${path.module}/logging.default.json")
+    target_path = "/config/logging.default.json"
+    mode        = "0644"
+  }
+
   wait_for {
     type = "ipv4"
   }
 
   config = {
     "environment.TZ" = var.timezone
+  }
+}
+
+resource "null_resource" "jellyfin_restart" {
+  triggers = {
+    logging = sha1(file("${path.module}/logging.default.json"))
+  }
+
+  provisioner "local-exec" {
+    command = "incus restart ${incus_instance.jellyfin.name}"
   }
 }
 

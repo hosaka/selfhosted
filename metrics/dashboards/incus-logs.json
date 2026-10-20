@@ -311,7 +311,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "{type=\"host\", location=~\"$node\", app!~\".?incusd.?\", level=~\"emergency|alert|critical|error|warning\"} |~ \"(?i)$search\""
+          "expr": "{type=\"host\", location=~\"$node\", app!~\".?incusd.?\", level=~\"critical|error|warn\"} |~ \"(?i)$search\""
         }
       ],
       "options": {

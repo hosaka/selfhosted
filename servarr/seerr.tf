@@ -49,6 +49,7 @@ resource "incus_instance" "seerr" {
   }
 
   config = {
-    "environment.TZ" = var.timezone
+    "environment.LOG_LEVEL" = "info"
+    "environment.TZ"        = var.timezone
   }
 }

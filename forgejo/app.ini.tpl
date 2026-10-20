@@ -90,6 +90,10 @@ PATH = /var/lib/gitea/data/attachments
 [log]
 ROOT_PATH = /var/lib/gitea/data/log
 
+[log.console]
+COLORIZE = false
+FLAGS = date,time,medfile,shortfuncname,level
+
 [lfs]
 PATH = /var/lib/gitea/git/lfs
 

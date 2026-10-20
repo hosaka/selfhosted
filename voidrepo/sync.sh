@@ -5,7 +5,7 @@ set -e
 PIDFILE=/tmp/sync.pid
 
 if [ -f "$PIDFILE" ] && kill -0 "$(cat $PIDFILE)" 2>/dev/null; then
-  echo "sync already running (pid $(cat $PIDFILE)), skipping"
+  echo "level=warn msg=\"sync already running, skipping\" pid=$(cat $PIDFILE)"
   exit 0
 fi
 
@@ -27,9 +27,7 @@ rsync \
   --partial \
   --partial-dir=.partial \
   --no-motd \
-  --human-readable \
-  --verbose \
-  --progress \
+  --out-format='level=info time="%t" op=%o file="%f" size=%l' \
   --include="current/" \
   --include="current/*.x86_64.*" \
   --include="current/x86_64-repodata" \
@@ -63,4 +61,4 @@ rsync \
   "rsync://repo-sync.voidlinux.org/voidlinux" \
   "/data/voidrepo"
 
-echo "last sync $(date)"
+echo "level=info time=\"$(date '+%Y/%m/%d %H:%M:%S')\" msg=\"sync finished\""

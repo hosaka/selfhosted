@@ -107,6 +107,7 @@ resource "incus_instance" "diun" {
     "environment.DIUN_REGOPTS_1_USERNAME"      = "${var.secrets.ghcr_username}"
     "environment.DIUN_REGOPTS_1_PASSWORD"      = "${sensitive(var.secrets.ghcr_password)}"
     "environment.DIUN_PROVIDERS_FILE_FILENAME" = "/config.yml"
+    "environment.LOG_JSON"                     = "true"
 
     "oci.entrypoint" = "/bin/sh -c 'while [ ! -f /config.yml ]; do sleep 1; done; exec diun serve'"
   }

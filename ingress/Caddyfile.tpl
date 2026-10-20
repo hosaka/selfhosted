@@ -4,6 +4,10 @@
 	# acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
 	skip_install_trust
 
+	log {
+		format json
+	}
+
 	# metrics per site
 	metrics {
 		per_host

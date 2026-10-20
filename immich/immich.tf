@@ -49,6 +49,7 @@ resource "incus_instance" "immich" {
   config = {
     "environment.IMMICH_ENV"                        = "production"
     "environment.IMMICH_LOG_LEVEL"                  = var.log_level
+    "environment.IMMICH_LOG_FORMAT"                 = "json"
     "environment.IMMICH_TELEMETRY_INCLUDE"          = "all"
     "environment.IMMICH_API_METRICS_PORT"           = local.immich_ports.api_metrics
     "environment.IMMICH_MICROSERVICES_METRICS_PORT" = local.immich_ports.jobs_metrics

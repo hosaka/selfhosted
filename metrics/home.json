@@ -515,7 +515,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum(count_over_time({type=\"host\", app!~\".?incusd.?\", level=~\"emergency|alert|critical|error\"}[1h])) or vector(0)",
+          "expr": "sum(count_over_time({type=\"host\", app!~\".?incusd.?\", level=~\"critical|error\"}[1h])) or vector(0)",
           "instant": true,
           "range": false
         }

@@ -29,7 +29,7 @@ resource "incus_instance" "syncstorage" {
     "environment.RUST_LOG"                                  = "info"
     "environment.SYNC_HOST"                                 = "0.0.0.0"
     "environment.SYNC_PORT"                                 = "${local.syncstorage_ports.api}"
-    "environment.SYNC_HUMAN_LOGS"                           = "true"
+    "environment.SYNC_HUMAN_LOGS"                           = "false"
     "environment.SYNC_MASTER_SECRET"                        = sensitive(var.secrets.master_secret)
     "environment.SYNC_SYNCSTORAGE__DATABASE_URL"            = "postgres://${var.secrets.db_username}:${sensitive(var.secrets.db_password)}@${var.addresses.syncstorage_database.ipv4}:${local.syncstorage_ports.db}/${var.db_name}"
     "environment.SYNC_TOKENSERVER__DATABASE_URL"            = "postgres://${var.secrets.db_username}:${sensitive(var.secrets.db_password)}@${var.addresses.syncstorage_database.ipv4}:${local.syncstorage_ports.db}/${var.db_name}"

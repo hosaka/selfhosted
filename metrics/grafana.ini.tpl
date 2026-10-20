@@ -8,6 +8,9 @@ root_url = https://metrics.${public_domain}
 ; otherwise request logs would drown out the service logs
 level = warn
 
+[log.console]
+format = json
+
 [dashboards]
 default_home_dashboard_path = /etc/grafana/home.json
 
