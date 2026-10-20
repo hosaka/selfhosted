@@ -32,6 +32,23 @@
         "sort": 1
       },
       {
+        "name": "level",
+        "label": "Level",
+        "type": "custom",
+        "query": "trace,debug,info,warn,error,critical,fatal,unknown",
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        }
+      },
+      {
         "name": "search",
         "label": "Search",
         "description": "Case-insensitive regex filter on the log lines.",
@@ -76,7 +93,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum by (level) (label_replace(count_over_time({type=\"console\", name=\"$instance\"} |~ \"(?i)$search\" [$__interval]), \"level\", \"$1\", \"detected_level\", \"(.*)\"))",
+          "expr": "sum by (level) (label_replace(count_over_time({type=\"console\", name=\"$instance\"} | detected_level=~\"$level\" |~ \"(?i)$search\" [$__interval]), \"level\", \"$1\", \"detected_level\", \"(.*)\"))",
           "legendFormat": "{{level}}"
         }
       ],
@@ -422,7 +439,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "{type=\"console\", name=\"$instance\"} |~ \"(?i)$search\""
+          "expr": "{type=\"console\", name=\"$instance\"} | detected_level=~\"$level\" |~ \"(?i)$search\""
         }
       ],
       "options": {

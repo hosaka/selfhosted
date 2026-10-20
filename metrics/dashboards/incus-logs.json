@@ -45,6 +45,23 @@
         }
       },
       {
+        "name": "level",
+        "label": "Level",
+        "type": "custom",
+        "query": "debug,info,warn,error,critical",
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        }
+      },
+      {
         "name": "search",
         "label": "Search",
         "description": "Case-insensitive regex filter on the log lines.",
@@ -80,7 +97,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum by (level) (count_over_time({type=\"host\", location=~\"$node\", app!~\".?incusd.?\"} |~ \"(?i)$search\" [$__interval]))",
+          "expr": "sum by (level) (count_over_time({type=\"host\", location=~\"$node\", app!~\".?incusd.?\", level=~\"$level\"} |~ \"(?i)$search\" [$__interval]))",
           "legendFormat": "{{level}}"
         }
       ],
@@ -343,7 +360,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "{type=\"host\", location=~\"$node\", app=\"kernel\"} |~ \"(?i)$search\""
+          "expr": "{type=\"host\", location=~\"$node\", app=\"kernel\", level=~\"$level\"} |~ \"(?i)$search\""
         }
       ],
       "options": {
@@ -375,7 +392,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "{type=\"host\", location=~\"$node\", app=~\"systemd.*\"} |~ \"(?i)$search\""
+          "expr": "{type=\"host\", location=~\"$node\", app=~\"systemd.*\", level=~\"$level\"} |~ \"(?i)$search\""
         }
       ],
       "options": {
@@ -407,7 +424,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "{type=\"host\", location=~\"$node\", app!~\"kernel|systemd.*|.?incusd.?\"} |~ \"(?i)$search\""
+          "expr": "{type=\"host\", location=~\"$node\", app!~\"kernel|systemd.*|.?incusd.?\", level=~\"$level\"} |~ \"(?i)$search\""
         }
       ],
       "options": {
