@@ -36,9 +36,17 @@ images format='img':
 [arg('node', pattern='node-1|node-2|node-3|node-4', help='Node to build the image for')]
 [doc('prepare an image with IncusOS')]
 image node format='img': _flasher-tool (onpath 'tar')
-    tar --directory=incus/ -cvf seed-{{ node }}.tar \
-      applications.yml incus.yml update.yml \
-      --directory={{ node }}/ install.yml network.yml services.yml
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    apps=incus
+    if [ -f incus/{{ node }}/applications.yml ]; then
+      apps=incus/{{ node }}
+    fi
+
+    tar -cvf seed-{{ node }}.tar --directory=incus/ incus.yml update.yml
+    tar -rvf seed-{{ node }}.tar --directory="$apps"/ applications.yml
+    tar -rvf seed-{{ node }}.tar --directory=incus/{{ node }}/ install.yml network.yml services.yml
     flasher-tool --channel=stable --format={{ format }} --seed=seed-{{ node }}.tar
     mv IncusOS_*.{{ format }} incus-os-{{ node }}.{{ format }}
     rm seed-{{ node }}.tar

@@ -1,0 +1,4 @@
+applications:
+  - name: incus
+  - name: incus-linstor
+  - name: gpu-support
