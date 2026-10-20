@@ -32,7 +32,7 @@ versions = {
     mosquitto     = "2.0.22"
   }
   immich = {
-    immich = "3.3.3"
+    immich = "3.3.4"
     db     = "14-vectorchord0.4.3-pgvectors0.2.0"
     cache  = "8-alpine"
   }
@@ -68,7 +68,7 @@ versions = {
     ovn = "26.09"
   }
   paperless = {
-    paperless = "3.3.2"
+    paperless = "3.3.3"
     db        = "18-alpine"
     cache     = "8-alpine"
   }
