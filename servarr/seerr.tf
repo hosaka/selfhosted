@@ -53,3 +53,13 @@ resource "incus_instance" "seerr" {
     "environment.TZ"        = var.timezone
   }
 }
+
+resource "null_resource" "seerr_restart" {
+  triggers = {
+    config = nonsensitive(sha1(jsonencode(incus_instance.seerr.config)))
+  }
+
+  provisioner "local-exec" {
+    command = "incus restart ${incus_instance.seerr.name}"
+  }
+}

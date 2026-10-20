@@ -59,7 +59,19 @@ resource "incus_instance" "sonarr" {
   }
 
   config = {
-    "environment.SONARR__AUTH__APIKEY" = sensitive(var.secrets.sonarr_api_key)
-    "environment.TZ"                   = var.timezone
+    "environment.SONARR__AUTH__APIKEY"            = sensitive(var.secrets.sonarr_api_key)
+    "environment.SONARR__SERVER__ALLOWEDHOSTS"    = "sonarr.${var.private_domain},${var.addresses.sonarr.ipv4}"
+    "environment.SONARR__SERVER__TRUSTEDNETWORKS" = "${var.proxy_address}/32"
+    "environment.TZ"                              = var.timezone
+  }
+}
+
+resource "null_resource" "sonarr_restart" {
+  triggers = {
+    config = nonsensitive(sha1(jsonencode(incus_instance.sonarr.config)))
+  }
+
+  provisioner "local-exec" {
+    command = "incus restart ${incus_instance.sonarr.name}"
   }
 }

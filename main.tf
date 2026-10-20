@@ -453,6 +453,7 @@ module "servarr" {
   source         = "./servarr"
   versions       = var.versions.servarr
   addresses      = local.ovn_addresses.servarr
+  proxy_address  = local.ovn_addresses.ingress.caddy.ipv4
   secrets        = var.secrets.servarr
   target         = var.cluster.node-4.target
   snapshots      = local.daily_snapshot

@@ -59,7 +59,19 @@ resource "incus_instance" "lidarr" {
   }
 
   config = {
-    "environment.LIDARR__AUTH__APIKEY" = sensitive(var.secrets.lidarr_api_key)
-    "environment.TZ"                   = var.timezone
+    "environment.LIDARR__AUTH__APIKEY"            = sensitive(var.secrets.lidarr_api_key)
+    "environment.LIDARR__SERVER__ALLOWEDHOSTS"    = "lidarr.${var.private_domain},${var.addresses.lidarr.ipv4}"
+    "environment.LIDARR__SERVER__TRUSTEDNETWORKS" = "${var.proxy_address}/32"
+    "environment.TZ"                              = var.timezone
+  }
+}
+
+resource "null_resource" "lidarr_restart" {
+  triggers = {
+    config = nonsensitive(sha1(jsonencode(incus_instance.lidarr.config)))
+  }
+
+  provisioner "local-exec" {
+    command = "incus restart ${incus_instance.lidarr.name}"
   }
 }

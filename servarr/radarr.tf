@@ -59,7 +59,19 @@ resource "incus_instance" "radarr" {
   }
 
   config = {
-    "environment.RADARR__AUTH__APIKEY" = sensitive(var.secrets.radarr_api_key)
-    "environment.TZ"                   = var.timezone
+    "environment.RADARR__AUTH__APIKEY"            = sensitive(var.secrets.radarr_api_key)
+    "environment.RADARR__SERVER__ALLOWEDHOSTS"    = "radarr.${var.private_domain},${var.addresses.radarr.ipv4}"
+    "environment.RADARR__SERVER__TRUSTEDNETWORKS" = "${var.proxy_address}/32"
+    "environment.TZ"                              = var.timezone
+  }
+}
+
+resource "null_resource" "radarr_restart" {
+  triggers = {
+    config = nonsensitive(sha1(jsonencode(incus_instance.radarr.config)))
+  }
+
+  provisioner "local-exec" {
+    command = "incus restart ${incus_instance.radarr.name}"
   }
 }

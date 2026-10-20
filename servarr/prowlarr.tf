@@ -59,7 +59,19 @@ resource "incus_instance" "prowlarr" {
   }
 
   config = {
-    "environment.PROWLARR__AUTH__APIKEY" = sensitive(var.secrets.prowlarr_api_key)
-    "environment.TZ"                     = var.timezone
+    "environment.PROWLARR__AUTH__APIKEY"            = sensitive(var.secrets.prowlarr_api_key)
+    "environment.PROWLARR__SERVER__ALLOWEDHOSTS"    = "prowlarr.${var.private_domain},${var.addresses.prowlarr.ipv4}"
+    "environment.PROWLARR__SERVER__TRUSTEDNETWORKS" = "${var.proxy_address}/32"
+    "environment.TZ"                                = var.timezone
+  }
+}
+
+resource "null_resource" "prowlarr_restart" {
+  triggers = {
+    config = nonsensitive(sha1(jsonencode(incus_instance.prowlarr.config)))
+  }
+
+  provisioner "local-exec" {
+    command = "incus restart ${incus_instance.prowlarr.name}"
   }
 }

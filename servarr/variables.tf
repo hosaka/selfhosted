@@ -44,6 +44,11 @@ variable "versions" {
   })
 }
 
+# The reverse proxy whose X-Forwarded-For header the apps trust
+variable "proxy_address" {
+  type = string
+}
+
 # Fixed OVN address and NIC per instance, see addresses.auto.tfvars
 variable "addresses" {
   type = map(object({
