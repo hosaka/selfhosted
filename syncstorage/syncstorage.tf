@@ -45,6 +45,16 @@ resource "incus_instance" "syncstorage" {
   depends_on = [incus_instance.syncstorage_database]
 }
 
+resource "null_resource" "syncstorage_restart" {
+  triggers = {
+    config = nonsensitive(sha1(jsonencode(incus_instance.syncstorage.config)))
+  }
+
+  provisioner "local-exec" {
+    command = "incus restart ${incus_instance.syncstorage.name}"
+  }
+}
+
 resource "incus_storage_volume" "syncstorage_db" {
   name = "syncstorage-db"
   pool = "linstor"

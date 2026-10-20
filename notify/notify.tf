@@ -113,6 +113,16 @@ resource "incus_instance" "diun" {
   }
 }
 
+resource "null_resource" "diun_restart" {
+  triggers = {
+    config = nonsensitive(sha1(jsonencode(incus_instance.diun.config)))
+  }
+
+  provisioner "local-exec" {
+    command = "incus restart ${incus_instance.diun.name}"
+  }
+}
+
 output "probes" {
   value = [
     "https://gotify.${var.public_domain}/health",

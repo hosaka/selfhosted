@@ -149,6 +149,17 @@ resource "incus_instance" "forgejo" {
   depends_on = [incus_instance.forgejo_database]
 }
 
+resource "null_resource" "forgejo_restart" {
+  triggers = {
+    config = nonsensitive(sha1(jsonencode(incus_instance.forgejo.config)))
+    files  = nonsensitive(sha1(jsonencode([for f in incus_instance.forgejo.file : f.content])))
+  }
+
+  provisioner "local-exec" {
+    command = "incus restart ${incus_instance.forgejo.name}"
+  }
+}
+
 resource "incus_storage_volume" "forgejo_db" {
   name = "forgejo-db"
   pool = "linstor"

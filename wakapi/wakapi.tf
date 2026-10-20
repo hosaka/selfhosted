@@ -62,6 +62,16 @@ resource "incus_instance" "wakapi" {
   }
 }
 
+resource "null_resource" "wakapi_restart" {
+  triggers = {
+    config = nonsensitive(sha1(jsonencode(incus_instance.wakapi.config)))
+  }
+
+  provisioner "local-exec" {
+    command = "incus restart ${incus_instance.wakapi.name}"
+  }
+}
+
 output "probes" {
   value = [
     "https://waka.${var.public_domain}/api/health",
