@@ -61,7 +61,7 @@ versions = {
   }
   metrics = {
     # renovate: datasource=docker depName=grafana/alloy
-    alloy = "1.20.1"
+    alloy = "1.21.0"
     # renovate: datasource=docker depName=prom/blackbox-exporter
     blackbox_exporter = "0.29.0"
     # renovate: datasource=github-releases depName=grafana/grafana
