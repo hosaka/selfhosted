@@ -29,7 +29,6 @@ versions = {
     db = "18-alpine"
   }
   frigate = {
-    # renovate: datasource=github-releases depName=blakeblackshear/frigate
     frigate = "0.18.0"
   }
   home = {
