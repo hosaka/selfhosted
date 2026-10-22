@@ -60,10 +60,6 @@ resource "incus_instance" "frpc" {
   profiles = ["default", "oci"]
   image    = "ghcr:fatedier/frpc:v${var.versions.frpc}"
 
-  lifecycle {
-    prevent_destroy = true
-  }
-
   device {
     name       = "eth0"
     type       = "nic"
@@ -103,10 +99,6 @@ resource "incus_instance" "caddy" {
   target   = var.target
   profiles = ["default", "oci"]
   image    = "ghcr:hotio/caddy:release-${var.versions.caddy}"
-
-  lifecycle {
-    prevent_destroy = true
-  }
 
   device {
     name = "config"
