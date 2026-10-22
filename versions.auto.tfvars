@@ -57,7 +57,7 @@ versions = {
   }
   kavita = {
     # renovate: datasource=github-releases depName=Kareadita/Kavita
-    kavita = "0.9.1"
+    kavita = "0.9.1.4"
   }
   metrics = {
     # renovate: datasource=docker depName=grafana/alloy
