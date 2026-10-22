@@ -47,7 +47,7 @@ versions = {
   }
   ingress = {
     # renovate: datasource=github-releases depName=fatedier/frp
-    frpc = "0.70.1"
+    frpc = "0.71.1"
     # renovate: datasource=github-releases depName=caddyserver/caddy
     caddy = "2.11.7"
   }
