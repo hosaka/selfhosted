@@ -1,10 +1,5 @@
 variable "secrets" {
   type = object({
-    gotify_token       = string
-    dockerhub_username = string
-    dockerhub_password = string
-    ghcr_username      = string
-    ghcr_password      = string
     oidc_client_id     = string
     oidc_client_secret = string
   })
@@ -35,7 +30,6 @@ variable "private_domain" {
 variable "versions" {
   type = object({
     gotify = string
-    diun   = string
   })
 }
 

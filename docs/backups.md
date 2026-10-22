@@ -62,7 +62,7 @@ The `nas` pool's volumes (`immich`, `opencloud`) are attached read-only and back
 
 - Most of the `media` because it can be re-obtained.
 - The instances themselves, which tofu can rebuild.
-- Caches like valkey, and other non-essentials like `prometheus-data`, `loki-data` and `diun-data`.
+- Caches like valkey, and other non-essentials like `prometheus-data` and `loki-data`.
 
 ## Notifications
 

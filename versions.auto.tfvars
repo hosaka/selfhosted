@@ -2,7 +2,7 @@ versions = {
   atuin = {
     # renovate: datasource=github-releases depName=atuinsh/atuin
     atuin = "18.24.1"
-    db = "18-alpine"
+    db    = "18-alpine"
   }
   backups = {
     # renovate: datasource=github-releases depName=garethgeorge/backrest
@@ -18,7 +18,7 @@ versions = {
     authelia = "4.39.28"
     # renovate: datasource=github-releases depName=lldap/lldap
     lldap = "0.6.3"
-    db = "18-alpine"
+    db    = "18-alpine"
     cache = "8-alpine"
   }
   forgejo = {
@@ -26,7 +26,7 @@ versions = {
     anubis = "1.28.1"
     # renovate: datasource=forgejo-releases depName=forgejo/forgejo registryUrl=https://codeberg.org
     forgejo = "17.0.0"
-    db = "18-alpine"
+    db      = "18-alpine"
   }
   frigate = {
     frigate = "0.18.0"
@@ -37,13 +37,13 @@ versions = {
   }
   homeassistant = {
     homeassistant = "2026.10.1"
-    mosquitto = "2.0.22"
+    mosquitto     = "2.0.22"
   }
   immich = {
     # renovate: datasource=github-releases depName=immich-app/immich
     immich = "3.3.4"
     db     = "14-vectorchord0.4.3-pgvectors0.2.0"
-    cache = "8-alpine"
+    cache  = "8-alpine"
   }
   ingress = {
     # renovate: datasource=github-releases depName=fatedier/frp
@@ -80,8 +80,6 @@ versions = {
   notify = {
     # renovate: datasource=github-releases depName=gotify/server
     gotify = "3.1.1"
-    # renovate: datasource=docker depName=ghcr.io/crazy-max/diun
-    diun = "4.33"
   }
   opencloud = {
     # renovate: datasource=docker depName=opencloudeu/opencloud-rolling
@@ -93,8 +91,8 @@ versions = {
   paperless = {
     # renovate: datasource=github-releases depName=paperless-ngx/paperless-ngx
     paperless = "3.3.3"
-    db = "18-alpine"
-    cache = "8-alpine"
+    db        = "18-alpine"
+    cache     = "8-alpine"
   }
   qbittorrent = {
     # renovate: datasource=github-releases depName=qbittorrent/qBittorrent extractVersion=^release-(?<version>.+)$
@@ -108,7 +106,7 @@ versions = {
   }
   searxng = {
     searxng = "2026.10.19-81371861f"
-    cache = "8-alpine"
+    cache   = "8-alpine"
   }
   servarr = {
     # renovate: datasource=docker depName=ghcr.io/hotio/lidarr versioning=regex:^testing-(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)\.(?<build>\d+)$
@@ -135,7 +133,7 @@ versions = {
   syncstorage = {
     # renovate: datasource=github-releases depName=mozilla-services/syncstorage-rs
     syncstorage = "0.23.3"
-    db = "18-alpine"
+    db          = "18-alpine"
   }
   vaultwarden = {
     # renovate: datasource=github-releases depName=dani-garcia/vaultwarden

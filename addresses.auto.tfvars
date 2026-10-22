@@ -63,7 +63,6 @@ addresses = {
     navidrome = { hwaddr = "10:66:6a:6d:71:5b", ipv4 = "10.42.0.33" }
   }
   notify = {
-    diun   = { hwaddr = "02:fa:69:88:07:5f", ipv4 = "10.42.0.20" }
     gotify = { hwaddr = "10:66:6a:65:54:f2", ipv4 = "10.42.0.22" }
   }
   opencloud = {
