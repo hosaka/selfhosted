@@ -142,7 +142,6 @@ versions = {
     vaultwarden = "1.37.3"
   }
   voidrepo = {
-    # renovate: datasource=docker depName=caddy
     caddy = "2.11.4"
   }
   wakapi = {

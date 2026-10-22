@@ -4,6 +4,12 @@ on:
   schedule:
     - cron: "0 */6 * * *"
   workflow_dispatch:
+    inputs:
+      log_level:
+        description: Renovate log level
+        type: choice
+        default: info
+        options: [info, debug]
 
 jobs:
   renovate:
@@ -23,3 +29,4 @@ jobs:
           RENOVATE_GIT_AUTHOR: Renovate <renovate@hosaka.cc>
           RENOVATE_ONBOARDING: "false"
           GITHUB_COM_TOKEN: ${{ secrets.MISE_TOKEN }}
+          LOG_LEVEL: ${{ inputs.log_level || 'info' }}
