@@ -4,6 +4,8 @@ locals {
   }
 
   blackbox_config = file("${path.module}/blackbox.yml")
+
+  blackbox_command = "/bin/sh -c 'while [ ! -f /etc/blackbox_exporter/cluster.yml ]; do sleep 1; done; exec /bin/blackbox_exporter --config.file=/etc/blackbox_exporter/cluster.yml --web.listen-address=:${local.blackbox_ports.api}'"
 }
 
 # Probes every service's health check through its public and private hostnames.
@@ -23,7 +25,7 @@ resource "incus_instance" "blackbox" {
 
   file {
     content            = local.blackbox_config
-    target_path        = "/etc/blackbox_exporter/config.yml"
+    target_path        = "/etc/blackbox_exporter/cluster.yml"
     mode               = "0644"
     create_directories = true
   }
@@ -33,7 +35,17 @@ resource "incus_instance" "blackbox" {
   }
 
   config = {
-    "oci.entrypoint" = "/bin/sh -c 'while [ ! -f /etc/blackbox_exporter/config.yml ]; do sleep 1; done; exec /bin/blackbox_exporter --config.file=/etc/blackbox_exporter/config.yml --web.listen-address=:${local.blackbox_ports.api}'"
+    "oci.entrypoint" = local.blackbox_command
+  }
+}
+
+resource "null_resource" "blackbox_restart" {
+  triggers = {
+    command = sha1(local.blackbox_command)
+  }
+
+  provisioner "local-exec" {
+    command = "incus restart ${incus_instance.blackbox.name}"
   }
 }
 

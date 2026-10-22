@@ -8,7 +8,8 @@ locals {
     name => "${split(":", trimprefix(member.address, "https://"))[0]}:${var.port}"
   }
 
-  prometheus_command = "/bin/sh -c 'while [ ! -f /etc/prometheus/prometheus.yml ]; do sleep 1; done; exec /bin/prometheus --config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus --storage.tsdb.retention.time=30d --storage.tsdb.retention.size=10GB --web.console.templates=/usr/share/prometheus/consoles --web.console.libraries=/usr/share/prometheus/console_libraries --web.enable-lifecycle --log.level=warn'"
+  // enable-lifecycle allows reloading config by POSTing to `/-/reload`
+  prometheus_command = "/bin/sh -c 'while [ ! -f /etc/prometheus/cluster.yml ]; do sleep 1; done; exec /bin/prometheus --config.file=/etc/prometheus/cluster.yml --storage.tsdb.path=/prometheus --storage.tsdb.retention.time=30d --storage.tsdb.retention.size=10GB --web.console.templates=/usr/share/prometheus/consoles --web.console.libraries=/usr/share/prometheus/console_libraries --web.enable-lifecycle --log.level=warn'"
 
   prometheus_config = templatefile("${path.module}/prometheus.yml.tpl", {
     metrics_targets  = local.metrics_targets
@@ -84,7 +85,7 @@ resource "incus_instance" "prometheus" {
 
   file {
     content            = local.prometheus_config
-    target_path        = "/etc/prometheus/prometheus.yml"
+    target_path        = "/etc/prometheus/cluster.yml"
     uid                = 65534
     gid                = 65534
     mode               = "0600"
@@ -142,7 +143,6 @@ resource "incus_instance" "prometheus" {
   }
 
   config = {
-    // enable-lifecycle allows reloading config by POSTing to `/-/reload`
     "oci.entrypoint" = local.prometheus_command
   }
 
