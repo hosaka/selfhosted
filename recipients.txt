@@ -1,3 +1,4 @@
 # Every .age file in the repo is encrypted to all of these, one YubiKey per line. After changing
 # them run `just rekey`. `age-plugin-yubikey --list` prints the recipient of a connected YubiKey.
 age1yubikey1qv9d7qpcpstrf6mafkxekfwjcp29984saucq76gfyewz5ytl70eevwgwkqj
+age1yubikey1qwsjvvhw8mtsdv0d7puwtvrxz2gtu4skwjdh9c6vs6ekr6sxjwr6zvvaj3v
