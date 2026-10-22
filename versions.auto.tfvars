@@ -63,7 +63,7 @@ versions = {
     # renovate: datasource=docker depName=grafana/alloy
     alloy = "1.21.0"
     # renovate: datasource=docker depName=prom/blackbox-exporter
-    blackbox_exporter = "0.29.0"
+    blackbox_exporter = "0.29.1"
     # renovate: datasource=github-releases depName=grafana/grafana
     grafana = "13.2.4"
     # renovate: datasource=github-releases depName=grafana/loki
