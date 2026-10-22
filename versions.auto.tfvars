@@ -49,7 +49,7 @@ versions = {
     # renovate: datasource=github-releases depName=fatedier/frp
     frpc = "0.70.1"
     # renovate: datasource=github-releases depName=caddyserver/caddy
-    caddy = "2.11.4"
+    caddy = "2.11.7"
   }
   jellyfin = {
     # renovate: datasource=github-releases depName=jellyfin/jellyfin
