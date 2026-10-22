@@ -41,7 +41,7 @@ versions = {
   }
   immich = {
     # renovate: datasource=github-releases depName=immich-app/immich
-    immich = "3.3.4"
+    immich = "3.3.5"
     db     = "14-vectorchord0.4.3-pgvectors0.2.0"
     cache  = "8-alpine"
   }
