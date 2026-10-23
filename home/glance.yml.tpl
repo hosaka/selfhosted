@@ -115,6 +115,10 @@ pages:
                     url: https://gotify.${public_domain}/
                     check-url: https://gotify.${public_domain}/health
                     icon: sh:gotify
+                  - title: PeaNUT
+                    url: https://ups.${private_domain}/
+                    check-url: https://ups.${private_domain}/api/ping
+                    icon: sh:peanut
                   - title: Backrest
                     url: https://backup.${private_domain}/
                     icon: auto-invert sh:backrest-dark
