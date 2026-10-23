@@ -10,6 +10,7 @@ locals {
     radarr     = true
     lidarr     = true
     prowlarr   = true
+    peanut     = false
   }
 
   # Usable services

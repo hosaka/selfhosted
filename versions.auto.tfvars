@@ -135,6 +135,10 @@ versions = {
     syncstorage = "0.23.3"
     db          = "18-alpine"
   }
+  ups = {
+    # renovate: datasource=docker depName=brandawg93/peanut
+    peanut = "6.1.2"
+  }
   vaultwarden = {
     # renovate: datasource=github-releases depName=dani-garcia/vaultwarden
     vaultwarden = "1.37.4"

@@ -119,7 +119,7 @@ OCI containers with a static address skip DHCP, the `oci` profile gives them Ope
 
 #### Boot order
 
-When a node boots, Incus starts its instances one by one by `boot.autostart.priority`, and stops them in batches by `boot.stop.priority` on shutdown: `linstor-controller` and the OVN central containers first and last (100/-100), databases, caches and lldap through the `datastore` profile (50/-50), everything else at 0. The `default` profile sets priority 0 on purpose, Incus starts instances without any priority first and all at once, before the prioritised ones. Give a new database the `datastore` profile.
+When a node boots, Incus starts its instances one by one by `boot.autostart.priority`, and stops them in batches by `boot.stop.priority` on shutdown: `linstor-controller` and the OVN central containers first and last (100/-100), `nut` after them (-200, see [UPS](#ups)), databases, caches and lldap through the `datastore` profile (50/-50), everything else at 0. The `default` profile sets priority 0 on purpose, Incus starts instances without any priority first and all at once, before the prioritised ones. Give a new database the `datastore` profile.
 
 ### Configuration
 
@@ -156,6 +156,12 @@ My backup solution is a mix of Incus snapshots and [Backrest](https://github.com
 - 1 WD Red 5400 RPM 8TB drive consumes about 6W of power.
 - At standby with all drives powered ON the consumption is 77W (default BIOS)
 - At standby with all drives powered OFF the consumption is 45W (default BIOS)
+
+### UPS
+
+A dedicated container is running [NUT](https://networkupstools.org/) with the UPS passed through to it (see [ups/](ups/)). It sits on `lan` with a static address, so it doesn't depend on OVN or the router's DHCP while the cluster goes down.
+
+When the low battery is detected, upsmon executes a [cluster-poweroff](ups/cluster-poweroff.sh.tpl) script. It powers off the cluster members one by one, waits until they are fully stopped and powers off itself last. For the nodes to start again after that, their BIOS has to power on when AC power comes back. So check the BIOS settings.
 
 ## Todo
 

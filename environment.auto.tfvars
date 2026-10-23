@@ -39,3 +39,9 @@ ovn = {
   # 2.5 GbE members, routed LAN traffic goes through the active gateway
   gateway_chassis = ["node-1", "node-2", "node-3"]
 }
+
+# UPS monitor on node-1. directly on the LAN, so it can reach every node
+# while OVN goes down in an event of a shutdown
+ups = {
+  address = "10.10.0.250"
+}

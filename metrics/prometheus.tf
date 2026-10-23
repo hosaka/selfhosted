@@ -18,6 +18,7 @@ locals {
     authelia_target  = var.authelia_address
     immich_targets   = var.immich_addresses
     restic_targets   = var.restic_exporter_addresses
+    peanut_target    = var.peanut_address
     blackbox_target  = "${var.addresses.blackbox.ipv4}:${local.blackbox_ports.api}"
     probes = flatten([
       for service, urls in var.probes : [

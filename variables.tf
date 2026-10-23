@@ -94,6 +94,18 @@ variable "ovn" {
   }
 }
 
+# UPS monitor, see environment.auto.tfvars.
+variable "ups" {
+  type = object({
+    address = string
+  })
+
+  validation {
+    condition     = cidrcontains(var.cluster.gateway, var.ups.address) && !contains(concat([var.ovn.router], values(var.ovn.central)), var.ups.address)
+    error_message = "The UPS monitor's address must be on the LAN and not one of the OVN addresses."
+  }
+}
+
 # Fixed OVN addresses per module and NIC, see addresses.auto.tfvars.
 variable "addresses" {
   type = map(map(object({

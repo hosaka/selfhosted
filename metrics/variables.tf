@@ -86,6 +86,11 @@ variable "immich_addresses" {
   type = map(string)
 }
 
+# PeaNUT's API, its UPS metrics are on /api/v1/metrics, as <address>:<port>.
+variable "peanut_address" {
+  type = string
+}
+
 # restic-exporter's metrics, as <address>:<port> by restic repository.
 variable "restic_exporter_addresses" {
   type    = map(string)

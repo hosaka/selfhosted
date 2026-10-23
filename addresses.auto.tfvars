@@ -103,6 +103,9 @@ addresses = {
     syncstorage          = { hwaddr = "10:66:6a:43:e2:4d", ipv4 = "10.42.0.42" }
     syncstorage_database = { hwaddr = "10:66:6a:bb:99:91", ipv4 = "10.42.0.43" }
   }
+  ups = {
+    peanut = { hwaddr = "02:62:68:62:80:2b", ipv4 = "10.42.0.12" }
+  }
   vaultwarden = {
     vaultwarden = { hwaddr = "10:66:6a:f1:38:84", ipv4 = "10.42.0.44" }
   }

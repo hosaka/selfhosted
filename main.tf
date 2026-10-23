@@ -53,6 +53,21 @@ module "ovn" {
   ]
 }
 
+module "ups" {
+  source              = "./ups"
+  versions            = var.versions.ups
+  addresses           = local.ovn_addresses.ups
+  target              = var.cluster.node-1.target
+  address             = var.ups.address
+  gateway             = var.cluster.gateway
+  private_domain      = var.private_domain
+  cluster_address     = local.members[var.cluster.node-1.target].address
+  cluster_certificate = file("${path.root}/incus/cluster.crt")
+  # APC BK750M-JP, `incus query /1.0/resources?target=<member>` lists the USB devices
+  usb        = { vendorid = "051d", productid = "0002" }
+  depends_on = [null_resource.post_server]
+}
+
 # This is the entrypoint for all server traffic.
 module "ingress" {
   source         = "./ingress"
@@ -88,6 +103,7 @@ module "ingress" {
     module.slskd.ingress,
     module.snikket.ingress,
     module.syncstorage.ingress,
+    module.ups.ingress,
     module.vaultwarden.ingress,
     module.voidrepo.ingress,
     module.wakapi.ingress,
@@ -222,6 +238,7 @@ module "home" {
     radarr     = { address = module.servarr.api_addresses.radarr, api_key = var.secrets.servarr.radarr_api_key }
     lidarr     = { address = module.servarr.api_addresses.lidarr, api_key = var.secrets.servarr.lidarr_api_key }
     prowlarr   = { address = module.servarr.api_addresses.prowlarr, api_key = var.secrets.servarr.prowlarr_api_key }
+    peanut     = { address = module.ups.peanut_address }
   }
 
   forward_auth = module.auth.authelia_address
@@ -325,6 +342,7 @@ module "metrics" {
   authelia_address          = module.auth.authelia_metrics_address
   immich_addresses          = module.immich.metrics_addresses
   restic_exporter_addresses = module.backups.restic_exporter_addresses
+  peanut_address            = module.ups.peanut_address
   gotify_address            = module.notify.gotify_address
   probes = {
     auth        = module.auth.probes
@@ -347,6 +365,7 @@ module "metrics" {
     slskd       = module.slskd.probes
     snikket     = module.snikket.probes
     syncstorage = module.syncstorage.probes
+    ups         = module.ups.probes
     vaultwarden = module.vaultwarden.probes
     voidrepo    = module.voidrepo.probes
     wakapi      = module.wakapi.probes

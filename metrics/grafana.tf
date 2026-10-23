@@ -194,6 +194,15 @@ resource "incus_instance" "grafana" {
   }
 
   file {
+    content            = file("${path.module}/dashboards/ups-monitor.json")
+    uid                = 472
+    gid                = 0
+    target_path        = "/etc/grafana/provisioning/dashboards/ups-monitor.json"
+    mode               = "0600"
+    create_directories = true
+  }
+
+  file {
     content            = file("${path.module}/home.json")
     uid                = 472
     gid                = 0

@@ -119,6 +119,13 @@ scrape_configs:
       - regex: "client_.+|snapshot_tags?|snapshot_paths"
         action: labeldrop
 
+  # the UPS's numeric NUT variables through PeaNUT, as ups_<variable> with dots turned into underscores.
+  # ups.status is a string, so it isn't one of them
+  - job_name: "ups"
+    metrics_path: "/api/v1/metrics"
+    static_configs:
+      - targets: ["${peanut_target}"]
+
   # service health checks, probed through the blackbox exporter
   - job_name: "blackbox"
     scrape_interval: 60s

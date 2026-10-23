@@ -414,6 +414,46 @@ pages:
               </div>
 %{~ endif }
 %{~ endif }
+%{~ if has.peanut }
+
+          # Straight from PeaNUT, the status flags aren't in its Prometheus metrics.
+          - type: custom-api
+            title: UPS
+            cache: 1m
+            url: http://${addr.peanut}/api/v1/devices/ups
+            template: |
+              {{ if .JSON.Exists "ups\\.status" }}
+              {{ $status := .JSON.String "ups\\.status" }}
+              {{ $charge := .JSON.Float "battery\\.charge" }}
+              {{ $load := .JSON.Float "ups\\.load" }}
+              <div class="stats-row">
+                <div>
+                  <div class="size-h3 {{ if ge $charge 80.0 }}color-positive{{ else if ge $charge 50.0 }}stats-warn{{ else }}color-negative{{ end }}">{{ printf "%.0f" $charge }}%</div>
+                  <div class="size-h6">CHARGE</div>
+                </div>
+                <div>
+                  <div class="size-h3 color-highlight">{{ div (.JSON.Float "battery\\.runtime") 60.0 | printf "%.0f" }} min</div>
+                  <div class="size-h6">RUNTIME</div>
+                </div>
+              </div>
+              <div class="stats-row margin-top-15">
+                <div>
+                  <div class="size-h3 {{ if lt $load 60.0 }}color-positive{{ else if lt $load 80.0 }}stats-warn{{ else }}color-negative{{ end }}">{{ printf "%.0f" $load }}%</div>
+                  <div class="size-h6">LOAD</div>
+                  {{ if .JSON.Exists "ups\\.realpower\\.nominal" }}<div class="size-h6 color-subdue">{{ div (mul $load (.JSON.Float "ups\\.realpower\\.nominal")) 100.0 | printf "%.0f" }} W</div>{{ end }}
+                </div>
+                <div>
+                  {{ if findMatch "\\b(LB|FSD)\\b" $status }}<div class="size-h3 color-negative">Low battery</div>
+                  {{ else if findMatch "\\bOB\\b" $status }}<div class="size-h3 stats-warn">On battery</div>
+                  {{ else if findMatch "\\bOL\\b" $status }}<div class="size-h3 color-positive">Online</div>
+                  {{ else }}<div class="size-h3">{{ $status }}</div>{{ end }}
+                  <div class="size-h6">STATUS</div>
+                </div>
+              </div>
+              {{ else }}
+              <p class="color-negative">UPS is unavailable</p>
+              {{ end }}
+%{~ endif }
 
   - name: Metrics
     columns:
