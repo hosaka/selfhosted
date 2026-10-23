@@ -109,7 +109,7 @@ resource "incus_instance" "forgejo" {
 
   file {
     content            = file("${path.module}/templates/custom/extra_links.tmpl")
-    target_path        = "/var/lib/gitea/custom/templates/extra_links.tmpl"
+    target_path        = "/var/lib/gitea/custom/templates/custom/extra_links.tmpl"
     uid                = 1000
     gid                = 1000
     mode               = "0600"
@@ -153,7 +153,7 @@ resource "incus_instance" "forgejo" {
 resource "null_resource" "forgejo_restart" {
   triggers = {
     config = nonsensitive(sha1(jsonencode(incus_instance.forgejo.config)))
-    files  = nonsensitive(sha1(jsonencode([for f in incus_instance.forgejo.file : f.content])))
+    files  = nonsensitive(sha1(jsonencode([for f in incus_instance.forgejo.file : [f.target_path, f.content]])))
   }
 
   provisioner "local-exec" {
