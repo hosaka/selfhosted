@@ -64,12 +64,13 @@ resource "incus_profile" "internal_default" {
 # containers with a static address skip DHCP and get their DNS servers from here
 resource "incus_profile" "oci" {
   name        = "oci"
-  description = "DNS for OCI containers"
+  description = "DNS and auto-restart for OCI containers"
 
   config = {
     "oci.dns.nameservers" = split("/", var.cluster.gateway)[0]
     # bare instance names resolve through OVN DNS records, <name>.incus
-    "oci.dns.search" = "incus"
+    "oci.dns.search"   = "incus"
+    "boot.autorestart" = true
   }
 
   depends_on = [
