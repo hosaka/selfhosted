@@ -370,6 +370,13 @@ loki.relabel "host" {
 loki.process "host" {
   forward_to = [loki.write.loki.receiver]
 
+  // IncusOS doesn't keep netlogd's cursor across reboots, so it re-sends the whole journal after one,
+  // Loki refuses lines older than a week or an hour behind the newest one of their stream
+  stage.drop {
+    older_than          = "1h"
+    drop_counter_reason = "replayed"
+  }
+
   // the kernel audit trail is mostly syscall records from the node exporter and incusd,
   // only keep AppArmor denials and failed operations
   stage.match {
