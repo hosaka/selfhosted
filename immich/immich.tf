@@ -108,8 +108,9 @@ resource "incus_instance" "immich" {
 }
 
 resource "incus_storage_volume" "immich_model_cache" {
-  name = "immich-model-cache"
-  pool = "linstor"
+  name   = "immich-model-cache"
+  pool   = var.cache_pool
+  target = var.target
 }
 
 resource "incus_instance" "immich_machine_learning" {
