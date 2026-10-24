@@ -2,6 +2,9 @@ locals {
   nas_sources = {
     for m in keys(local.members) : m => (m == "node-4" ? "nas/incus" : "local/nas")
   }
+  ssd_sources = {
+    for m in keys(local.members) : m => (m == "node-4" ? "ssd/incus" : "local/ssd")
+  }
 }
 
 resource "incus_storage_pool" "nas_per_node" {
@@ -33,6 +36,38 @@ resource "incus_storage_pool" "nas" {
 
   depends_on = [
     incus_storage_pool.nas_per_node
+  ]
+}
+
+resource "incus_storage_pool" "ssd_per_node" {
+  for_each = local.ssd_sources
+
+  name   = "ssd"
+  driver = "zfs"
+  target = each.key
+
+  config = {
+    "source" = each.value
+  }
+
+  lifecycle {
+    ignore_changes = [
+      # Incus changes the source behind the scenes so we ignore these changes.
+      config["source"],
+    ]
+  }
+}
+
+resource "incus_storage_pool" "ssd" {
+  name        = "ssd"
+  driver      = "zfs"
+  description = "Scratch storage pool (raidz1 on SSDs)"
+
+  config = {
+  }
+
+  depends_on = [
+    incus_storage_pool.ssd_per_node
   ]
 }
 
@@ -71,7 +106,8 @@ resource "incus_storage_pool" "local" {
 resource "null_resource" "post_storage_pools" {
   depends_on = [
     incus_storage_pool.local,
-    incus_storage_pool.nas
+    incus_storage_pool.nas,
+    incus_storage_pool.ssd,
   ]
 }
 

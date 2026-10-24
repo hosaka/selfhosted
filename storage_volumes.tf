@@ -144,6 +144,27 @@ resource "incus_storage_volume" "voidrepo" {
   ]
 }
 
+resource "incus_storage_volume" "incomplete" {
+  name         = "incomplete"
+  description  = "Downloads in progress, usually moved to media once complete"
+  target       = "node-4"
+  pool         = incus_storage_pool.ssd.name
+  type         = "custom"
+  content_type = "filesystem"
+
+  # shared between download clients
+  config = {
+    "security.shifted" = "true"
+    "initial.uid"      = "1000"
+    "initial.gid"      = "1000"
+    "size"             = "120GiB"
+  }
+
+  depends_on = [
+    null_resource.post_storage_pools,
+  ]
+}
+
 resource "null_resource" "post_storage_volumes" {
   depends_on = [
     incus_storage_volume.backups,
@@ -154,6 +175,7 @@ resource "null_resource" "post_storage_volumes" {
     incus_storage_volume.media,
     incus_storage_volume.opencloud,
     incus_storage_volume.voidrepo,
+    incus_storage_volume.incomplete,
   ]
 }
 

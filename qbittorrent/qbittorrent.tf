@@ -43,6 +43,16 @@ resource "incus_instance" "qbittorrent" {
   }
 
   device {
+    name = "incomplete"
+    type = "disk"
+    properties = {
+      path   = "/data/incomplete"
+      pool   = var.incomplete_pool
+      source = var.incomplete_source
+    }
+  }
+
+  device {
     name       = "eth0"
     type       = "nic"
     properties = var.addresses.qbittorrent.nic

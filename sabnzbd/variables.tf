@@ -24,6 +24,14 @@ variable "media_source" {
   type = string
 }
 
+variable "incomplete_pool" {
+  type = string
+}
+
+variable "incomplete_source" {
+  type = string
+}
+
 variable "versions" {
   type = object({
     sabnzbd = string

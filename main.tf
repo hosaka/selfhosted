@@ -267,6 +267,7 @@ module "immich" {
   snapshots      = local.daily_snapshot
   storage_pool   = incus_storage_volume.immich.pool
   storage_source = incus_storage_volume.immich.name
+  cache_pool     = incus_storage_pool.ssd.name
   public_domain  = var.public_domain
   private_domain = var.private_domain
   timezone       = var.timezone
@@ -429,31 +430,35 @@ module "paperless" {
 }
 
 module "qbittorrent" {
-  source         = "./qbittorrent"
-  versions       = var.versions.qbittorrent
-  addresses      = local.ovn_addresses.qbittorrent
-  lan_network    = cidrsubnet(var.cluster.gateway, 0, 0)
-  secrets        = var.secrets.qbittorrent
-  target         = var.cluster.node-4.target
-  snapshots      = local.daily_snapshot
-  media_pool     = incus_storage_volume.media.pool
-  media_source   = incus_storage_volume.media.name
-  private_domain = var.private_domain
-  timezone       = var.timezone
-  depends_on     = [null_resource.post_server, module.linstor]
+  source            = "./qbittorrent"
+  versions          = var.versions.qbittorrent
+  addresses         = local.ovn_addresses.qbittorrent
+  lan_network       = cidrsubnet(var.cluster.gateway, 0, 0)
+  secrets           = var.secrets.qbittorrent
+  target            = var.cluster.node-4.target
+  snapshots         = local.daily_snapshot
+  media_pool        = incus_storage_volume.media.pool
+  media_source      = incus_storage_volume.media.name
+  incomplete_pool   = incus_storage_volume.incomplete.pool
+  incomplete_source = incus_storage_volume.incomplete.name
+  private_domain    = var.private_domain
+  timezone          = var.timezone
+  depends_on        = [null_resource.post_server, module.linstor]
 }
 
 module "sabnzbd" {
-  source         = "./sabnzbd"
-  versions       = var.versions.sabnzbd
-  addresses      = local.ovn_addresses.sabnzbd
-  target         = var.cluster.node-4.target
-  snapshots      = local.daily_snapshot
-  media_pool     = incus_storage_volume.media.pool
-  media_source   = incus_storage_volume.media.name
-  private_domain = var.private_domain
-  timezone       = var.timezone
-  depends_on     = [null_resource.post_server, module.linstor]
+  source            = "./sabnzbd"
+  versions          = var.versions.sabnzbd
+  addresses         = local.ovn_addresses.sabnzbd
+  target            = var.cluster.node-4.target
+  snapshots         = local.daily_snapshot
+  media_pool        = incus_storage_volume.media.pool
+  media_source      = incus_storage_volume.media.name
+  incomplete_pool   = incus_storage_volume.incomplete.pool
+  incomplete_source = incus_storage_volume.incomplete.name
+  private_domain    = var.private_domain
+  timezone          = var.timezone
+  depends_on        = [null_resource.post_server, module.linstor]
 }
 
 module "searxng" {
@@ -484,17 +489,19 @@ module "servarr" {
 }
 
 module "slskd" {
-  source         = "./slskd"
-  versions       = var.versions.slskd
-  addresses      = local.ovn_addresses.slskd
-  secrets        = var.secrets.slskd
-  target         = var.cluster.node-4.target
-  snapshots      = local.daily_snapshot
-  media_pool     = incus_storage_volume.media.pool
-  media_source   = incus_storage_volume.media.name
-  public_domain  = var.public_domain
-  private_domain = var.private_domain
-  depends_on     = [null_resource.post_server, module.linstor]
+  source            = "./slskd"
+  versions          = var.versions.slskd
+  addresses         = local.ovn_addresses.slskd
+  secrets           = var.secrets.slskd
+  target            = var.cluster.node-4.target
+  snapshots         = local.daily_snapshot
+  media_pool        = incus_storage_volume.media.pool
+  media_source      = incus_storage_volume.media.name
+  incomplete_pool   = incus_storage_volume.incomplete.pool
+  incomplete_source = incus_storage_volume.incomplete.name
+  public_domain     = var.public_domain
+  private_domain    = var.private_domain
+  depends_on        = [null_resource.post_server, module.linstor]
 }
 
 module "snikket" {

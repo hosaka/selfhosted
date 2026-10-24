@@ -47,6 +47,10 @@ variable "storage_source" {
   type = string
 }
 
+variable "cache_pool" {
+  type = string
+}
+
 variable "versions" {
   type = object({
     immich = string

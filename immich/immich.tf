@@ -9,6 +9,28 @@ locals {
   }
 }
 
+resource "incus_storage_volume" "immich_thumbs" {
+  name   = "immich-thumbs"
+  pool   = var.cache_pool
+  target = var.target
+
+  config = {
+    # since this is mounted inside /data volume, it also has to be `shifted`
+    "security.shifted" = "true"
+  }
+}
+
+resource "incus_storage_volume" "immich_encoded_video" {
+  name   = "immich-encoded-video"
+  pool   = var.cache_pool
+  target = var.target
+
+  config = {
+    # since this is mounted inside /data volume, it also has to be `shifted`
+    "security.shifted" = "true"
+  }
+}
+
 resource "incus_instance" "immich" {
   name = "immich"
   type = "container"
@@ -24,6 +46,26 @@ resource "incus_instance" "immich" {
       path   = "/data"
       pool   = var.storage_pool
       source = var.storage_source
+    }
+  }
+
+  device {
+    name = "thumbs"
+    type = "disk"
+    properties = {
+      path   = "/data/thumbs"
+      pool   = incus_storage_volume.immich_thumbs.pool
+      source = incus_storage_volume.immich_thumbs.name
+    }
+  }
+
+  device {
+    name = "encoded-video"
+    type = "disk"
+    properties = {
+      path   = "/data/encoded-video"
+      pool   = incus_storage_volume.immich_encoded_video.pool
+      source = incus_storage_volume.immich_encoded_video.name
     }
   }
 

@@ -6,7 +6,7 @@ locals {
 
   slskd_dirs = {
     downloads  = "/data/media/downloads/soulseek/downloads"
-    incomplete = "/data/media/downloads/soulseek/incomplete"
+    incomplete = "/data/incomplete/soulseek"
     shared     = "/data/media/collection/music"
   }
 }
@@ -46,6 +46,16 @@ resource "incus_instance" "slskd" {
       path   = "/data/media"
       pool   = var.media_pool
       source = var.media_source
+    }
+  }
+
+  device {
+    name = "incomplete"
+    type = "disk"
+    properties = {
+      path   = "/data/incomplete"
+      pool   = var.incomplete_pool
+      source = var.incomplete_source
     }
   }
 
