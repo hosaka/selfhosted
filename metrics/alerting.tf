@@ -78,14 +78,14 @@ locals {
         summary   = "{{ $labels.device }} on {{ $labels.node }} is at {{ $values.A.Value }}°C"
         panel     = ["drive-health", 8] # Temperature
       }
-      nvme-worn = {
-        title     = "NVMe worn"
+      drive-wear = {
+        title     = "Drive wear"
         query     = "max by (node, device) (smartctl_device_percentage_used)"
         evaluator = { type = "gte", params = [80] }
         pending   = "5m"
         severity  = "warning"
         summary   = "{{ $labels.device }} on {{ $labels.node }} has used {{ $values.A.Value }}% of its rated endurance"
-        panel     = ["drive-health", 10] # NVMe wear
+        panel     = ["drive-health", 10] # Wear
       }
       drive-missing = {
         title     = "Drive missing"

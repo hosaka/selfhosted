@@ -386,7 +386,7 @@
       "id": 7,
       "type": "table",
       "title": "Drives",
-      "description": "Reallocated, Pending, Uncorrectable and CRC errors are lifetime SATA attribute counts; NVMe wear and media errors only apply to NVMe drives. New errors (24h) is how much those error counters grew over the last day, a drive with a value there needs attention.",
+      "description": "Reallocated, Pending, Uncorrectable and CRC errors are lifetime SATA attribute counts. Wear is the share of rated endurance used, NVMe drives report it and the SATA SSDs' is 100 minus their life left (attribute 231 on Phison controllers). Media errors only apply to NVMe drives. New errors (24h) is how much those error counters grew over the last day, a drive with a value there needs attention.",
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
@@ -492,7 +492,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "max by (node, device, model_name, serial_number) ((max by (node, device) (smartctl_device_percentage_used{node=~\"$node\"})) * on (node, device) group_left (model_name, serial_number) max by (node, device, model_name, serial_number) (smartctl_device{node=~\"$node\"}))",
+          "expr": "max by (node, device, model_name, serial_number) ((max by (node, device) (smartctl_device_percentage_used{node=~\"$node\"}) or 100 - max by (node, device) (smartctl_device_attribute{node=~\"$node\", attribute_id=\"231\", attribute_value_type=\"value\"})) * on (node, device) group_left (model_name, serial_number) max by (node, device, model_name, serial_number) (smartctl_device{node=~\"$node\"}))",
           "format": "table",
           "instant": true,
           "range": false
@@ -561,7 +561,7 @@
               "Value #pending": "Pending",
               "Value #uncorrectable": "Uncorrectable",
               "Value #crc": "CRC errors",
-              "Value #wear": "NVMe wear",
+              "Value #wear": "Wear",
               "Value #media_errors": "Media errors",
               "Value #new_errors": "New errors (24h)"
             }
@@ -892,7 +892,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "NVMe wear"
+              "options": "Wear"
             },
             "properties": [
               {
@@ -1083,8 +1083,8 @@
     {
       "id": 10,
       "type": "timeseries",
-      "title": "NVMe wear",
-      "description": "Percentage of the rated endurance used, as reported by the drive.",
+      "title": "Wear",
+      "description": "Percentage of the rated endurance used. NVMe drives report it, for the SATA SSDs it's 100 minus their life left (attribute 231 on Phison controllers).",
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
@@ -1102,7 +1102,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "max by (node, device) (smartctl_device_percentage_used{node=~\"$node\"})",
+          "expr": "max by (node, device) (smartctl_device_percentage_used{node=~\"$node\"}) or 100 - max by (node, device) (smartctl_device_attribute{node=~\"$node\", attribute_id=\"231\", attribute_value_type=\"value\"})",
           "instant": false,
           "range": true,
           "legendFormat": "{{device}}"
