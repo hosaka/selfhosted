@@ -204,8 +204,8 @@
             "uid": "prometheus"
           },
           "expr": "restic_snapshots_total{repository=~\"$repository\"}",
-          "instant": false,
-          "range": true,
+          "instant": true,
+          "range": false,
           "legendFormat": "{{repository}}"
         }
       ],
@@ -254,8 +254,8 @@
             "uid": "prometheus"
           },
           "expr": "restic_size_total{repository=~\"$repository\"}",
-          "instant": false,
-          "range": true,
+          "instant": true,
+          "range": false,
           "legendFormat": "{{repository}}"
         }
       ],
@@ -304,8 +304,8 @@
             "uid": "prometheus"
           },
           "expr": "restic_compression_ratio{repository=~\"$repository\"}",
-          "instant": false,
-          "range": true,
+          "instant": true,
+          "range": false,
           "legendFormat": "{{repository}}"
         }
       ],
@@ -355,8 +355,8 @@
             "uid": "prometheus"
           },
           "expr": "restic_locks_total{repository=~\"$repository\"}",
-          "instant": false,
-          "range": true,
+          "instant": true,
+          "range": false,
           "legendFormat": "{{repository}}"
         }
       ],
