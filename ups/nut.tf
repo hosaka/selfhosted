@@ -4,12 +4,12 @@ locals {
 
   # the driver reports low battery, which makes upsmon power off the cluster
   low_battery = {
-    charge  = 20  # percent
-    runtime = 600 # seconds
+    charge  = 40   # percent
+    runtime = 1200 # seconds
   }
 
   # longest cluster-poweroff waits for the other members
-  member_timeout = 300
+  member_timeout = 900
 
   nut_ports = {
     upsd = 3493
