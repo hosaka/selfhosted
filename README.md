@@ -119,7 +119,7 @@ OCI containers with a static address skip DHCP, the `oci` profile gives them Ope
 
 #### Boot order
 
-When a node boots, Incus starts its instances one by one by `boot.autostart.priority`, and stops them in batches by `boot.stop.priority` on shutdown: `linstor-controller` and the OVN central containers first and last (100/-100), `nut` after them (-200, see [UPS](#ups)), databases, caches and lldap through the `datastore` profile (50/-50), everything else at 0. The `default` profile sets priority 0 on purpose, Incus starts instances without any priority first and all at once, before the prioritised ones. Give a new database the `datastore` profile.
+When a node boots, Incus starts its instances one by one by `boot.autostart.priority`, and stops them in batches by `boot.stop.priority` on shutdown: `linstor-controller` and the OVN central containers first and last (100/-100), `nut` after them (-200, see [UPS](#ups)), databases, caches through the `datastore` profile (50/-50), everything else at 0. The `default` profile sets priority 0 on purpose, Incus starts instances without any priority first and all at once, before the prioritised ones. When adding a new database instance use `datastore` profile.
 
 ### Configuration
 
