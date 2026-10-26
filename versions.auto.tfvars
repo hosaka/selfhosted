@@ -90,7 +90,7 @@ versions = {
   }
   paperless = {
     # renovate: datasource=github-releases depName=paperless-ngx/paperless-ngx
-    paperless = "3.3.3"
+    paperless = "3.3.4"
     db        = "18-alpine"
     cache     = "8-alpine"
   }
