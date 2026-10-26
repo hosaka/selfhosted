@@ -23,7 +23,7 @@ versions = {
   }
   forgejo = {
     # renovate: datasource=github-releases depName=TecharoHQ/anubis
-    anubis = "1.28.1"
+    anubis = "1.28.2"
     # renovate: datasource=forgejo-releases depName=forgejo/forgejo registryUrl=https://codeberg.org
     forgejo = "17.0.0"
     db      = "18-alpine"
