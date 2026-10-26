@@ -53,7 +53,7 @@ versions = {
   }
   jellyfin = {
     # renovate: datasource=github-releases depName=jellyfin/jellyfin
-    jellyfin = "12.2"
+    jellyfin = "12.3"
   }
   kavita = {
     # renovate: datasource=github-releases depName=Kareadita/Kavita
