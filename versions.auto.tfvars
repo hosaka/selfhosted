@@ -124,7 +124,7 @@ versions = {
   }
   slskd = {
     # renovate: datasource=github-releases depName=slskd/slskd
-    slskd = "0.26.1"
+    slskd = "0.26.2"
   }
   snikket = {
     # renovate: datasource=docker depName=snikket/snikket-server versioning=regex:^stable\.(?<major>\d+)$
