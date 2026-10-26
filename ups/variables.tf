@@ -1,3 +1,8 @@
+# upsd password per NUT secondary
+variable "secrets" {
+  type = map(string)
+}
+
 variable "target" {
   type = string
 }
@@ -38,6 +43,15 @@ variable "addresses" {
     ipv4 = string
     nic  = map(string)
   }))
+}
+
+variable "secondaries" {
+  type = map(string)
+
+  validation {
+    condition     = alltrue([for name in keys(var.secondaries) : contains(keys(var.secrets), name)])
+    error_message = "Every NUT secondary needs a password in the ups secrets."
+  }
 }
 
 # The UPS's USB vendor and product id, 4 hex digits each

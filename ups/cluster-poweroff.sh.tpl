@@ -1,6 +1,6 @@
 #!/bin/sh
-# upsmon's SHUTDOWNCMD. Powers off the other cluster members and waits until their Incus has stopped,
-# then powers off ${self}.
+# upsmon's SHUTDOWNCMD. Powers off the other cluster members and waits until their Incus has stopped
+# and the NUT secondaries have powered themselves off, then powers off ${self}.
 #
 # upsmon has set its POWERDOWNFLAG by now so when Incus stops this container, the last instance on ${self},
 # NUT's systemd-shutdown hook tells the UPS to cut its output, and to turn it back on once power returns.
@@ -8,6 +8,7 @@ set -u
 
 self=${self}
 self_address=${self_address}
+secondaries="${secondaries}"
 
 # The cluster certificate is only valid for 127.0.0.1 and the name of the member that created it,
 # so curl checks it against 127.0.0.1 and connects to the member's address instead.
@@ -32,6 +33,16 @@ if [ "$${1:-}" = --dry-run ]; then
       status=1
     fi
   done
+  # and checks that every secondary's upsmon is logged in to upsd
+  clients=$(upsc -c ups@localhost 2>/dev/null)
+  for secondary in $secondaries; do
+    if echo "$clients" | grep -qx "$${secondary#*=}"; then
+      echo "would wait for $${secondary%%=*}"
+    else
+      echo "$${secondary%%=*} isn't logged in to upsd" >&2
+      status=1
+    fi
+  done
   exit $status
 fi
 
@@ -52,6 +63,18 @@ for member in $members; do
     sleep 5
   done
   echo "$${member%%=*} is down"
+done
+
+# a secondary logs out of upsd as soon as its shutdown starts, and stops answering pings once it's off
+for secondary in $secondaries; do
+  while ping -c 1 -W 2 "$${secondary#*=}" >/dev/null 2>&1; do
+    if [ "$(date +%s)" -ge "$deadline" ]; then
+      echo "stopped waiting for the secondaries after ${timeout}s" >&2
+      break 2
+    fi
+    sleep 5
+  done
+  echo "$${secondary%%=*} is down"
 done
 
 echo "powering off $self"

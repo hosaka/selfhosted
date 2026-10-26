@@ -63,6 +63,8 @@ module "ups" {
   private_domain      = var.private_domain
   cluster_address     = local.members[var.cluster.node-1.target].address
   cluster_certificate = file("${path.root}/incus/cluster.crt")
+  secondaries         = var.ups.secondaries
+  secrets             = var.secrets.ups
   # APC BK750M-JP, `incus query /1.0/resources?target=<member>` lists the USB devices
   usb        = { vendorid = "051d", productid = "0002" }
   depends_on = [null_resource.post_server]

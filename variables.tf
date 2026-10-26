@@ -97,12 +97,18 @@ variable "ovn" {
 # UPS monitor, see environment.auto.tfvars.
 variable "ups" {
   type = object({
-    address = string
+    address     = string
+    secondaries = optional(map(string), {})
   })
 
   validation {
     condition     = cidrcontains(var.cluster.gateway, var.ups.address) && !contains(concat([var.ovn.router], values(var.ovn.central)), var.ups.address)
     error_message = "The UPS monitor's address must be on the LAN and not one of the OVN addresses."
+  }
+
+  validation {
+    condition     = alltrue([for address in values(var.ups.secondaries) : cidrcontains(var.cluster.gateway, address)])
+    error_message = "NUT secondaries must be on the LAN, where the UPS monitor can reach them."
   }
 }
 

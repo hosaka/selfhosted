@@ -47,6 +47,11 @@ locals {
     [upsmon]
       password = ${random_password.upsmon.result}
       upsmon primary
+    %{for name in keys(var.secondaries)}
+    [${name}]
+      password = ${var.secrets[name]}
+      upsmon secondary
+    %{endfor}
   EOT
 
   upsmon_conf = <<-EOT
@@ -61,6 +66,7 @@ locals {
     self_address = trimprefix(var.cluster_address, "https://")
     incus_conf   = local.incus_conf
     timeout      = local.member_timeout
+    secondaries  = join(" ", [for name, address in var.secondaries : "${name}=${address}"])
   })
 }
 

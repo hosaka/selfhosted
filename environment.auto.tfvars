@@ -44,4 +44,9 @@ ovn = {
 # while OVN goes down in an event of a shutdown
 ups = {
   address = "10.10.0.250"
+  # NUT secondaries outside the cluster by upsd user, they power themselves off
+  # and the UPS monitor waits for them before it cuts the power
+  secondaries = {
+    tessier = "10.10.0.195"
+  }
 }
