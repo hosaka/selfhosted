@@ -47,6 +47,8 @@ locals {
     opencloud_apps_client_id       = var.secrets.opencloud_apps_client_id
     paperless_client_id            = var.secrets.paperless_client_id
     paperless_client_secret_hash   = var.secrets.paperless_client_secret_hash
+    romm_client_id                 = var.secrets.romm_client_id
+    romm_client_secret_hash        = var.secrets.romm_client_secret_hash
     vaultwarden_client_id          = var.secrets.vaultwarden_client_id
     vaultwarden_client_secret_hash = var.secrets.vaultwarden_client_secret_hash
     wakapi_client_id               = var.secrets.wakapi_client_id

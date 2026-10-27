@@ -90,6 +90,8 @@ identity_providers:
         custom_claims:
           immich_role:
             attribute: immich_role
+      romm:
+        id_token: ["email", "email_verified", "groups", "preferred_username"]
       vaultwarden:
         id_token: ["vaultwarden_role"]
         custom_claims:
@@ -129,6 +131,13 @@ identity_providers:
           - policy: two_factor
             subject:
               - group:paperless_user
+      romm:
+        default_policy: deny
+        rules:
+          - policy: two_factor
+            subject:
+              - group:romm_admin
+              - group:romm_user
       wakapi:
         default_policy: deny
         rules:
@@ -346,6 +355,30 @@ identity_providers:
         access_token_signed_response_alg: none
         userinfo_signed_response_alg: none
         token_endpoint_auth_method: client_secret_post
+
+      - client_name: romm
+        client_id: "${romm_client_id}"
+        client_secret: "${romm_client_secret_hash}"
+        claims_policy: romm
+        public: false
+        authorization_policy: romm
+        consent_mode: implicit
+        require_pkce: true
+        pkce_challenge_method: S256
+        redirect_uris:
+          - "https://romm.${private_domain}/api/oauth/openid"
+        scopes:
+          - openid
+          - email
+          - profile
+          - groups
+        response_types:
+          - code
+        grant_types:
+          - authorization_code
+        access_token_signed_response_alg: none
+        userinfo_signed_response_alg: none
+        token_endpoint_auth_method: client_secret_basic
 
       - client_name: vaultwarden
         client_id: "${vaultwarden_client_id}"

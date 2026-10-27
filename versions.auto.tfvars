@@ -100,6 +100,11 @@ versions = {
     # renovate: datasource=github-releases depName=StuffAnThings/qbit_manage
     qbitmanage = "4.14.0"
   }
+  romm = {
+    # renovate: datasource=github-releases depName=rommapp/romm
+    romm = "5.4.1"
+    db   = "18-alpine"
+  }
   sabnzbd = {
     # renovate: datasource=github-releases depName=sabnzbd/sabnzbd
     sabnzbd = "5.1.3"

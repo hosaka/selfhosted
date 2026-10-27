@@ -301,6 +301,25 @@ loki.process "console" {
     }
   }
 
+  // INFO:	  [RomM][scan][2026-10-27 14:42:51] Folder switch identified as Nintendo Switch, the same prefix on the init,
+  // gunicorn and nginx access lines, and Python's ERROR:root:..., the RQ workers' 14:43:17 Worker ...: Job OK carry no level,
+  // nginx errors are 2026/10/27 14:42:51 [error] ..., tracebacks (some behind "Process Scheduler:") continue the line before them
+  stage.match {
+    selector = "{name=\"romm\"}"
+
+    stage.multiline {
+      firstline = "^(?:${ansi}(?:DEBUG|INFO|WARNING|ERROR|CRITICAL)${ansi}:|\\d\\d:\\d\\d:\\d\\d |\\d{4}/\\d\\d/\\d\\d |Process \\S+:$)"
+    }
+
+    stage.regex {
+      expression = "^${ansi}(?P<detected_level>DEBUG|INFO|WARNING|ERROR|CRITICAL)${ansi}:"
+    }
+
+    stage.regex {
+      expression = "^\\d{4}/\\d\\d/\\d\\d \\d\\d:\\d\\d:\\d\\d \\[(?P<detected_level>[a-z]+)\\]"
+    }
+  }
+
   stage.template {
     source   = "detected_level"
     template = "{{ if .Value }}{{ $v := lower .Value }}{{ get (dict \"log\" \"info\" \"notice\" \"info\" \"*\" \"info\" \"#\" \"warn\" \"-\" \"debug\" \".\" \"debug\" \"i\" \"info\" \"w\" \"warn\" \"e\" \"error\" \"d\" \"debug\" \"t\" \"trace\" \"c\" \"critical\" \"f\" \"fatal\" \"vrb\" \"trace\" \"verbose\" \"trace\" \"ftl\" \"fatal\" \"pnc\" \"critical\" \"panic\" \"critical\" \"erro\" \"error\" \"debu\" \"debug\" \"trac\" \"trace\" \"fata\" \"fatal\" \"2\" \"critical\" \"3\" \"error\" \"4\" \"warn\" \"6\" \"info\" \"7\" \"debug\") $v | default $v }}{{ end }}"

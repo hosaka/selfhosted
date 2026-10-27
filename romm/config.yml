@@ -1,0 +1,3 @@
+filesystem:
+  # reading Switch title ids needs prod.keys, which RomM doesn't get
+  skip_title_id_extraction: true

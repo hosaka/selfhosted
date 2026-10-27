@@ -51,6 +51,8 @@ variable "secrets" {
     opencloud_apps_client_id       = string # public client, no secret
     paperless_client_id            = string
     paperless_client_secret_hash   = string
+    romm_client_id                 = string
+    romm_client_secret_hash        = string
     vaultwarden_client_id          = string
     vaultwarden_client_secret_hash = string
     wakapi_client_id               = string

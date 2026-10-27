@@ -15,6 +15,8 @@ locals {
     "opencloud_family",
     "opencloud_user",
     "paperless_user",
+    "romm_admin",
+    "romm_user",
     "vaultwarden_admin",
     "vaultwarden_user",
     "wakapi_user",

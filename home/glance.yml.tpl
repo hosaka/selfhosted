@@ -157,6 +157,10 @@ pages:
                     url: https://kavita.${private_domain}/
                     check-url: https://kavita.${private_domain}/api/health
                     icon: sh:kavita
+                  - title: RomM
+                    url: https://romm.${private_domain}/
+                    check-url: https://romm.${private_domain}/api/heartbeat
+                    icon: sh:romm
                   - title: Immich
                     url: https://immich.${public_domain}/
                     check-url: https://immich.${public_domain}/api/server/ping

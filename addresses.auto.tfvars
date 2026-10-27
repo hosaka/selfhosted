@@ -77,6 +77,10 @@ addresses = {
     qbittorrent = { hwaddr = "10:66:6a:aa:1b:17", ipv4 = "10.42.0.54" }
     qbitmanage  = { hwaddr = "10:66:6a:02:66:7f", ipv4 = "10.42.0.55" }
   }
+  romm = {
+    romm          = { hwaddr = "02:d1:5a:c3:bb:b1", ipv4 = "10.42.0.13" }
+    romm_database = { hwaddr = "02:1f:db:8e:50:e6", ipv4 = "10.42.0.14" }
+  }
   sabnzbd = {
     sabnzbd = { hwaddr = "10:66:6a:fb:50:7e", ipv4 = "10.42.0.56" }
   }

@@ -99,6 +99,7 @@ module "ingress" {
     module.opencloud.ingress,
     module.paperless.ingress,
     module.qbittorrent.ingress,
+    module.romm.ingress,
     module.sabnzbd.ingress,
     module.searxng.ingress,
     module.servarr.ingress,
@@ -142,6 +143,7 @@ module "backups" {
     module.opencloud.backups,
     module.paperless.backups,
     module.qbittorrent.backups,
+    module.romm.backups,
     module.sabnzbd.backups,
     module.servarr.backups,
     module.slskd.backups,
@@ -362,6 +364,7 @@ module "metrics" {
     opencloud   = module.opencloud.probes
     paperless   = module.paperless.probes
     qbittorrent = module.qbittorrent.probes
+    romm        = module.romm.probes
     sabnzbd     = module.sabnzbd.probes
     searxng     = module.searxng.probes
     servarr     = module.servarr.probes
@@ -446,6 +449,23 @@ module "qbittorrent" {
   private_domain    = var.private_domain
   timezone          = var.timezone
   depends_on        = [null_resource.post_server, module.linstor]
+}
+
+module "romm" {
+  source          = "./romm"
+  versions        = var.versions.romm
+  addresses       = local.ovn_addresses.romm
+  secrets         = var.secrets.romm
+  target          = var.cluster.node-4.target
+  snapshots       = local.daily_snapshot
+  media_pool      = incus_storage_volume.media.pool
+  media_source    = incus_storage_volume.media.name
+  cache_pool      = incus_storage_pool.ssd.name
+  public_domain   = var.public_domain
+  private_domain  = var.private_domain
+  timezone        = var.timezone
+  trusted_proxies = local.trusted_proxies
+  depends_on      = [null_resource.post_server, module.linstor]
 }
 
 module "sabnzbd" {
