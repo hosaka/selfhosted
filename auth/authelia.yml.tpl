@@ -456,6 +456,7 @@ identity_providers:
           - "oc://android.opencloud.eu"
           - "oc://ios.opencloud.eu"
           - "oc.ios://ios.opencloud.eu"
+          - "app.raiun.cloud://oauth"
           - "http://127.0.0.1"
           - "http://localhost"
         scopes:
