@@ -56,6 +56,13 @@ loki.process "console" {
     values = ["filename"]
   }
 
+  // opencloud's share manager reads the received.json of a user or group that never got a share on every
+  // drive listing, the missing file is expected but storage-system logs every 4xx as a warning
+  stage.match {
+    selector = "{name=\"opencloud\"} |= \"storage-system\" |~ \"status.:404,\" |~ \"/(users|groups)/[^/]+/received[.]json\""
+    action   = "drop"
+  }
+
   // Per service log normalizers.
 
   // 2026-10-20T12:54:00.031Z [debug][Download Tracker]: Starting scheduled job
