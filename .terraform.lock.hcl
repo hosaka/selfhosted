@@ -1,6 +1,37 @@
 # This file is maintained automatically by "tofu init".
 # Manual edits may be lost in future updates.
 
+provider "registry.opentofu.org/foxboron/openwrt" {
+  version     = "0.3.0"
+  constraints = "~> 0.3.0"
+  hashes = [
+    "h1:0NO+hSYbrMyKdoL78AsZg9uVUpmgYb9/Bwhy79wnPHU=",
+    "h1:CEwUin+i6tn5FNB3t/jcHL51FfgAmWhWAlN5NPsAQ5s=",
+    "h1:KILzjGfUfhJOw0tcpKhJGTpXtckemXsMxNsP9yxeanA=",
+    "h1:Kwrg3imNMpgV0EI2s7sfcO8X43+ShfYLwqmG1I35kqU=",
+    "h1:NEqQWcgQuyiN/SmKgSSQKpA3UkJOs77BvWZcbSF7Tmk=",
+    "h1:NUQc3wvkoikMyzR76guJ/FchLS4bbM13Y18lq2wAUdY=",
+    "h1:RtWSQKPRF9WIYphHS/kzEzwpUqh5GJ+FDqjazyuG8oQ=",
+    "h1:j5BFSJdcc8adQeha3+EEp82NUIHWXdl9Xagaawla4ik=",
+    "h1:j6dUCauT4ouIMl16TM4XfqU7BEAqqsR40UJEaNWbmoU=",
+    "h1:pCZZ7i97Gk1toFw/tSrlZ8uyZY7//6SQdUTTSwxiSOA=",
+    "h1:qGEJDP4NIxfdP8lUiN+Gx/CS6QmCRCplAvG09y+OO20=",
+    "h1:xbqooFNSm5nIPK5nKCuB7qSuWO5OUaf6sSkVoF+S7qs=",
+    "zh:4d35ad326d2210d6a5888ed4ec466c54f7b7126e7609aa98ef6831f496521ae7",
+    "zh:4e49776f25ca8c8e990743375b64a4e23e72c30044e49b684e35516ff7c1af6f",
+    "zh:5a32358c57e500746f2ea923b3fea9cece9d7d270f1f685d60558e115ed97651",
+    "zh:5cb57fa9df2551945a0794b014c673d839bd68713d550aaa10b3c875601deb4f",
+    "zh:61f3ef8c83bf32c309da7e707f7c6671c77c49e8295e372ae28b0fbac1ec55e1",
+    "zh:8163b805f18b9891742b20a9ab46e722dffc56d290989012843fc7a7c702ddd1",
+    "zh:8b2059021d559994ac399ebe3d7adce1e394e5ba47eb2bff0474c5bac950c9a4",
+    "zh:950fa649b6100842f50ac4984af512cf7beaddddb0b30dcc6870fd567e83cb22",
+    "zh:9bdf3c4a757e59e2d7d8a2739a246e7b325e2f36622dddb91e397496b94f1ae5",
+    "zh:ae328a6eadf3f531bc4dee2d78aaf4e17a15d65ab70fe63f4bf428214aac2d7f",
+    "zh:d2176c5894d7315da144604e41cac14c978699467c6d5f0bd99a991039fbe5ed",
+    "zh:e90179c73cb6b77ecfb8758b06ff53f11325439b40109c084aee65aa937a2373",
+  ]
+}
+
 provider "registry.opentofu.org/hashicorp/null" {
   version     = "3.3.2"
   constraints = "~> 3.3.0"

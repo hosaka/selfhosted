@@ -36,3 +36,10 @@ provider "lldap" {
   password = var.secrets.auth.lldap_user_pass
   base_dn  = module.auth.lldap_base_dn
 }
+
+# LuCI JSON-RPC over plain HTTP
+provider "openwrt" {
+  remote   = "http://${split("/", var.router.gateway)[0]}"
+  user     = var.secrets.router.username
+  password = var.secrets.router.password
+}

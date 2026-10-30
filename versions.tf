@@ -21,6 +21,11 @@ terraform {
       source  = "tasansga/lldap"
       version = "~>0.4.5"
     }
+
+    openwrt = {
+      source  = "foxboron/openwrt"
+      version = "~>0.3.0"
+    }
   }
 }
 

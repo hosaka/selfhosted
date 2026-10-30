@@ -67,7 +67,7 @@ resource "incus_profile" "oci" {
   description = "DNS and auto-restart for OCI containers"
 
   config = {
-    "oci.dns.nameservers" = split("/", var.cluster.gateway)[0]
+    "oci.dns.nameservers" = split("/", var.router.gateway)[0]
     # bare instance names resolve through OVN DNS records, <name>.incus
     "oci.dns.search"   = "incus"
     "boot.autorestart" = true

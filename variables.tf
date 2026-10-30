@@ -25,20 +25,23 @@ variable "cluster" {
   type = object({
     name = optional(string, "cluster")
 
-    uplink  = string
-    gateway = string
+    uplink = string
 
     node-1 = object({
-      target = optional(string, "node-1")
+      target       = optional(string, "node-1")
+      ipv4_address = string
     })
     node-2 = object({
-      target = optional(string, "node-2")
+      target       = optional(string, "node-2")
+      ipv4_address = string
     })
     node-3 = object({
-      target = optional(string, "node-3")
+      target       = optional(string, "node-3")
+      ipv4_address = string
     })
     node-4 = object({
-      target = optional(string, "node-4")
+      target       = optional(string, "node-4")
+      ipv4_address = string
     })
   })
 
@@ -61,6 +64,13 @@ variable "cluster" {
   }
 }
 
+# OpenWrt router, the LAN gateway and DNS server, see environment.auto.tfvars.
+variable "router" {
+  type = object({
+    gateway = string
+  })
+}
+
 # OVN network addresses, see environment.auto.tfvars.
 variable "ovn" {
   type = object({
@@ -78,7 +88,7 @@ variable "ovn" {
 
   validation {
     condition = alltrue([
-      for address in concat([var.ovn.router], values(var.ovn.central)) : cidrcontains(var.cluster.gateway, address)
+      for address in concat([var.ovn.router], values(var.ovn.central)) : cidrcontains(var.router.gateway, address)
     ]) && length(distinct(concat([var.ovn.router], values(var.ovn.central)))) == length(var.ovn.central) + 1
     error_message = "The OVN router and central addresses must be distinct addresses on the LAN."
   }
@@ -89,7 +99,7 @@ variable "ovn" {
   }
 
   validation {
-    condition     = !cidrcontains(var.ovn.subnet, cidrhost(var.cluster.gateway, 0)) && !cidrcontains(var.cluster.gateway, cidrhost(var.ovn.subnet, 0))
+    condition     = !cidrcontains(var.ovn.subnet, cidrhost(var.router.gateway, 0)) && !cidrcontains(var.router.gateway, cidrhost(var.ovn.subnet, 0))
     error_message = "The OVN subnet must not overlap the LAN."
   }
 }
@@ -102,12 +112,12 @@ variable "ups" {
   })
 
   validation {
-    condition     = cidrcontains(var.cluster.gateway, var.ups.address) && !contains(concat([var.ovn.router], values(var.ovn.central)), var.ups.address)
+    condition     = cidrcontains(var.router.gateway, var.ups.address) && !contains(concat([var.ovn.router], values(var.ovn.central)), var.ups.address)
     error_message = "The UPS monitor's address must be on the LAN and not one of the OVN addresses."
   }
 
   validation {
-    condition     = alltrue([for address in values(var.ups.secondaries) : cidrcontains(var.cluster.gateway, address)])
+    condition     = alltrue([for address in values(var.ups.secondaries) : cidrcontains(var.router.gateway, address)])
     error_message = "NUT secondaries must be on the LAN, where the UPS monitor can reach them."
   }
 }

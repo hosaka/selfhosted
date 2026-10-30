@@ -3,8 +3,7 @@ public_domain  = "hosaka.cc"
 private_domain = "box.hosaka.cc"
 
 cluster = {
-  uplink  = "uplink"
-  gateway = "10.10.0.1/24"
+  uplink = "uplink"
 
   node-1 = {
     ipv4_address = "10.10.0.101"
@@ -20,7 +19,10 @@ cluster = {
   }
 }
 
-# OVN network
+router = {
+  gateway = "10.10.0.1/24"
+}
+
 ovn = {
   # instance network, routed from the LAN through the OVN router
   subnet = "10.42.0.0/24"

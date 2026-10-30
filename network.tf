@@ -54,8 +54,8 @@ resource "incus_network" "lan" {
 
   # only used by OVN networks, instances attached to lan directly still get their addresses from the router
   config = {
-    "ipv4.gateway"    = var.cluster.gateway
-    "dns.nameservers" = split("/", var.cluster.gateway)[0]
+    "ipv4.gateway"    = var.router.gateway
+    "dns.nameservers" = split("/", var.router.gateway)[0]
     # the OVN router's address on the LAN, the router's static route for the OVN subnet points at it
     "ipv4.ovn.ranges" = "${var.ovn.router}-${var.ovn.router}"
     # OVN subnets that are routed instead of NATed have to be listed here

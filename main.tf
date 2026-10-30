@@ -44,7 +44,7 @@ module "ovn" {
   uplink          = incus_network.lan.name
   subnet          = var.ovn.subnet
   dhcp_range      = var.ovn.dhcp_range
-  gateway         = var.cluster.gateway
+  gateway         = var.router.gateway
   depends_on = [
     null_resource.post_projects,
     null_resource.post_networks,
@@ -53,13 +53,25 @@ module "ovn" {
   ]
 }
 
+# DNS and static leases, route to the OVN subnet and the firewall
+module "router" {
+  source          = "./router"
+  gateway         = var.router.gateway
+  cluster         = var.cluster
+  ovn             = var.ovn
+  public_domain   = var.public_domain
+  private_domain  = var.private_domain
+  caddy_address   = var.addresses.ingress.caddy.ipv4
+  tessier_address = var.ups.secondaries.tessier
+}
+
 module "ups" {
   source              = "./ups"
   versions            = var.versions.ups
   addresses           = local.ovn_addresses.ups
   target              = var.cluster.node-1.target
   address             = var.ups.address
-  gateway             = var.cluster.gateway
+  gateway             = var.router.gateway
   private_domain      = var.private_domain
   cluster_address     = local.members[var.cluster.node-1.target].address
   cluster_certificate = file("${path.root}/incus/cluster.crt")
@@ -438,7 +450,7 @@ module "qbittorrent" {
   source            = "./qbittorrent"
   versions          = var.versions.qbittorrent
   addresses         = local.ovn_addresses.qbittorrent
-  lan_network       = cidrsubnet(var.cluster.gateway, 0, 0)
+  lan_network       = cidrsubnet(var.router.gateway, 0, 0)
   secrets           = var.secrets.qbittorrent
   target            = var.cluster.node-4.target
   snapshots         = local.daily_snapshot
