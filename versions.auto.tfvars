@@ -117,7 +117,7 @@ versions = {
     # renovate: datasource=docker depName=ghcr.io/hotio/lidarr versioning=regex:^testing-(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)\.(?<build>\d+)$
     lidarr = "testing-3.2.0.5144"
     # renovate: datasource=github-releases depName=Prowlarr/Prowlarr
-    prowlarr = "2.6.5.5623"
+    prowlarr = "2.7.0.5723"
     # renovate: datasource=github-releases depName=Radarr/Radarr
     radarr = "6.4.4.10685"
     # renovate: datasource=github-releases depName=recyclarr/recyclarr
