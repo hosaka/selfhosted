@@ -121,7 +121,7 @@ versions = {
     # renovate: datasource=github-releases depName=Radarr/Radarr
     radarr = "6.4.4.10685"
     # renovate: datasource=github-releases depName=recyclarr/recyclarr
-    recyclarr = "8.8.0"
+    recyclarr = "8.8.1"
     # renovate: datasource=github-releases depName=seerr-team/seerr
     seerr = "3.5.1"
     # renovate: datasource=github-releases depName=Sonarr/Sonarr
