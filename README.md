@@ -11,6 +11,7 @@ My selfhosted config.
 - ShrikeLab PDU V1 with 5x 65W USB-C outputs, based on Meanwell HRP-300-24 PSU
 - GeeekPi 1U Quad Fan Cooling Panel with 4x Noctua NF-A8 PWM fans
 - 12U 10" DeskPi RackMate T2 Black Version
+- APC BK750M-JP 750VA/450W UPS
 
 **The NAS**
 
