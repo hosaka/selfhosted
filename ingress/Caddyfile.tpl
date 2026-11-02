@@ -29,6 +29,14 @@
 	}
 }
 
+# for sites that stay on the private domain
+(private) {
+	@public not remote_ip private_ranges
+	handle @public {
+		respond "401 - {remote_host} is not an allowed IP" 401
+	}
+}
+
 # prometheus metrics, stays inside the cluster
 :${metrics_port} {
 	metrics

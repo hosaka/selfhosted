@@ -9,6 +9,7 @@ output "ingress" {
     name  = "ups"
     caddy = <<-EOT
 			ups.${var.private_domain} {
+				import private
 				reverse_proxy ${var.addresses.peanut.ipv4}:${local.peanut_ports.webui}
 			}
     EOT

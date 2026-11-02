@@ -78,6 +78,7 @@ output "ingress" {
     name  = "kavita"
     caddy = <<-EOT
 			kavita.${var.private_domain} {
+				import private
 				encode gzip
 				reverse_proxy ${var.addresses.kavita.ipv4}:${local.kavita_ports.webui}
 			}

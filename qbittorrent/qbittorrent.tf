@@ -167,6 +167,7 @@ output "ingress" {
     name  = "qbittorrent"
     caddy = <<-EOT
     qbit.${var.private_domain} {
+      import private
       reverse_proxy ${var.addresses.qbittorrent.ipv4}:${local.qbittorrent_ports.webui}
     }
     EOT

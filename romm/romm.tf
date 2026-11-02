@@ -246,6 +246,7 @@ output "ingress" {
     name  = "romm"
     caddy = <<-EOT
 			romm.${var.private_domain} {
+				import private
 				encode zstd gzip
 				reverse_proxy ${var.addresses.romm.ipv4}:${local.romm_ports.webui}
 			}

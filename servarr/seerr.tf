@@ -5,6 +5,7 @@ locals {
 
   seerr_caddy = <<-EOT
   seerr.${var.private_domain} {
+  	import private
   	reverse_proxy ${var.addresses.seerr.ipv4}:${local.seerr_ports.webui}
   }
   EOT

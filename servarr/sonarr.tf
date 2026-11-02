@@ -5,6 +5,7 @@ locals {
 
   sonarr_caddy = <<-EOT
   sonarr.${var.private_domain} {
+  	import private
   	reverse_proxy ${var.addresses.sonarr.ipv4}:${local.sonarr_ports.webui}
   }
   EOT

@@ -90,6 +90,7 @@ output "ingress" {
     name  = "sabnzbd"
     caddy = <<-EOT
     nzb.${var.private_domain} {
+      import private
       reverse_proxy ${var.addresses.sabnzbd.ipv4}:${local.sabnzbd_ports.webui}
     }
     EOT

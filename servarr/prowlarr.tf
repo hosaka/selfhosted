@@ -5,6 +5,7 @@ locals {
 
   prowlarr_caddy = <<-EOT
   prowlarr.${var.private_domain} {
+  	import private
   	reverse_proxy ${var.addresses.prowlarr.ipv4}:${local.prowlarr_ports.webui}
   }
   EOT

@@ -128,6 +128,7 @@ output "ingress" {
     name  = "jellyfin"
     caddy = <<-EOT
 			jellyfin.${var.private_domain} {
+				import private
 				reverse_proxy ${var.addresses.jellyfin.ipv4}:${local.jellyfin_ports.webui}
 			}
     EOT

@@ -121,6 +121,7 @@ output "ingress" {
 
     caddy = <<-EOT
     slskd.${var.private_domain} {
+      import private
       reverse_proxy ${var.addresses.slskd.ipv4}:${local.slskd_ports.webui}
     }
     EOT

@@ -23,12 +23,23 @@ locals {
 
 			# frpc's own web UI has no login so we restrict it to private ips
 			frp.${var.private_domain} {
-				@public not remote_ip private_ranges
-				respond @public "401 - {remote_host} is not an allowed IP" 401
+				import private
 				reverse_proxy ${var.addresses.frpc.ipv4}:${local.frpc_ports.webui}
 			}
     EOT
   }
+
+  # each match is the site's address and the line after its opening brace
+  private_site_pattern = "(?m)^[ \\t]*([^\\s{#][^{#\\n]*\\.${replace(var.private_domain, ".", "\\.")})[ \\t]*\\{[ \\t]*\\n([^\\n]*)$"
+
+  unguarded_private_sites = flatten([
+    for s in concat([local.ingress], var.services) : [
+      for site in regexall(local.private_site_pattern, s.caddy) : trimspace(site[0])
+      if trimspace(site[1]) != "import private" && alltrue([
+        for address in split(",", site[0]) : endswith(trimspace(address), ".${var.private_domain}")
+      ])
+    ]
+  ])
 
   caddyfile = join("\n", concat(
     [templatefile("${path.module}/Caddyfile.tpl", {
@@ -126,6 +137,13 @@ resource "incus_instance" "caddy" {
 
   config = {
     "environment.TZ" = var.timezone
+  }
+
+  lifecycle {
+    precondition {
+      condition     = length(local.unguarded_private_sites) == 0
+      error_message = "Sites only on the private domain have to start with `import private`, frps makes them reachable from the internet otherwise: ${join(", ", local.unguarded_private_sites)}"
+    }
   }
 }
 

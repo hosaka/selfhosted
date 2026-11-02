@@ -9,6 +9,7 @@ output "ingress" {
     name  = "backup"
     caddy = <<-EOT
 			backup.${var.private_domain} {
+				import private
 				reverse_proxy ${var.addresses.backrest.ipv4}:${local.backrest_ports.webui}
 			}
     EOT

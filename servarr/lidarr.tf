@@ -5,6 +5,7 @@ locals {
 
   lidarr_caddy = <<-EOT
   lidarr.${var.private_domain} {
+  	import private
   	reverse_proxy ${var.addresses.lidarr.ipv4}:${local.lidarr_ports.webui}
   }
   EOT

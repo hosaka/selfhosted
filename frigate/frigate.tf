@@ -109,6 +109,7 @@ output "ingress" {
     name  = "frigate"
     caddy = <<-EOT
 			frigate.${var.private_domain} {
+				import private
 				reverse_proxy ${var.addresses.frigate.ipv4}:${local.frigate_ports.webui}
 			}
     EOT

@@ -255,6 +255,7 @@ output "ingress" {
 				}
 			}
 			code.${var.private_domain} {
+				import private
 				reverse_proxy ${var.addresses.forgejo.ipv4}:${local.forgejo_ports.webui}
 			}
     EOT

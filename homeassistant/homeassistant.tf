@@ -111,6 +111,7 @@ output "ingress" {
     name  = "homeassistant"
     caddy = <<-EOT
 			hass.${var.private_domain} {
+				import private
 				reverse_proxy ${var.addresses.homeassistant.ipv4}:${local.homeassistant_ports.webui}
 			}
     EOT

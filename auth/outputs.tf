@@ -30,6 +30,7 @@ output "ingress" {
 				reverse_proxy ${var.addresses.authelia.ipv4}:${local.authelia_ports.api}
 			}
 			users.${var.private_domain} {
+				import private
 				reverse_proxy ${var.addresses.lldap.ipv4}:${local.lldap_ports.webui}
 			}
     EOT

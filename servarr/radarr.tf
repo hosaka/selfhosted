@@ -5,6 +5,7 @@ locals {
 
   radarr_caddy = <<-EOT
   radarr.${var.private_domain} {
+  	import private
   	reverse_proxy ${var.addresses.radarr.ipv4}:${local.radarr_ports.webui}
   }
   EOT
