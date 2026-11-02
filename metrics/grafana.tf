@@ -15,6 +15,15 @@ locals {
     loki_address       = var.addresses.loki.ipv4
     loki_port          = local.loki_ports.api
   })
+
+  grafana_command = join(" ", [
+    "/bin/sh -c 'while [ ! -f /etc/grafana/cluster.ini ]",
+    "|| [ ! -f /etc/grafana/provisioning/datasources/datasources.yml ]",
+    "|| [ ! -f /etc/grafana/provisioning/dashboards/dashboards.yml ]",
+    "|| [ ! -f /etc/grafana/provisioning/alerting/notifications.yml ]",
+    "|| [ ! -f /etc/grafana/provisioning/alerting/rules.yml ];",
+    "do sleep 1; done; export GF_PATHS_CONFIG=/etc/grafana/cluster.ini; exec /run.sh'",
+  ])
 }
 
 resource "incus_storage_volume" "grafana_data" {
@@ -213,7 +222,7 @@ resource "incus_instance" "grafana" {
 
   file {
     content            = local.grafana_config
-    target_path        = "/etc/grafana/grafana.ini"
+    target_path        = "/etc/grafana/cluster.ini"
     uid                = 472
     gid                = 0
     mode               = "0600"
@@ -233,10 +242,15 @@ resource "incus_instance" "grafana" {
   wait_for {
     type = "ipv4"
   }
+
+  config = {
+    "oci.entrypoint" = local.grafana_command
+  }
 }
 
 resource "null_resource" "grafana_restart" {
   triggers = {
+    command       = sha1(local.grafana_command)
     config        = nonsensitive(sha1(local.grafana_config))
     datasources   = sha1(local.grafana_datasources)
     notifications = nonsensitive(sha1(local.grafana_notifications))
