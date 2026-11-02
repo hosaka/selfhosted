@@ -95,6 +95,10 @@ pages:
                     url: https://waka.${public_domain}/
                     check-url: https://waka.${public_domain}/api/health
                     icon: sh:wakapi
+                  - title: SilverBullet
+                    url: https://silver.${public_domain}/
+                    check-url: https://silver.${public_domain}/.instance
+                    icon: sh:silverbullet.png
 
               - type: monitor
                 title: Infrastructure

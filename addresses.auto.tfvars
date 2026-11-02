@@ -96,6 +96,9 @@ addresses = {
     seerr     = { hwaddr = "10:66:6a:ac:03:83", ipv4 = "10.42.0.63" }
     sonarr    = { hwaddr = "10:66:6a:b3:4c:0d", ipv4 = "10.42.0.64" }
   }
+  silverbullet = {
+    silverbullet = { hwaddr = "02:fc:89:f3:2c:bc", ipv4 = "10.42.0.15" }
+  }
   slskd = {
     slskd = { hwaddr = "10:66:6a:39:63:d6", ipv4 = "10.42.0.57" }
   }

@@ -115,6 +115,7 @@ module "ingress" {
     module.sabnzbd.ingress,
     module.searxng.ingress,
     module.servarr.ingress,
+    module.silverbullet.ingress,
     module.slskd.ingress,
     module.snikket.ingress,
     module.syncstorage.ingress,
@@ -158,6 +159,7 @@ module "backups" {
     module.romm.backups,
     module.sabnzbd.backups,
     module.servarr.backups,
+    module.silverbullet.backups,
     module.slskd.backups,
     module.snikket.backups,
     module.syncstorage.backups,
@@ -362,32 +364,33 @@ module "metrics" {
   peanut_address            = module.ups.peanut_address
   gotify_address            = module.notify.gotify_address
   probes = {
-    auth        = module.auth.probes
-    atuin       = module.atuin.probes
-    backups     = module.backups.probes
-    forgejo     = module.forgejo.probes
-    home        = module.home.probes
-    immich      = module.immich.probes
-    jellyfin    = module.jellyfin.probes
-    kavita      = module.kavita.probes
-    metrics     = module.metrics.probes
-    navidrome   = module.navidrome.probes
-    notify      = module.notify.probes
-    opencloud   = module.opencloud.probes
-    paperless   = module.paperless.probes
-    qbittorrent = module.qbittorrent.probes
-    romm        = module.romm.probes
-    sabnzbd     = module.sabnzbd.probes
-    searxng     = module.searxng.probes
-    servarr     = module.servarr.probes
-    slskd       = module.slskd.probes
-    snikket     = module.snikket.probes
-    syncstorage = module.syncstorage.probes
-    ups         = module.ups.probes
-    vaultwarden = module.vaultwarden.probes
-    voidrepo    = module.voidrepo.probes
-    wakapi      = module.wakapi.probes
-    whoami      = module.whoami.probes
+    auth         = module.auth.probes
+    atuin        = module.atuin.probes
+    backups      = module.backups.probes
+    forgejo      = module.forgejo.probes
+    home         = module.home.probes
+    immich       = module.immich.probes
+    jellyfin     = module.jellyfin.probes
+    kavita       = module.kavita.probes
+    metrics      = module.metrics.probes
+    navidrome    = module.navidrome.probes
+    notify       = module.notify.probes
+    opencloud    = module.opencloud.probes
+    paperless    = module.paperless.probes
+    qbittorrent  = module.qbittorrent.probes
+    romm         = module.romm.probes
+    sabnzbd      = module.sabnzbd.probes
+    searxng      = module.searxng.probes
+    servarr      = module.servarr.probes
+    silverbullet = module.silverbullet.probes
+    slskd        = module.slskd.probes
+    snikket      = module.snikket.probes
+    syncstorage  = module.syncstorage.probes
+    ups          = module.ups.probes
+    vaultwarden  = module.vaultwarden.probes
+    voidrepo     = module.voidrepo.probes
+    wakapi       = module.wakapi.probes
+    whoami       = module.whoami.probes
   }
   log_collectors = keys(local.members)
   depends_on     = [null_resource.post_server, module.linstor]
@@ -520,6 +523,17 @@ module "servarr" {
   private_domain = var.private_domain
   timezone       = var.timezone
   depends_on     = [null_resource.post_server, module.linstor]
+}
+
+module "silverbullet" {
+  source        = "./silverbullet"
+  versions      = var.versions.silverbullet
+  addresses     = local.ovn_addresses.silverbullet
+  secrets       = var.secrets.silverbullet
+  target        = var.cluster.node-2.target
+  snapshots     = local.daily_snapshot
+  public_domain = var.public_domain
+  depends_on    = [null_resource.post_server, module.linstor]
 }
 
 module "slskd" {

@@ -31,28 +31,30 @@ locals {
     metrics_port           = local.authelia_ports.metrics
 
     # clients
-    forgejo_client_id              = var.secrets.forgejo_client_id
-    forgejo_client_secret_hash     = var.secrets.forgejo_client_secret_hash
-    gotify_client_id               = var.secrets.gotify_client_id
-    gotify_client_secret_hash      = var.secrets.gotify_client_secret_hash
-    grafana_client_id              = var.secrets.grafana_client_id
-    grafana_client_secret_hash     = var.secrets.grafana_client_secret_hash
-    immich_client_id               = var.secrets.immich_client_id
-    immich_client_secret_hash      = var.secrets.immich_client_secret_hash
-    jellyfin_client_id             = var.secrets.jellyfin_client_id
-    jellyfin_client_secret_hash    = var.secrets.jellyfin_client_secret_hash
-    kavita_client_id               = var.secrets.kavita_client_id
-    kavita_client_secret_hash      = var.secrets.kavita_client_secret_hash
-    opencloud_client_id            = var.secrets.opencloud_client_id
-    opencloud_apps_client_id       = var.secrets.opencloud_apps_client_id
-    paperless_client_id            = var.secrets.paperless_client_id
-    paperless_client_secret_hash   = var.secrets.paperless_client_secret_hash
-    romm_client_id                 = var.secrets.romm_client_id
-    romm_client_secret_hash        = var.secrets.romm_client_secret_hash
-    vaultwarden_client_id          = var.secrets.vaultwarden_client_id
-    vaultwarden_client_secret_hash = var.secrets.vaultwarden_client_secret_hash
-    wakapi_client_id               = var.secrets.wakapi_client_id
-    wakapi_client_secret_hash      = var.secrets.wakapi_client_secret_hash
+    forgejo_client_id               = var.secrets.forgejo_client_id
+    forgejo_client_secret_hash      = var.secrets.forgejo_client_secret_hash
+    gotify_client_id                = var.secrets.gotify_client_id
+    gotify_client_secret_hash       = var.secrets.gotify_client_secret_hash
+    grafana_client_id               = var.secrets.grafana_client_id
+    grafana_client_secret_hash      = var.secrets.grafana_client_secret_hash
+    immich_client_id                = var.secrets.immich_client_id
+    immich_client_secret_hash       = var.secrets.immich_client_secret_hash
+    jellyfin_client_id              = var.secrets.jellyfin_client_id
+    jellyfin_client_secret_hash     = var.secrets.jellyfin_client_secret_hash
+    kavita_client_id                = var.secrets.kavita_client_id
+    kavita_client_secret_hash       = var.secrets.kavita_client_secret_hash
+    opencloud_client_id             = var.secrets.opencloud_client_id
+    opencloud_apps_client_id        = var.secrets.opencloud_apps_client_id
+    paperless_client_id             = var.secrets.paperless_client_id
+    paperless_client_secret_hash    = var.secrets.paperless_client_secret_hash
+    romm_client_id                  = var.secrets.romm_client_id
+    romm_client_secret_hash         = var.secrets.romm_client_secret_hash
+    silverbullet_client_id          = var.secrets.silverbullet_client_id
+    silverbullet_client_secret_hash = var.secrets.silverbullet_client_secret_hash
+    vaultwarden_client_id           = var.secrets.vaultwarden_client_id
+    vaultwarden_client_secret_hash  = var.secrets.vaultwarden_client_secret_hash
+    wakapi_client_id                = var.secrets.wakapi_client_id
+    wakapi_client_secret_hash       = var.secrets.wakapi_client_secret_hash
   })
 }
 

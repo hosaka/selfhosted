@@ -127,6 +127,10 @@ versions = {
     # renovate: datasource=github-releases depName=Sonarr/Sonarr
     sonarr = "4.0.20.3014"
   }
+  silverbullet = {
+    # renovate: datasource=github-releases depName=silverbulletmd/silverbullet
+    silverbullet = "2.12.1"
+  }
   slskd = {
     # renovate: datasource=github-releases depName=slskd/slskd
     slskd = "0.26.2"

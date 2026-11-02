@@ -17,6 +17,7 @@ locals {
     "paperless_user",
     "romm_admin",
     "romm_user",
+    "silverbullet_user",
     "vaultwarden_admin",
     "vaultwarden_user",
     "wakapi_user",

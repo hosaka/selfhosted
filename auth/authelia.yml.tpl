@@ -138,6 +138,12 @@ identity_providers:
             subject:
               - group:romm_admin
               - group:romm_user
+      silverbullet:
+        default_policy: deny
+        rules:
+          - policy: two_factor
+            subject:
+              - group:silverbullet_user
       wakapi:
         default_policy: deny
         rules:
@@ -372,6 +378,28 @@ identity_providers:
           - email
           - profile
           - groups
+        response_types:
+          - code
+        grant_types:
+          - authorization_code
+        access_token_signed_response_alg: none
+        userinfo_signed_response_alg: none
+        token_endpoint_auth_method: client_secret_basic
+
+      - client_name: silverbullet
+        client_id: "${silverbullet_client_id}"
+        client_secret: "${silverbullet_client_secret_hash}"
+        public: false
+        authorization_policy: silverbullet
+        consent_mode: implicit
+        require_pkce: true
+        pkce_challenge_method: S256
+        redirect_uris:
+          - "https://silver.${public_domain}/.auth/central/oidc/callback"
+        scopes:
+          - openid
+          - email
+          - profile
         response_types:
           - code
         grant_types:

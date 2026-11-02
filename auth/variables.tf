@@ -35,28 +35,30 @@ variable "secrets" {
     db_password            = string
 
     # clients
-    forgejo_client_id              = string
-    forgejo_client_secret_hash     = string
-    gotify_client_id               = string
-    gotify_client_secret_hash      = string
-    grafana_client_id              = string
-    grafana_client_secret_hash     = string
-    immich_client_id               = string
-    immich_client_secret_hash      = string
-    jellyfin_client_id             = string
-    jellyfin_client_secret_hash    = string
-    kavita_client_id               = string
-    kavita_client_secret_hash      = string
-    opencloud_client_id            = string # public client, no secret
-    opencloud_apps_client_id       = string # public client, no secret
-    paperless_client_id            = string
-    paperless_client_secret_hash   = string
-    romm_client_id                 = string
-    romm_client_secret_hash        = string
-    vaultwarden_client_id          = string
-    vaultwarden_client_secret_hash = string
-    wakapi_client_id               = string
-    wakapi_client_secret_hash      = string
+    forgejo_client_id               = string
+    forgejo_client_secret_hash      = string
+    gotify_client_id                = string
+    gotify_client_secret_hash       = string
+    grafana_client_id               = string
+    grafana_client_secret_hash      = string
+    immich_client_id                = string
+    immich_client_secret_hash       = string
+    jellyfin_client_id              = string
+    jellyfin_client_secret_hash     = string
+    kavita_client_id                = string
+    kavita_client_secret_hash       = string
+    opencloud_client_id             = string # public client, no secret
+    opencloud_apps_client_id        = string # public client, no secret
+    paperless_client_id             = string
+    paperless_client_secret_hash    = string
+    romm_client_id                  = string
+    romm_client_secret_hash         = string
+    silverbullet_client_id          = string
+    silverbullet_client_secret_hash = string
+    vaultwarden_client_id           = string
+    vaultwarden_client_secret_hash  = string
+    wakapi_client_id                = string
+    wakapi_client_secret_hash       = string
   })
 }
 
