@@ -27,6 +27,12 @@ config dnsmasq
 	list address '/eth.${public_domain}/${tessier_address}'
 	list address '/${private_domain}/${caddy_address}'
 	list address '/cloud.${public_domain}/${caddy_address}'
+	list address '/immich.${public_domain}/${caddy_address}'
+	list address '/mirror.${public_domain}/${caddy_address}'
+	list address '/navidrome.${public_domain}/${caddy_address}'
+	list address '/paperless.${public_domain}/${caddy_address}'
+	list address '/search.${public_domain}/${caddy_address}'
+	list address '/vaultwarden.${public_domain}/${caddy_address}'
 
 config dhcp 'lan'
 	option interface 'lan'

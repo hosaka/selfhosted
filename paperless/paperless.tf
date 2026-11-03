@@ -221,12 +221,13 @@ output "ingress" {
     name  = "paperless"
     caddy = <<-EOT
 			paperless.${var.public_domain} {
-				reverse_proxy ${var.addresses.paperless.ipv4}:${local.paperless_ports.webui}
+				# allow access to the admin interface only from local networks
 				@admin {
 					path /admin*
 					not remote_ip private_ranges
 				}
 				respond @admin "401 - {remote_host} is not an allowed IP" 401
+				reverse_proxy ${var.addresses.paperless.ipv4}:${local.paperless_ports.webui}
 			}
     EOT
   }

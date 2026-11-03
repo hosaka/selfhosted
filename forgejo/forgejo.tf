@@ -212,7 +212,6 @@ output "probes" {
   value = [
     "https://${var.public_domain}/public.pgp",
     "https://code.${var.public_domain}/api/healthz",
-    "https://code.${var.private_domain}/api/healthz",
   ]
 }
 
@@ -253,10 +252,6 @@ output "ingress" {
 					header_up X-Real-IP {remote_host}
 					header_up X-Http-Version {http.request.proto}
 				}
-			}
-			code.${var.private_domain} {
-				import private
-				reverse_proxy ${var.addresses.forgejo.ipv4}:${local.forgejo_ports.webui}
 			}
     EOT
     frpc       = <<-EOT

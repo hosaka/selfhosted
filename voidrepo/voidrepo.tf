@@ -95,7 +95,6 @@ resource "incus_instance" "voidrepo" {
 output "probes" {
   value = [
     "https://mirror.${var.public_domain}/voidlinux/",
-    "https://mirror.${var.private_domain}/voidlinux/",
   ]
 }
 
@@ -103,7 +102,7 @@ output "ingress" {
   value = {
     name  = "voidrepo"
     caddy = <<-EOT
-			mirror.${var.private_domain}, mirror.${var.public_domain} {
+			mirror.${var.public_domain} {
 				reverse_proxy ${var.addresses.voidrepo.ipv4}:${local.voidrepo_ports.http}
 			}
     EOT

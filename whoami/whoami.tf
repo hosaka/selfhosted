@@ -26,7 +26,6 @@ resource "incus_instance" "whoami" {
 output "probes" {
   value = [
     "https://whoami.${var.public_domain}/",
-    "https://whoami.${var.private_domain}/",
   ]
 }
 
@@ -34,7 +33,7 @@ output "ingress" {
   value = {
     name  = "whoami"
     caddy = <<-EOT
-		whoami.${var.private_domain}, whoami.${var.public_domain} {
+		whoami.${var.public_domain} {
 			reverse_proxy ${var.addresses.whoami.ipv4}:${local.whoami_ports.http}
 		}
     EOT

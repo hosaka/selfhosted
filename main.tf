@@ -234,7 +234,6 @@ module "forgejo" {
   target          = var.cluster.node-1.target
   snapshots       = local.daily_snapshot
   public_domain   = var.public_domain
-  private_domain  = var.private_domain
   timezone        = var.timezone
   trusted_proxies = local.trusted_proxies
   depends_on      = [null_resource.post_server, module.linstor]
@@ -287,7 +286,6 @@ module "immich" {
   storage_source = incus_storage_volume.immich.name
   cache_pool     = incus_storage_pool.ssd.name
   public_domain  = var.public_domain
-  private_domain = var.private_domain
   timezone       = var.timezone
   depends_on     = [null_resource.post_server, module.linstor]
 }
@@ -397,17 +395,16 @@ module "metrics" {
 }
 
 module "navidrome" {
-  source         = "./navidrome"
-  versions       = var.versions.navidrome
-  addresses      = local.ovn_addresses.navidrome
-  secrets        = var.secrets.navidrome
-  target         = var.cluster.node-4.target
-  snapshots      = local.daily_snapshot
-  media_pool     = incus_storage_volume.media.pool
-  media_source   = incus_storage_volume.media.name
-  public_domain  = var.public_domain
-  private_domain = var.private_domain
-  depends_on     = [null_resource.post_server, module.linstor]
+  source        = "./navidrome"
+  versions      = var.versions.navidrome
+  addresses     = local.ovn_addresses.navidrome
+  secrets       = var.secrets.navidrome
+  target        = var.cluster.node-4.target
+  snapshots     = local.daily_snapshot
+  media_pool    = incus_storage_volume.media.pool
+  media_source  = incus_storage_volume.media.name
+  public_domain = var.public_domain
+  depends_on    = [null_resource.post_server, module.linstor]
 }
 
 module "notify" {
@@ -505,7 +502,6 @@ module "searxng" {
   secrets         = var.secrets.searxng
   target          = var.cluster.node-1.target
   public_domain   = var.public_domain
-  private_domain  = var.private_domain
   trusted_proxies = local.trusted_proxies
   depends_on      = [null_resource.post_server, module.linstor]
 }
@@ -577,16 +573,15 @@ module "syncstorage" {
 }
 
 module "vaultwarden" {
-  source         = "./vaultwarden"
-  versions       = var.versions.vaultwarden
-  addresses      = local.ovn_addresses.vaultwarden
-  secrets        = var.secrets.vaultwarden
-  target         = var.cluster.node-3.target
-  snapshots      = local.daily_snapshot
-  public_domain  = var.public_domain
-  private_domain = var.private_domain
-  timezone       = var.timezone
-  depends_on     = [null_resource.post_server, module.linstor]
+  source        = "./vaultwarden"
+  versions      = var.versions.vaultwarden
+  addresses     = local.ovn_addresses.vaultwarden
+  secrets       = var.secrets.vaultwarden
+  target        = var.cluster.node-3.target
+  snapshots     = local.daily_snapshot
+  public_domain = var.public_domain
+  timezone      = var.timezone
+  depends_on    = [null_resource.post_server, module.linstor]
 }
 
 module "voidrepo" {
@@ -597,7 +592,6 @@ module "voidrepo" {
   storage_pool   = incus_storage_volume.voidrepo.pool
   storage_source = incus_storage_volume.voidrepo.name
   public_domain  = var.public_domain
-  private_domain = var.private_domain
   depends_on     = [null_resource.post_server, module.linstor]
 }
 
@@ -615,11 +609,10 @@ module "wakapi" {
 }
 
 module "whoami" {
-  source         = "./whoami"
-  versions       = var.versions.whoami
-  addresses      = local.ovn_addresses.whoami
-  target         = var.cluster.node-1.target
-  public_domain  = var.public_domain
-  private_domain = var.private_domain
-  depends_on     = [null_resource.post_server]
+  source        = "./whoami"
+  versions      = var.versions.whoami
+  addresses     = local.ovn_addresses.whoami
+  target        = var.cluster.node-1.target
+  public_domain = var.public_domain
+  depends_on    = [null_resource.post_server]
 }

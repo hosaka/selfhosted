@@ -177,7 +177,6 @@ identity_providers:
         pkce_challenge_method: S256
         redirect_uris:
           - "https://metrics.${public_domain}/login/generic_oauth"
-          - "https://metrics.${private_domain}/login/generic_oauth"
         scopes:
           - openid
           - email
@@ -225,7 +224,6 @@ identity_providers:
         pkce_challenge_method: S256
         redirect_uris:
           - "https://code.${public_domain}/user/oauth2/Authelia/callback"
-          - "https://code.${private_domain}/user/oauth2/Authelia/callback"
         scopes:
           - openid
           - email
@@ -250,7 +248,6 @@ identity_providers:
         redirect_uris:
           # note the trailing slash at the end, this is a bug in paperless
           - "https://paperless.${public_domain}/accounts/oidc/authelia/login/callback/"
-          - "https://paperless.${private_domain}/accounts/oidc/authelia/login/callback/"
         scopes:
           - openid
           - email
@@ -276,8 +273,6 @@ identity_providers:
         redirect_uris:
           - "https://immich.${public_domain}/auth/login"
           - "https://immich.${public_domain}/user-settings"
-          - "https://immich.${private_domain}/auth/login"
-          - "https://immich.${private_domain}/user-settings"
           - app.immich:///oauth-callback
         scopes:
           - openid
@@ -301,7 +296,6 @@ identity_providers:
         require_pkce: true
         pkce_challenge_method: S256
         redirect_uris:
-          - "https://jellyfin.${public_domain}/sso/OID/redirect/authelia"
           - "https://jellyfin.${private_domain}/sso/OID/redirect/authelia"
           - org.jellyfin.mobile://login-callback
         scopes:
@@ -326,7 +320,6 @@ identity_providers:
         require_pkce: false
         redirect_uris:
           - "https://waka.${public_domain}/oidc/authelia/callback"
-          - "https://waka.${private_domain}/oidc/authelia/callback"
         scopes:
           - openid
           - email
@@ -419,7 +412,6 @@ identity_providers:
         pkce_challenge_method: S256
         redirect_uris:
           - "https://vaultwarden.${public_domain}/identity/connect/oidc-signin"
-          - "https://vaultwarden.${private_domain}/identity/connect/oidc-signin"
         scopes:
           - openid
           - email

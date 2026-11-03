@@ -244,7 +244,6 @@ resource "null_resource" "immich_restart" {
 output "probes" {
   value = [
     "https://immich.${var.public_domain}/api/server/ping",
-    "https://immich.${var.private_domain}/api/server/ping",
   ]
 }
 
@@ -263,7 +262,7 @@ output "ingress" {
   value = {
     name  = "immich"
     caddy = <<-EOT
-			immich.${var.private_domain}, immich.${var.public_domain} {
+			immich.${var.public_domain} {
 				reverse_proxy ${var.addresses.immich.ipv4}:${local.immich_ports.webui}
 			}
     EOT

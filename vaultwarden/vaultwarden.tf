@@ -72,7 +72,6 @@ resource "incus_instance" "vaultwarden" {
 output "probes" {
   value = [
     "https://vaultwarden.${var.public_domain}/alive",
-    "https://vaultwarden.${var.private_domain}/alive",
   ]
 }
 
@@ -92,7 +91,7 @@ output "ingress" {
   value = {
     name  = "vaultwarden"
     caddy = <<-EOT
-			vaultwarden.${var.private_domain}, vaultwarden.${var.public_domain} {
+			vaultwarden.${var.public_domain} {
 				encode zstd gzip
 
 				header {

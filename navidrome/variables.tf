@@ -18,10 +18,6 @@ variable "public_domain" {
   type = string
 }
 
-variable "private_domain" {
-  type = string
-}
-
 variable "media_pool" {
   type = string
 }

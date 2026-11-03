@@ -68,7 +68,6 @@ resource "incus_instance" "navidrome" {
 output "probes" {
   value = [
     "https://navidrome.${var.public_domain}/ping",
-    "https://navidrome.${var.private_domain}/ping",
   ]
 }
 
@@ -86,7 +85,7 @@ output "ingress" {
   value = {
     name  = "navidrome"
     caddy = <<-EOT
-			navidrome.${var.private_domain}, navidrome.${var.public_domain} {
+			navidrome.${var.public_domain} {
 				reverse_proxy ${var.addresses.navidrome.ipv4}:${local.navidrome_ports.webui}
 			}
     EOT
