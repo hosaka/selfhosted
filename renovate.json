@@ -9,6 +9,9 @@
   "semanticCommits": "disabled",
   "commitMessageTopic": "{{{depName}}}",
   "commitMessageExtra": "to {{{newValue}}}",
+  "assignees": [
+    "hosaka"
+  ],
   "packageRules": [
     {
       "description": "Registries other than Docker Hub return no release timestamps, so the age gate would hold these forever",
