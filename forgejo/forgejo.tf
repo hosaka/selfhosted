@@ -124,6 +124,7 @@ resource "incus_instance" "forgejo" {
     "environment.USER_UID"  = "1000"
     "environment.USER_GID"  = "1000"
     "environment.GNUPGHOME" = "/var/lib/gitea/.gnupg"
+    "environment.TZ"        = var.timezone
   }
 
   exec = {
