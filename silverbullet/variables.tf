@@ -19,6 +19,16 @@ variable "public_domain" {
   type = string
 }
 
+# path of the public space on the public domain, as bound in the SilverBullet dashboard
+variable "public_prefix" {
+  type = string
+
+  validation {
+    condition     = can(regex("^/[a-z0-9-]+$", var.public_prefix))
+    error_message = "The public prefix must look like /name, without a trailing slash."
+  }
+}
+
 variable "versions" {
   type = object({
     silverbullet = string

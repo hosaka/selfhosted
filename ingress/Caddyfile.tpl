@@ -57,13 +57,13 @@ ${public_domain} {
 		}
 	}
 
-	handle {
-		respond 404
-	}
-
 %{ for s in services ~}
 ${s.caddy_apex}
 %{ endfor ~}
+
+	handle {
+		respond 404
+	}
 }
 
 %{ for s in services ~}

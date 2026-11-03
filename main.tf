@@ -529,6 +529,7 @@ module "silverbullet" {
   target        = var.cluster.node-2.target
   snapshots     = local.daily_snapshot
   public_domain = var.public_domain
+  public_prefix = "/alex"
   depends_on    = [null_resource.post_server, module.linstor]
 }
 
