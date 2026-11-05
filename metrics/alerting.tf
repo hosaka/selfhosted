@@ -190,6 +190,18 @@ locals {
         panel     = ["incus-overview", 1] # Cluster members
       }
     }
+
+    power = {
+      ups-data-down = {
+        title     = "UPS data down"
+        query     = "(count(ups_battery_charge{job=\"ups\"}) > bool 0) or vector(0)"
+        evaluator = { type = "lt", params = [1] }
+        pending   = "5m"
+        severity  = "critical"
+        summary   = "No UPS data reaches Prometheus: PeaNUT, upsd or the NUT driver isn't answering, and if it's the driver, upsmon can't power off the cluster on low battery"
+        panel     = ["ups-monitor", 6] # UPS data
+      }
+    }
   }
 
   expected_drives = join(" or ", flatten([
