@@ -20,6 +20,12 @@ locals {
       buttonLabel   = "Sign in with Authelia"
     }
   }))
+
+  silverbullet_server = jsonencode({
+    primaryUrl = local.silverbullet_url
+    serverName = "SilverBullet"
+    runtimeApi = true
+  })
 }
 
 resource "incus_storage_volume" "silverbullet_data" {
@@ -64,6 +70,14 @@ resource "incus_instance" "silverbullet" {
     gid         = 1000
   }
 
+  file {
+    content     = local.silverbullet_server
+    target_path = "/data/server.json"
+    mode        = "0600"
+    uid         = 1000
+    gid         = 1000
+  }
+
   wait_for {
     type = "ipv4"
   }
@@ -93,6 +107,7 @@ resource "incus_instance" "silverbullet" {
 resource "null_resource" "silverbullet_restart" {
   triggers = {
     authentication = nonsensitive(sha1(local.silverbullet_authentication))
+    server         = sha1(local.silverbullet_server)
     config         = sha1(jsonencode(incus_instance.silverbullet.config))
   }
 
