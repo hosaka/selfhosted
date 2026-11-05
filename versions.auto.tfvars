@@ -150,7 +150,7 @@ versions = {
   }
   vaultwarden = {
     # renovate: datasource=github-releases depName=dani-garcia/vaultwarden
-    vaultwarden = "1.37.4"
+    vaultwarden = "1.37.5"
   }
   voidrepo = {
     caddy = "2.11.4"
