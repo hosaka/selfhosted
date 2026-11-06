@@ -1,0 +1,46 @@
+
+config stubby 'global'
+	option manual '0'
+	option trigger 'wan'
+	list dns_transport 'GETDNS_TRANSPORT_TLS'
+	option tls_authentication '1'
+	option tls_query_padding_blocksize '128'
+	option appdata_dir '/var/lib/stubby'
+	option edns_client_subnet_private '1'
+	option idle_timeout '10000'
+	option round_robin_upstreams '1'
+	list listen_address '127.0.0.1@5453'
+	list listen_address '0::1@5453'
+
+config resolver
+	option address '2606:4700:4700::1111'
+	option tls_auth_name 'cloudflare-dns.com'
+
+config resolver
+	option address '2606:4700:4700::1001'
+	option tls_auth_name 'cloudflare-dns.com'
+
+config resolver
+	option address '1.1.1.1'
+	option tls_auth_name 'cloudflare-dns.com'
+
+config resolver
+	option address '1.0.0.1'
+	option tls_auth_name 'cloudflare-dns.com'
+
+config resolver
+	option address '2620:fe::fe'
+	option tls_auth_name 'dns.quad9.net'
+
+config resolver
+	option address '2620:fe::9'
+	option tls_auth_name 'dns.quad9.net'
+
+config resolver
+	option address '9.9.9.9'
+	option tls_auth_name 'dns.quad9.net'
+
+config resolver
+	option address '149.112.112.112'
+	option tls_auth_name 'dns.quad9.net'
+

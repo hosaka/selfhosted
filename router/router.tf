@@ -36,7 +36,16 @@ resource "openwrt_configfile" "network" {
 
 resource "openwrt_configfile" "firewall" {
   name    = "firewall"
-  content = templatefile("${path.module}/firewall.tpl", {})
+  content = file("${path.module}/firewall")
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
+resource "openwrt_configfile" "stubby" {
+  name    = "stubby"
+  content = file("${path.module}/stubby")
 
   lifecycle {
     prevent_destroy = true
