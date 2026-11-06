@@ -168,16 +168,12 @@ When the low battery is detected, upsmon executes a [cluster-poweroff](ups/clust
 
 ### Software
 
-- [x] Make just cluster and bootstrap-linstor recipes idempotent. Incus CLI does have a `--format=json` that can be piped to `jq` where we can check the current state
 - [ ] Better automation for Linstor provisioning, perhaps getting [Operations Center](https://github.com/FuturFusion/operations-center) involved
 - [ ] CardDAV and CalDAV for calendar and contacts sync like [radicale](https://radicale.org/v3.html)
 - [ ] [Safe{Wallet}](https://github.com/safe-global/safe-wallet-web) for multisig wallets
-- [x] Browser sync, e.g. [syncstorage-rs](https://github.com/mozilla-services/syncstorage-rs) for Firefox
-- [x] Code Statistics using [wakapi](https://wakapi.dev/)
 
 ### Hardware
 
-- [x] Replace the NIC with a TPU such as Coral PCIe Accelerator or a dGPU with a small form factor
 
 ## Mirrors
 This repository is hosted on [Forgejo](https://code.hosaka.cc/hosaka/selfhosted) which mirrors to the following git forges:
