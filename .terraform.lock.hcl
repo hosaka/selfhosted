@@ -157,3 +157,37 @@ provider "registry.opentofu.org/tasansga/lldap" {
     "zh:bf27a95cc1f402423c0f3674bc5ed35c006763a6962498644045b12377cea559",
   ]
 }
+
+provider "registry.opentofu.org/timofurrer/desec" {
+  version     = "0.6.4"
+  constraints = "~> 0.6.4"
+  hashes = [
+    "h1:2f/9EPOcdCFwswlitQc4hOyZAYnibdWkQdeJ6/6I3K0=",
+    "h1:4CO8mngcBpPtJdR2T5PI9LMIF8nIGhPxrYWfEAsO0NU=",
+    "h1:D6U3GNl0lkIUys+IGb6nWjvRyXJ48rQyv5W0KpQ2tS8=",
+    "h1:GY3MYghiq2UErv94zenjDngLhxjxMjAn7g56J3r8gK8=",
+    "h1:QOe4aM+aBY1k2jDvjKjxR6PWv5qqjc8P+KoiJ/9SYME=",
+    "h1:UJs3qc3VPz7ltsPajmm8jlgP5NI1mlj7WPBxP9xj27o=",
+    "h1:ZE9rAngWlf8t0GGay3vZApj1V9xGFz0fTgxQC7Pw8Yg=",
+    "h1:cJWsSFTpQ2VsFVBX+b8tV3I6dxbT73OFzCW9MZOeqFc=",
+    "h1:kZNyQPsB9Ybtv/rXwoW5AqcdQ37EEq8uBLcJKAb9Ry4=",
+    "h1:kqwtiQpyLVCEnS14BcATBPbwHjDcQeBIDn5314AZFis=",
+    "h1:t8ozgh7qgm9fQyRQ48lGJT+OkzOTUZXUq3Jl8G9/HU0=",
+    "h1:ytI1sPixJrnvQNRlvJPg7sjCqwaXIrBQf/n1ac/VXOg=",
+    "h1:zmZ0/MXtc103MytwVsEU5wLs+jexWWqW9PKAxmyKrJ0=",
+    "zh:039cbccb4955c985099a03dccfccde30db85cdac332955da9dafc1882817c845",
+    "zh:43b00b9da9b613de0329e16db5d55c391fe61d316653fead0ab6ba4861bdff65",
+    "zh:4842eeecf711bd022564cd16782eafd3d435cb7c3e5131a7fdd31fe7294504fd",
+    "zh:4ce7bc9e8da6be0d5847e46dd64a1b7cb442f52575faa2c80bd6cf7d952d1dae",
+    "zh:6bbb4c2a279549e6f1495afafd100388ca57c83ab946760e1b0a79075b814f97",
+    "zh:890df766e9b839623b1f0437355032a3c006226a6c200cd911e15ee1a9014e9f",
+    "zh:97fab6d8a53cbaaa3477f07d71a47f680f400e0a10223ec76377c6588c59fb4d",
+    "zh:ac801ce69275e626668935254a270927d22a60c52e39b816c10221f2b4f826f5",
+    "zh:bf40e0abb442c68b89db2f093aaa948cde980b93ad2fe785bfa028ba2479e4b9",
+    "zh:dff4e8236156019ffac3bc793f8fead91ec7962116555706fcd6365a6a600b86",
+    "zh:e5ee379d2276be3dc4c7b9aa8d7eaef72f2c3031aa94c4b608089e3b554a07cf",
+    "zh:eb74006916a5282b73bfdaba8b9d498ca17a8f9c87bded0151434e5b05cafde3",
+    "zh:f12042956ca8159e8718a541622247dfc6f63c38165460295429fe9b71560a35",
+    "zh:f45ea1d925578a9b6e0eee5032083eb7b23190eaf160f6165470be626d2c7cfc",
+  ]
+}

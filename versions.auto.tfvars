@@ -48,8 +48,8 @@ versions = {
   ingress = {
     # renovate: datasource=github-releases depName=fatedier/frp
     frpc = "0.71.1"
-    # renovate: datasource=github-releases depName=caddyserver/caddy
-    caddy = "2.11.7"
+    # renovate: datasource=docker depName=ghcr.io/hosaka/caddy-desec versioning=regex:^(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)-(?<build>\d+)$
+    caddy = "2.11.7-1"
   }
   jellyfin = {
     # renovate: datasource=github-releases depName=jellyfin/jellyfin

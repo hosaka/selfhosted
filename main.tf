@@ -65,6 +65,30 @@ module "router" {
   tessier_address = var.ups.secondaries.tessier
 }
 
+# Public zone, modules that don't output records will be behind the *.<public-domain> wildcard
+module "dns" {
+  source        = "./dns"
+  public_domain = var.public_domain
+  address       = var.secrets.dns.address
+  records       = var.dns
+
+  names = merge(
+    module.snikket.dns,
+    {
+      (var.private_domain) = { type = "TXT", value = "v=spf1 -all" }
+    },
+  )
+
+  certificates = [
+    var.public_domain,
+    "*.${var.public_domain}",
+    "*.${var.private_domain}",
+    "chat.${var.public_domain}",
+    "groups.chat.${var.public_domain}",
+    "share.chat.${var.public_domain}",
+  ]
+}
+
 module "ups" {
   source              = "./ups"
   versions            = var.versions.ups
@@ -88,6 +112,7 @@ module "ingress" {
   versions       = var.versions.ingress
   addresses      = local.ovn_addresses.ingress
   secrets        = var.secrets.ingress
+  desec_token    = module.dns.caddy_token
   target         = var.cluster.node-3.target
   snapshots      = local.daily_snapshot
   public_domain  = var.public_domain

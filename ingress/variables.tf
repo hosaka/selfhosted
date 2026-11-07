@@ -4,9 +4,14 @@ variable "secrets" {
     frp_server_addr           = string
     frp_auth_token            = string
     frps_dashboard_secret_key = string
-    caddy_cf_api_email        = string
-    caddy_cf_api_token        = string
+    acme_email                = string
   })
+}
+
+# For the DNS challenge, only allowed to write the `_acme-challenge` records
+variable "desec_token" {
+  type      = string
+  sensitive = true
 }
 
 variable "target" {

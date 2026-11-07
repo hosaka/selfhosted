@@ -43,8 +43,8 @@ locals {
 
   caddyfile = join("\n", concat(
     [templatefile("${path.module}/Caddyfile.tpl", {
-      cf_api_email   = sensitive(var.secrets.caddy_cf_api_email)
-      cf_api_token   = sensitive(var.secrets.caddy_cf_api_token)
+      acme_email     = sensitive(var.secrets.acme_email)
+      desec_token    = sensitive(var.desec_token)
       public_domain  = var.public_domain
       private_domain = var.private_domain
       services       = concat([local.ingress], var.services)
@@ -109,7 +109,7 @@ resource "incus_instance" "caddy" {
 
   target   = var.target
   profiles = ["default", "oci"]
-  image    = "ghcr:hotio/caddy:release-${var.versions.caddy}"
+  image    = "ghcr:hosaka/caddy-desec:${var.versions.caddy}"
 
   device {
     name = "config"
@@ -128,15 +128,16 @@ resource "incus_instance" "caddy" {
   }
 
   file {
-    content     = local.caddyfile
-    target_path = "/config/Caddyfile"
-    mode        = "0600"
-    uid         = 1000
-    gid         = 1000
+    content            = local.caddyfile
+    target_path        = "/etc/caddy/site/Caddyfile"
+    mode               = "0600"
+    create_directories = true
   }
 
   config = {
-    "environment.TZ" = var.timezone
+    "environment.TZ"            = var.timezone
+    "environment.XDG_DATA_HOME" = "/config"
+    "oci.entrypoint"            = "/bin/sh -c 'while [ ! -f /etc/caddy/site/Caddyfile ]; do sleep 1; done; exec caddy run --config /etc/caddy/site/Caddyfile --adapter caddyfile'"
   }
 
   lifecycle {
@@ -153,7 +154,7 @@ resource "null_resource" "caddy_reload" {
   }
 
   provisioner "local-exec" {
-    command = "incus exec caddy -- caddy reload --config /config/Caddyfile"
+    command = "incus exec caddy -- caddy reload --config /etc/caddy/site/Caddyfile"
   }
 
   depends_on = [incus_instance.caddy]
@@ -176,7 +177,7 @@ output "backups" {
     caddy = {
       volumes = {
         (incus_storage_volume.caddy_data.name) = {
-          excludes = ["Caddyfile", "caddy/locks", "caddy/last_clean.json", "caddy/autosave.json"]
+          excludes = ["caddy/locks", "caddy/last_clean.json", "caddy/autosave.json"]
         }
       }
     }

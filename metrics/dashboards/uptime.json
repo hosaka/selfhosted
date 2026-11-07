@@ -310,7 +310,7 @@
       "id": 6,
       "type": "stat",
       "title": "Next certificate expiry",
-      "description": "Time until the first certificate expires. Caddy renews 30 days before expiry, so less than that means renewals are failing, e.g. a revoked Cloudflare token.",
+      "description": "Time until the first certificate expires. Caddy renews 30 days before expiry, so less than that means renewals are failing, e.g. a revoked or expired deSEC token.",
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"

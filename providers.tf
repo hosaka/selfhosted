@@ -43,3 +43,7 @@ provider "openwrt" {
   user     = var.secrets.router.username
   password = var.secrets.router.password
 }
+
+provider "desec" {
+  api_token = var.secrets.dns.desec_token
+}

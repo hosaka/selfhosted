@@ -1,6 +1,14 @@
 {
-	email ${cf_api_email}
-	acme_dns cloudflare ${cf_api_token}
+	email ${acme_email}
+	cert_issuer acme {
+		dns desec {
+			token ${desec_token}
+		}
+		# the router answers port 53 itself, so the check can't reach deSEC's nameservers,
+		# and deSEC can take over a minute to publish a change on all of them
+		propagation_delay 5m
+		propagation_timeout -1
+	}
 	# acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
 	skip_install_trust
 
@@ -64,6 +72,16 @@ ${s.caddy_apex}
 	handle {
 		respond 404
 	}
+}
+
+# wildcard certificates cover the services' sites, names without a site end up here
+*.${public_domain} {
+	respond 404
+}
+
+*.${private_domain} {
+	import private
+	respond 404
 }
 
 %{ for s in services ~}

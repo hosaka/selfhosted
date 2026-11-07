@@ -140,6 +140,14 @@ output "probes" {
   ]
 }
 
+output "dns" {
+  value = {
+    "chat.${var.public_domain}"        = { type = "A" }
+    "groups.chat.${var.public_domain}" = { type = "CNAME", value = "chat.${var.public_domain}" }
+    "share.chat.${var.public_domain}"  = { type = "CNAME", value = "chat.${var.public_domain}" }
+  }
+}
+
 output "backups" {
   value = {
     snikket = {
@@ -155,6 +163,10 @@ output "ingress" {
     name  = "snikket"
     caddy = <<-EOT
 			chat.${var.public_domain}, groups.chat.${var.public_domain}, share.chat.${var.public_domain} {
+				# own certificates instead of the wildcard
+				# todo: remove this when certs can be copied from caddy into snikket-server automatically
+				tls force_automate
+
 				# Prosody endpoints on the chat and share*/upload domain
 				@prosody path /upload* /admin_api* /invites_api* /invites_bootstrap* /http-bind* /xmpp-websocket* /.well-known/host-meta /.well-known/host-meta.json
 				handle @prosody {

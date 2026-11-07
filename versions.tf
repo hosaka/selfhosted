@@ -26,6 +26,11 @@ terraform {
       source  = "foxboron/openwrt"
       version = "~>0.3.0"
     }
+
+    desec = {
+      source  = "timofurrer/desec"
+      version = "~>0.6.4"
+    }
   }
 }
 

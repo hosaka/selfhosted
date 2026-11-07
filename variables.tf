@@ -21,6 +21,11 @@ variable "users" {
   default = {}
 }
 
+# Public DNS records pointing at external services, see dns/variables.tf. Set in secrets.auto.tfvars next to `secrets`.
+variable "dns" {
+  type = any
+}
+
 variable "cluster" {
   type = object({
     name = optional(string, "cluster")
