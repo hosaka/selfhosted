@@ -29,9 +29,9 @@ provider "incus" {
   }
 }
 
-# Talks to LLDAP API through Caddy, password managed via LDAP directly
+# Talks to LLDAP API, password managed via LDAP directly
 provider "lldap" {
-  http_url = "https://users.${var.private_domain}"
+  http_url = "http://${module.auth.lldap_http_address}"
   ldap_url = "ldap://${module.auth.lldap_address}"
   password = var.secrets.auth.lldap_user_pass
   base_dn  = module.auth.lldap_base_dn

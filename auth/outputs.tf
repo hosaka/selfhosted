@@ -52,6 +52,11 @@ output "lldap_address" {
   value       = "${var.addresses.lldap.ipv4}:${local.lldap_ports.ldap}"
 }
 
+output "lldap_http_address" {
+  description = "LLDAP's web UI and API, direct instead of through Caddy"
+  value       = "${var.addresses.lldap.ipv4}:${local.lldap_ports.webui}"
+}
+
 output "lldap_base_dn" {
   value = local.lldap_base_dn
 }
