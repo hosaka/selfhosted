@@ -16,6 +16,11 @@ variable "public_domain" {
   type = string
 }
 
+# Caddy's address, snikket-server fetches its certificates from there
+variable "caddy_address" {
+  type = string
+}
+
 variable "versions" {
   type = object({
     snikket = string

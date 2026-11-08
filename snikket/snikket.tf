@@ -15,6 +15,10 @@ locals {
     turn_min = 60000
     turn_max = 60010
   }
+
+  # Caddy serves their certificates to snikket-server on this port, see fetch-certs.tpl
+  certs_port = 2021
+  cert_names = ["chat.${var.public_domain}", "groups.chat.${var.public_domain}", "share.chat.${var.public_domain}"]
 }
 
 # see: https://github.com/snikket-im/snikket-server
@@ -56,6 +60,15 @@ resource "incus_instance" "snikket_server" {
     type = "ipv4"
   }
 
+  file {
+    content = templatefile("${path.module}/fetch-certs.tpl", {
+      names = join(", ", [for name in local.cert_names : "\"${name}\""])
+      caddy = "http://${var.caddy_address}:${local.certs_port}"
+    })
+    target_path = "/etc/cron.daily/fetch-certs"
+    mode        = "0755"
+  }
+
   config = {
     "environment.SNIKKET_DOMAIN"                        = "chat.${var.public_domain}"
     "environment.SNIKKET_ADMIN_EMAIL"                   = "admin@${var.public_domain}"
@@ -73,34 +86,6 @@ resource "incus_instance" "snikket_server" {
     "environment.SNIKKET_UPDATE_CHECK" = "0"
   }
 }
-
-# resource "incus_instance" "snikket_certs" {
-#   name = "snikket-certs"
-#   type = "container"
-#
-#   target   = var.target
-#   profiles = ["default"]
-#   image    = "docker:snikket/snikket-cert-manager:${var.versions.snikket}"
-#
-#   device {
-#     name = "data"
-#     type = "disk"
-#     properties = {
-#       path   = "/snikket"
-#       pool   = incus_storage_volume.snikket_data.pool
-#       source = incus_storage_volume.snikket_data.name
-#     }
-#   }
-#
-#   wait_for {
-#     type = "ipv4"
-#   }
-#
-#   config = {
-#     "environment.SNIKKET_DOMAIN"      = "chat.${var.public_domain}"
-#     "environment.SNIKKET_ADMIN_EMAIL" = "admin@${var.public_domain}"
-#   }
-# }
 
 resource "incus_instance" "snikket_web" {
   name = "snikket-web"
@@ -163,8 +148,7 @@ output "ingress" {
     name  = "snikket"
     caddy = <<-EOT
 			chat.${var.public_domain}, groups.chat.${var.public_domain}, share.chat.${var.public_domain} {
-				# own certificates instead of the wildcard
-				# todo: remove this when certs can be copied from caddy into snikket-server automatically
+				# own certificates instead of the wildcard, snikket-server gets their keys from the site below
 				tls force_automate
 
 				# Prosody endpoints on the chat and share*/upload domain
@@ -178,8 +162,24 @@ output "ingress" {
 					reverse_proxy ${var.addresses.snikket_web.ipv4}:${local.snikket_ports.webui}
 				}
 			}
+
+			# the certificates for snikket-server fetch-certs script, stays inside the cluster
+			:${local.certs_port} {
+				@prosody {
+					remote_ip ${var.addresses.snikket_server.ipv4}
+					path ${join(" ", flatten([for name in local.cert_names : ["/${name}/${name}.crt", "/${name}/${name}.key"]]))}
+				}
+				handle @prosody {
+					root * /config/caddy/certificates/acme-v02.api.letsencrypt.org-directory
+					file_server
+				}
+				handle {
+					respond 403
+				}
+			}
     EOT
-    frpc  = <<-EOT
+
+    frpc = <<-EOT
     [[proxies]]
     name = "snikket-xmpp-c2s"
     type = "tcp"

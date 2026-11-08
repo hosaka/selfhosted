@@ -581,6 +581,7 @@ module "snikket" {
   target        = var.cluster.node-2.target
   snapshots     = local.daily_snapshot
   public_domain = var.public_domain
+  caddy_address = var.addresses.ingress.caddy.ipv4
   timezone      = var.timezone
   depends_on    = [null_resource.post_server, module.linstor]
 }
