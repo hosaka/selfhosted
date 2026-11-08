@@ -19,18 +19,22 @@ cwd := quote(invocation_directory() + "/")
 @onpath tool:
     echo 'using {{ require(tool) }}' > /dev/null
 
+[arg('what', pattern='image|cluster|server|linstor', help='image <node> [img|iso]: an IncusOS image for one node, cluster <ip-1> <ip-2> <ip-3>: form the cluster, server [tofu args]: the base resources, linstor: storage pools and linstor')]
+[doc('set up the cluster from scratch, one step at a time')]
+bootstrap what *args:
+    @just _bootstrap-{{ what }} {{ args }}
+
 [arg('format', pattern='iso|img', help='File format to generate')]
 [doc('prepare images for all nodes')]
 images format='img':
-    @just image node-1 {{ format }}
-    @just image node-2 {{ format }}
-    @just image node-3 {{ format }}
-    @just image node-4 {{ format }}
+    @just _bootstrap-image node-1 {{ format }}
+    @just _bootstrap-image node-2 {{ format }}
+    @just _bootstrap-image node-3 {{ format }}
+    @just _bootstrap-image node-4 {{ format }}
 
 [arg('format', pattern='iso|img', help='File format to generate')]
 [arg('node', pattern='node-1|node-2|node-3|node-4', help='Node to build the image for')]
-[doc('prepare an image with IncusOS')]
-image node format='img': _flasher-tool (onpath 'tar')
+_bootstrap-image node format='img': _flasher-tool (onpath 'tar')
     #!/usr/bin/env bash
     set -euo pipefail
 
@@ -59,8 +63,7 @@ _flasher-tool: (onpath 'go')
 [arg('node-1', help='IP address of the first node')]
 [arg('node-2', help='IP address of the second node')]
 [arg('node-3', help='IP address of the third node')]
-[doc('form an incus cluster')]
-cluster node-1 node-2 node-3: (onpath 'incus')
+_bootstrap-cluster node-1 node-2 node-3: (onpath 'incus')
     # add individual nodes first
     incus remote add node-1 {{ node-1 }}
     incus remote add node-2 {{ node-2 }}
@@ -78,12 +81,10 @@ cluster node-1 node-2 node-3: (onpath 'incus')
     incus remote remove node-2
     incus remote remove node-3
 
-[doc('bootstrap the cluster')]
-bootstrap *args: (onpath 'tofu')
+_bootstrap-server *args: (onpath 'tofu')
     tofu apply -target=null_resource.post_server {{ args }}
 
-[doc('bootstrap linstor on the cluster')]
-bootstrap-linstor: (onpath 'incus') (onpath 'tofu') (onpath 'yq')
+_bootstrap-linstor: (onpath 'incus') (onpath 'tofu') (onpath 'yq')
     #!/usr/bin/env bash
     set -euo pipefail
 
@@ -187,12 +188,15 @@ apply module='' *args: (onpath 'tofu')
 destroy module *args: (onpath 'tofu')
     tofu destroy -target=module.{{ module }} {{ args }}
 
-[doc('show what deploying the VPS would change')]
-vps-diff *args: (onpath 'uv')
+[arg('what', pattern='diff|deploy', help='diff: show what deploying would change, deploy: deploy, asks before changing anything')]
+[doc('show or deploy changes to the VPS')]
+vps what *args:
+    @just _vps-{{ what }} {{ args }}
+
+_vps-diff *args: (onpath 'uv')
     uv run pyinfra --chdir vps inventory.py deploy.py --dry --diff {{ args }}
 
-[doc('deploy the VPS, asks before changing anything')]
-vps *args: (onpath 'uv')
+_vps-deploy *args: (onpath 'uv')
     uv run pyinfra --chdir vps inventory.py deploy.py --diff {{ args }}
 
 [arg('what', pattern='dns', help='What to show: dns is the public zone as deSEC serves it')]
@@ -260,10 +264,14 @@ prune: (onpath 'incus') (onpath 'jq')
     done
     echo "deleted ${#prune[@]} images"
 
+[arg('what', pattern='restore', help='restore <volume> <snapshot ID|latest>: restore a volume in place from the nas repo, replacing its contents (destructive)')]
+[doc('work with the backups')]
+backup what *args:
+    @just _backup-{{ what }} {{ args }}
+
 [arg('volume', help='Volume to restore, e.g. gotify-data')]
 [arg('snapshot', help='Snapshot ID from the Backrest UI, or latest')]
-[doc('restore a volume in place from the nas repo, replacing its contents (destructive)')]
-restore-volume volume snapshot: (onpath 'incus')
+_backup-restore volume snapshot: (onpath 'incus')
     incus exec -t backrest -- restore-volume {{ volume }} {{ snapshot }}
 
 [arg('files', help='Plaintext files or their .age copies, every .age file in the repo by default')]
@@ -360,9 +368,12 @@ state-key: (onpath 'age') (onpath 'openssl')
     openssl rand -base64 48 | tr -d '\n' | age --encrypt --recipients-file recipients.txt --output state.key.age
     echo "created state.key.age"
 
-[arg('name', help='Instance name the line starts with')]
-[doc('generate a free OVN address and an unused MAC for addresses.auto.tfvars')]
-new name='service': (onpath 'tofu') (onpath 'openssl') (onpath 'git')
+[arg('what', pattern='service|oidc', help='service [name]: a free OVN address and MAC for addresses.auto.tfvars, oidc: an OIDC client id and secret')]
+[doc('generate values for a new service or OIDC client')]
+new what *args:
+    @just _new-{{ what }} {{ args }}
+
+_new-service name='service': (onpath 'tofu') (onpath 'openssl') (onpath 'git')
     #!/usr/bin/env bash
     set -euo pipefail
 
@@ -393,35 +404,9 @@ new name='service': (onpath 'tofu') (onpath 'openssl') (onpath 'git')
 
     printf '%s = { hwaddr = "%s", ipv4 = "%s" }\n' {{ quote(name) }} "$hwaddr" "$ipv4"
 
-[doc('generate random OIDC client id (assumes authelia instance is runnig)')]
-genid: (onpath 'incus')
-    incus exec authelia -- authelia crypto rand --length 72 --charset rfc3986
-
-[doc('generate random OIDC client secret (assumes authelia instance is running)')]
-gensecret: (onpath 'incus')
-    incus exec authelia -- authelia crypto hash generate pbkdf2 --variant sha512 --random --random.length 72 --random.charset rfc3986
-
-[doc('sync snikket certs from caddy and import into prosody')]
-snikket-certs domain: (onpath 'incus')
-    #!/usr/bin/env bash
-    set -euo pipefail
-
-    ISSUER=acme-v02.api.letsencrypt.org-directory
-    TMP=$(mktemp -d); trap 'rm -rf "$TMP"' EXIT
-
-    for d in {{ domain }} groups.{{ domain }} share.{{ domain }}; do
-      incus file pull "caddy/config/caddy/certificates/$ISSUER/$d/$d.crt" "$TMP/fullchain.pem"
-      incus file pull "caddy/config/caddy/certificates/$ISSUER/$d/$d.key" "$TMP/privkey.pem"
-
-      awk 'BEGIN{n=0} /BEGIN CERT/{n++} n==1' "$TMP/fullchain.pem" > "$TMP/cert.pem"
-      awk 'BEGIN{n=0} /BEGIN CERT/{n++} n>1'  "$TMP/fullchain.pem" > "$TMP/chain.pem"
-
-      for f in cert.pem chain.pem fullchain.pem privkey.pem; do
-        incus file push "$TMP/$f" "snikket-server/snikket/letsencrypt/live/$d/$f" \
-          --create-dirs --uid 1000 --gid 1000 --mode 0640
-      done
-    done
-
-    incus exec snikket-server -- prosodyctl --root cert import /snikket/letsencrypt/live
-    incus exec snikket-server -- prosodyctl reload
-    incus exec snikket-server -- prosodyctl check certs
+# the secret goes to the client, its digest into Authelia's client config
+_new-oidc: (onpath 'incus')
+    @incus exec authelia -- authelia crypto rand --length 72 --charset rfc3986 \
+      | sed 's/^Random Value: /client id:     /'
+    @incus exec authelia -- authelia crypto hash generate pbkdf2 --variant sha512 --random --random.length 72 --random.charset rfc3986 \
+      | sed -e 's/^Random Password: /client secret: /' -e 's/^Digest: /digest:        /'

@@ -84,7 +84,7 @@ Prometheus scrapes both in the `restic` job, labelling every series with `reposi
 
 ```bash
 # volume and snapshot ID from the Backrest UI, or latest
-just restore-volume gotify-data latest
+just backup restore gotify-data latest
 ```
 
 This runs `restore-volume` in the `backrest` container. It checks that the snapshot contains the volume, asks you to type the volume name to confirm, stops the instances that use the volume, restores it in place and starts them again. Files that the plan excludes are neither restored nor deleted. If it fails half way, the volume stays attached and the instances stay stopped, running it again retries the restore.

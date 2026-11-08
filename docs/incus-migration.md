@@ -209,7 +209,7 @@ tofu plan
 
 Build the image and flash it to a USB drive:
 ```bash
-just image node-4
+just bootstrap image node-4
 just flash incus-os-node-4.img /dev/disk/by-id/<usb-drive-id>
 ```
 
@@ -360,7 +360,7 @@ incus admin os system storage create-volume -d '{"pool":"local","name":"nas","us
 
 The NAS's NVMe can become `node-4`'s LINSTOR storage, like the NVMes on the other nodes. Without it, `node-4` is a diskless LINSTOR satellite and reaches every replicated volume over the network.
 
-This mirrors what `just bootstrap-linstor` did for `node-1~3`, and can also be done any time later.
+This mirrors what `just bootstrap linstor` did for `node-1~3`, and can also be done any time later.
 
 Wipe the NVMe:
 ```bash
@@ -426,7 +426,7 @@ incus storage volume list nas
 
 The target above already creates `node-4`'s `backups`, `images` and `logs` volumes, but not the server config that points `node-4` at them (`incus_server.this_per_node`), or the `metrics` module's per-member server config and scrape targets. Apply those too:
 ```bash
-just bootstrap
+just bootstrap server
 just apply metrics
 ```
 

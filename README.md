@@ -55,21 +55,21 @@ Install the OS and repeat the same procedure for the remaining nodes in a cluste
 Create an Incus cluster with all nodes (when prompted for "member name to identify this server" use `node-2` and `node-3` respectively). For more details see the [IncusOS Docs](https://linuxcontainers.org/incus-os/docs/main/tutorials/incus-cluster/).
 ```bash
 # pass the IP addresses for nodes 1..3
-just cluster 10.10.0.101 10.10.0.102 10.10.0.103
+just bootstrap cluster 10.10.0.101 10.10.0.102 10.10.0.103
 ```
 
 Bootstrap the cluster configuration:
 ```bash
 just decrypt
 just init
-just bootstrap
+just bootstrap server
 ```
 
 ### Storage
 
 Each node in the cluster has a spare NVME dedicated to distributed storage with [LINSTOR](https://linuxcontainers.org/incus/docs/main/reference/storage_linstor/). Deploying this with an IncusOS cluster is somewhat cumbersome and requires manual steps, but can be automated with a just recipe:
 ```bash
-just bootstrap-linstor
+just bootstrap linstor
 ```
 
 This will do a few things: enable the `linstor` service, prompt you for disks that should be pooled in as Linstor storage and wipe them, create a new encrypted ZFS volume on each disk, deploy the Linstor controller, create storage pools that will contribute capacity to the cluster (this runs on the `linstor-controller` container), and finally create an Incus `linstor` pool that can be used by the rest of the services.
@@ -112,7 +112,7 @@ Validation in `variables.tf` rejects duplicate MACs or IPs and addresses outside
 For a new instance, print a line for its module's block with the lowest free address and an unused locally administered MAC. Add it to `addresses.auto.tfvars` before generating the next one, the recipe only knows the addresses already in the file:
 
 ```bash
-just new address awesome
+just new service awesome
 # awesome = { hwaddr = "02:e9:01:71:61:79", ipv4 = "10.42.0.12" }
 ```
 
