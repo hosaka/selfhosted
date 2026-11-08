@@ -15,11 +15,6 @@ cwd := quote(invocation_directory() + "/")
 @usage +args:
     just --usage {{ args }}
 
-[doc('show a recipe (args can be `recipe` or `mod::recipe`)')]
-[no-exit-message]
-@show +args:
-    just --show {{ args }}
-
 [private]
 @onpath tool:
     echo 'using {{ require(tool) }}' > /dev/null
@@ -199,6 +194,16 @@ vps-diff *args: (onpath 'uv')
 [doc('deploy the VPS, asks before changing anything')]
 vps *args: (onpath 'uv')
     uv run pyinfra --chdir vps inventory.py deploy.py --diff {{ args }}
+
+[arg('what', pattern='dns', help='What to show: dns is the public zone as deSEC serves it')]
+[doc('show live state from outside services')]
+show what: (onpath 'tofu') (onpath 'curl')
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    # the token goes from tofu straight into curl's headers and is never printed
+    read -r domain token < <(tofu console -lock=false <<<'"${var.public_domain} ${var.secrets.dns.desec_token}"' | tr -d '"')
+    curl -sS --fail-with-body -H @- "https://desec.io/api/v1/domains/$domain/zonefile/" <<<"Authorization: Token $token"
 
 [doc('follow logs of an instance')]
 logs instance: (onpath 'incus')
