@@ -98,7 +98,7 @@ versions = {
     # renovate: datasource=github-releases depName=qbittorrent/qBittorrent extractVersion=^release-(?<version>.+)$
     qbittorrent = "5.3.0"
     # renovate: datasource=github-releases depName=StuffAnThings/qbit_manage
-    qbitmanage = "4.14.0"
+    qbitmanage = "4.15.0"
   }
   romm = {
     # renovate: datasource=github-releases depName=rommapp/romm
