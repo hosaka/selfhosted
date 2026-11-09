@@ -47,7 +47,7 @@ versions = {
   }
   ingress = {
     # renovate: datasource=github-releases depName=fatedier/frp
-    frpc = "0.71.1"
+    frpc = "0.72.0"
     # renovate: datasource=docker depName=ghcr.io/hosaka/caddy-desec versioning=regex:^(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)-(?<build>\d+)$
     caddy = "2.11.7-1"
   }
