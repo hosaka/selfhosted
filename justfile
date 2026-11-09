@@ -34,8 +34,8 @@ images format='img':
       just _bootstrap-image "$(basename "$dir")" {{ format }}
     done
 
-[arg('format', pattern='iso|img', help='File format to generate')]
 [arg('node', help='Node to build the image for, a directory in incus/ with its seed files')]
+[arg('format', pattern='iso|img', help='File format to generate')]
 _bootstrap-image node format='img': _flasher-tool (onpath 'tar')
     #!/usr/bin/env bash
     set -euo pipefail
@@ -386,8 +386,8 @@ state-key: (onpath 'age') (onpath 'openssl')
     openssl rand -base64 48 | tr -d '\n' | age --encrypt --recipients-file recipients.txt --output state.key.age
     echo "created state.key.age"
 
-[arg('what', pattern='service|oidc', help='service [name]: a free OVN address and MAC for addresses.auto.tfvars, oidc: an OIDC client id and secret')]
-[doc('generate values for a new service or OIDC client')]
+[arg('what', pattern='service|oidc|user', help='service [name]: a free OVN address and MAC for addresses.auto.tfvars, oidc: an OIDC client id and secret, user: an entry for users in secrets.auto.tfvars')]
+[doc('generate values for a new service, OIDC client or user')]
 new what *args:
     @just _new-{{ what }} {{ args }}
 
@@ -421,6 +421,97 @@ _new-service name='service': (onpath 'tofu') (onpath 'openssl') (onpath 'git')
     do :; done
 
     printf '%s = { hwaddr = "%s", ipv4 = "%s" }\n' {{ quote(name) }} "$hwaddr" "$ipv4"
+
+_new-user:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    # an HCL string, with tfvars' template sequences escaped
+    str() {
+      local s=${1//\\/\\\\}
+      s=${s//\"/\\\"}
+      s=${s//\$\{/\$\$\{}
+      s=${s//%\{/%%\{}
+      printf '"%s"' "$s"
+    }
+
+    mapfile -t groups < <(sed -n '/app_groups = toset(\[/,/\])/s/^ *"\([^"]*\)",$/\1/p' users/groups.tf)
+    if [ ${#groups[@]} -eq 0 ]; then
+      echo "no groups found in users/groups.tf" >&2
+      exit 1
+    fi
+
+    domain=$(sed -n 's/^public_domain *= *"\(.*\)"$/\1/p' environment.auto.tfvars)
+    if [ -z "$domain" ]; then
+      echo "no public_domain found in environment.auto.tfvars" >&2
+      exit 1
+    fi
+
+    username='' email=''
+    until [ -n "$username" ]; do read -erp 'username: ' username; done
+    until [[ $email == ?*@?* ]]; do read -erp 'email: ' email; done
+    read -erp 'first name: ' first
+    read -erp 'last name: ' last
+    display="$first $last"
+    display=${display# }
+    read -erp 'display name: ' -i "${display% }" display
+
+    chosen=()
+    cur=0
+    draw() {
+      for i in "${!groups[@]}"; do
+        pointer=' ' mark=' '
+        if [ "$i" -eq "$cur" ]; then pointer='>'; fi
+        if [ -n "${chosen[i]:-}" ]; then mark=x; fi
+        printf '%s [%s] %s\e[K\n' "$pointer" "$mark" "${groups[i]}"
+      done >&2
+    }
+
+    echo 'groups (↑/↓ or j/k move, space toggles, enter confirms):' >&2
+    printf '\e[?25l' >&2
+    trap 'printf "\e[?25h" >&2' EXIT
+    draw
+    while IFS= read -rsn1 key; do
+      if [ "$key" = $'\e' ]; then
+        read -rsn2 -t 0.05 rest || true
+        key+=${rest:-}
+      fi
+      case $key in
+        $'\e[A' | $'\eOA' | k) cur=$(((cur + ${#groups[@]} - 1) % ${#groups[@]})) ;;
+        $'\e[B' | $'\eOB' | j) cur=$(((cur + 1) % ${#groups[@]})) ;;
+        ' ') if [ -n "${chosen[cur]:-}" ]; then unset 'chosen[cur]'; else chosen[cur]=1; fi ;;
+        '') break ;;
+      esac
+      printf '\e[%dA' ${#groups[@]} >&2
+      draw
+    done
+
+    key=$username
+    if [[ ! $username =~ ^[A-Za-z_][A-Za-z0-9_-]*$ ]]; then key=$(str "$username"); fi
+
+    echo >&2
+    printf '  %s = {\n' "$key"
+    printf '    email        = %s\n' "$(str "$email")"
+    printf '    display_name = %s\n' "$(str "$display")"
+    printf '    first_name   = %s\n' "$(str "$first")"
+    printf '    last_name    = %s\n' "$(str "$last")"
+    if [ ${#chosen[@]} -eq 0 ]; then
+      printf '    groups       = []\n'
+    else
+      printf '    groups = [\n'
+      for i in "${!chosen[@]}"; do printf '      "%s",\n' "${groups[i]}"; done
+      printf '    ]\n'
+    fi
+    printf '  }\n'
+
+    cat >&2 <<EOF
+
+    Add the new user in secrets.auto.tfvars, run \`just apply users\` and tell them to:
+
+    Go to https://auth.$domain, click "Reset password?" and enter $email.
+    Open the link in the email within 5 minutes and choose a password.
+    Then sign in with $username or $email.
+    EOF
 
 # the secret goes to the client, its digest into Authelia's client config
 _new-oidc: (onpath 'incus')
