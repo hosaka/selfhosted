@@ -1,6 +1,15 @@
-# Selfhosted
+# Selfhosted Cluster
+
+[![AI:R READ](https://img.shields.io/badge/AI-READ-grey?style=flat&logoSize=auto&labelColor=13171f)](https://0rwx.com) [![AI:W WRITE](https://img.shields.io/badge/AI-WRITE-grey?style=flat&logoSize=auto&labelColor=13171f)](https://0rwx.com)
 
 My selfhosted config.
+
+## AI Use
+
+> | How | Why |
+> | :--- | :--- |
+> | ![AI:R](https://github.com/jdonszelmann/0rwx.com/blob/main/static/50x50/AI-R-50x50.png?raw=true) | [AI:R](http://0rwx.com) **I use LLMs to learn new concepts, explore alternative approaches, error check myself and debug issues by allowing read-only access to services and metrics.** |
+> | ![AI:W](https://github.com/jdonszelmann/0rwx.com/blob/main/static/50x50/AI-W-50x50.png?raw=true) | [AI:W](http://0rwx.com) **I use LLMs to write all the metrics parsing, log scraping, alert rules and dashboards. It is not something that intrests me and code quality is not important.** |
 
 ## Hardware
 
@@ -176,7 +185,6 @@ When the low battery is detected, upsmon executes a [cluster-poweroff](ups/clust
 - [ ] [Safe{Wallet}](https://github.com/safe-global/safe-wallet-web) for multisig wallets
 
 ### Hardware
-
 
 ## Mirrors
 This repository is hosted on [Forgejo](https://code.hosaka.cc/hosaka/selfhosted) which mirrors to the following git forges:
