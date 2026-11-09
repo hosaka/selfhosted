@@ -84,6 +84,12 @@ ${s.caddy_apex}
 	respond 404
 }
 
+# the automatic HTTPS redirects don't get the listener wrappers above,
+# so frp PROXY header made them answer 400, an explicit redirect gets the wrappers
+http:// {
+	redir https://{host}{uri} permanent
+}
+
 %{ for s in services ~}
 # ${s.name}
 ${s.caddy}
