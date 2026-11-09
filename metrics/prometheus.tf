@@ -9,7 +9,7 @@ locals {
   }
 
   // enable-lifecycle allows reloading config by POSTing to `/-/reload`
-  prometheus_command = "/bin/sh -c 'while [ ! -f /etc/prometheus/cluster.yml ]; do sleep 1; done; exec /bin/prometheus --config.file=/etc/prometheus/cluster.yml --storage.tsdb.path=/prometheus --storage.tsdb.retention.time=30d --storage.tsdb.retention.size=10GB --web.console.templates=/usr/share/prometheus/consoles --web.console.libraries=/usr/share/prometheus/console_libraries --web.enable-lifecycle --log.level=warn'"
+  prometheus_command = "/bin/sh -c 'while [ ! -f /etc/prometheus/cluster.yml ]; do sleep 1; done; exec /bin/prometheus --config.file=/etc/prometheus/cluster.yml --storage.tsdb.path=/prometheus --web.enable-lifecycle --log.level=warn'"
 
   prometheus_config = templatefile("${path.module}/prometheus.yml.tpl", {
     metrics_targets  = local.metrics_targets
@@ -178,6 +178,8 @@ resource "null_resource" "ingress_targets" {
     replace_triggered_by = [incus_instance.prometheus]
   }
 
+  depends_on = [null_resource.prometheus_restart]
+
   provisioner "local-exec" {
     command = "printf '%s' '${self.triggers.targets}' | incus exec ${incus_instance.prometheus.name} -- sh -c 'mkdir -p /etc/prometheus/targets && cat > /etc/prometheus/targets/${each.key}.json'"
   }
@@ -192,5 +194,5 @@ resource "null_resource" "prometheus_reload" {
     command = "incus exec prometheus -- sh -c 'for i in $(seq 30); do wget -qO- --post-data= http://127.0.0.1:${local.prometheus_ports.api}/-/reload && exit 0; sleep 1; done; exit 1'"
   }
 
-  depends_on = [incus_instance.prometheus]
+  depends_on = [incus_instance.prometheus, null_resource.prometheus_restart]
 }

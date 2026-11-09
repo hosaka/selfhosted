@@ -3,6 +3,12 @@ global:
   scrape_interval: 15s
   evaluation_interval: 15s
 
+storage:
+  tsdb:
+    retention:
+      time: 30d
+      size: 10GB
+
 scrape_configs:
   - job_name: "cluster"
     metrics_path: "/1.0/metrics"
