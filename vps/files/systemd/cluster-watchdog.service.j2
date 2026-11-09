@@ -8,6 +8,7 @@ Type=oneshot
 ExecStart=/usr/local/bin/cluster-watchdog \
     --service frps \
     --service frpc-dashboard \
+    --url frps=http://127.0.0.1:7501/healthz \
     --url metrics=https://metrics.{{ public_domain }}/api/health \
     --url gotify=https://gotify.{{ public_domain }}/health
 Environment=MAIL_FROM={{ mail_from }} MAIL_TO={{ mail_to }}

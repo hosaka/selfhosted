@@ -28,6 +28,15 @@ secretKey = "${frps_dashboard_secret_key}"
 bindAddr = "0.0.0.0"
 bindPort = ${frpc_ports.dashboard}
 
+# metricsServer for Prometheus, published the same way
+[[visitors]]
+name = "frps-metrics-visitor"
+type = "stcp"
+serverName = "frps-metrics"
+secretKey = "${frps_dashboard_secret_key}"
+bindAddr = "0.0.0.0"
+bindPort = ${frpc_ports.metrics}
+
 [[proxies]]
 name = "https"
 type = "tcp"

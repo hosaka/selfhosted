@@ -23,4 +23,8 @@ webServer.port = 7500
 webServer.user = "{{ dashboard_user }}"
 webServer.password = "{{ dashboard_password }}"
 
-enablePrometheus = true
+# server metrics
+metricsServer.addr = "127.0.0.1"
+metricsServer.port = 7501
+metricsServer.user = "{{ metrics_user }}"
+metricsServer.password = "{{ metrics_password }}"

@@ -2,6 +2,7 @@ locals {
   frpc_ports = {
     webui     = 7400
     dashboard = 7500
+    metrics   = 7501
   }
 
   caddy_ports = {
@@ -190,6 +191,6 @@ output "caddy_metrics_address" {
 }
 
 output "frps_metrics_address" {
-  description = "The frps dashboard and its /metrics through frpc's stcp visitor, only reachable inside the cluster"
-  value       = "${var.addresses.frpc.ipv4}:${local.frpc_ports.dashboard}"
+  description = "The frps metrics endpoint, only reachable inside the cluster"
+  value       = "${var.addresses.frpc.ipv4}:${local.frpc_ports.metrics}"
 }

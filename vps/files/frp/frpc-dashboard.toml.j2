@@ -8,3 +8,10 @@ type = "stcp"
 secretKey = "{{ secret_key }}"
 localIP = "127.0.0.1"
 localPort = 7500
+
+[[proxies]]
+name = "frps-metrics"
+type = "stcp"
+secretKey = "{{ secret_key }}"
+localIP = "127.0.0.1"
+localPort = 7501

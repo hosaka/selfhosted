@@ -312,6 +312,8 @@ frps_config = files.template(
     auth_token=host.data.frp_auth_token,
     dashboard_user=host.data.frps_dashboard_user,
     dashboard_password=host.data.frps_dashboard_password,
+    metrics_user=host.data.frps_metrics_user,
+    metrics_password=host.data.frps_metrics_password,
 )
 
 frpc_dashboard_config = files.template(
