@@ -22,6 +22,9 @@ frps_dashboard_password = _secrets["metrics"]["frps_password"]
 microsocks_user = _secrets["slskd"]["slsk_proxy_username"]
 microsocks_password = _secrets["slskd"]["slsk_proxy_password"]
 
+# the VPS's IPv6 address
+ipv6_address = _secrets["dns"]["address6"]
+
 # the SMTP relay postfix sends through
 smtp_host = _secrets["vps"]["smtp_host"]
 smtp_username = _secrets["vps"]["smtp_username"]

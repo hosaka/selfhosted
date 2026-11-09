@@ -1,0 +1,5 @@
+# static IPv6 next to the IPv4 in /etc/network/interfaces
+iface ens3 inet6 static
+	address {{ ipv6_address }}/64
+	gateway fe80::1
+	accept_ra 0

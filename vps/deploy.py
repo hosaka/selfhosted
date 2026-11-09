@@ -127,6 +127,42 @@ systemd.service(
     enabled=True,
 )
 
+# IPv6, after ufw so the same rules cover it from the start
+
+ipv6_sysctl = files.put(
+    name="IPv6: switch on",
+    src="files/sysctl/ipv6.conf",
+    dest="/etc/sysctl.d/ipv6.conf",
+    user="root",
+    group="root",
+    mode="644",
+)
+
+ipv6_interface = files.template(
+    name="IPv6: static address",
+    src="files/network/ipv6.j2",
+    dest="/etc/network/interfaces.d/ipv6",
+    user="root",
+    group="root",
+    mode="644",
+    ipv6_address=host.data.ipv6_address,
+)
+
+server.shell(
+    name="IPv6: apply the settings",
+    commands=["sysctl --load=/etc/sysctl.d/ipv6.conf"],
+    _if=ipv6_sysctl.did_change,
+)
+
+server.shell(
+    name="IPv6: add the address and route",
+    commands=[
+        f"ip -6 addr replace {host.data.ipv6_address}/64 dev ens3",
+        "ip -6 route replace default via fe80::1 dev ens3",
+    ],
+    _if=any_changed(ipv6_sysctl, ipv6_interface),
+)
+
 # fail2ban
 
 jail = files.template(
