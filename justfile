@@ -352,25 +352,6 @@ decrypt *files: (onpath 'age') (onpath 'age-plugin-yubikey') (onpath 'git')
       echo "decrypted $f"
     done
 
-[doc('re-encrypt every .age file to recipients.txt, after adding or removing a YubiKey')]
-rekey: (onpath 'age') (onpath 'age-plugin-yubikey') (onpath 'git')
-    #!/usr/bin/env bash
-    set -euo pipefail
-
-    mapfile -t files < <(git ls-files --cached --others --exclude-standard '*.age')
-    identities=$(age-plugin-yubikey --identity 2>/dev/null)
-    if [[ $identities != *AGE-PLUGIN-YUBIKEY-* ]]; then echo "no YubiKey with an age identity is plugged in" >&2; exit 1; fi
-
-    for f in "${files[@]}"; do
-      # from one age straight into the other, the plaintext never touches the disk
-      age --decrypt --identity - "$f" <<<"$identities" \
-        | age --encrypt --recipients-file recipients.txt --output "$f.tmp"
-      # keep the modification time, encrypt and decrypt compare it with the plaintext's
-      touch -r "$f" "$f.tmp"
-      mv "$f.tmp" "$f"
-      echo "re-encrypted $f"
-    done
-
 [doc('generate the passphrase state and plan files are encrypted with (state.tf), only needed once')]
 state-key: (onpath 'age') (onpath 'openssl')
     #!/usr/bin/env bash
@@ -386,8 +367,8 @@ state-key: (onpath 'age') (onpath 'openssl')
     openssl rand -base64 48 | tr -d '\n' | age --encrypt --recipients-file recipients.txt --output state.key.age
     echo "created state.key.age"
 
-[arg('what', pattern='service|oidc|user', help='service [name]: a free OVN address and MAC for addresses.auto.tfvars, oidc: an OIDC client id and secret, user: an entry for users in secrets.auto.tfvars')]
-[doc('generate values for a new service, OIDC client or user')]
+[arg('what', pattern='service|oidc|user|key', help='service [name]: a free OVN address and MAC for addresses.auto.tfvars, oidc [service]: an OIDC client id, secret and digest for secrets.auto.tfvars, user: an entry for users in secrets.auto.tfvars, key: add a plugged in YubiKey to recipients.txt and re-encrypt every .age file')]
+[doc('generate values for a new service, OIDC client or user, or add a YubiKey')]
 new what *args:
     @just _new-{{ what }} {{ args }}
 
@@ -421,6 +402,64 @@ _new-service name='service': (onpath 'tofu') (onpath 'openssl') (onpath 'git')
     do :; done
 
     printf '%s = { hwaddr = "%s", ipv4 = "%s" }\n' {{ quote(name) }} "$hwaddr" "$ipv4"
+
+_new-key: (onpath 'age') (onpath 'age-plugin-yubikey') (onpath 'git')
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    # the plugged in YubiKeys' recipients that aren't listed yet
+    recipients=() labels=() listed=false
+    serial='' slot='' name='' pin='' touch=''
+    while IFS= read -r line; do
+      case $line in
+        '#'*'Serial: '*) serial=${line#*Serial: } serial=${serial%%,*} slot=${line##*Slot: } ;;
+        '#'*'Name: '*) name=${line#*Name: } ;;
+        '#'*'PIN policy: '*) pin=${line#*PIN policy: } pin=${pin%% *} ;;
+        '#'*'Touch policy: '*) touch=${line#*Touch policy: } touch=${touch%% *} ;;
+        age1yubikey1*)
+          if grep -qxF "$line" recipients.txt; then
+            listed=true
+          else
+            recipients+=("$line")
+            labels+=("YubiKey $serial slot $slot: $name (PIN ${pin,,}, touch ${touch,,})")
+          fi
+          ;;
+      esac
+    done < <(age-plugin-yubikey --list 2>/dev/null)
+
+    if [ ${#recipients[@]} -eq 0 ] && ! $listed; then
+      echo "no YubiKey with an age identity is plugged in, age-plugin-yubikey --generate sets one up" >&2
+      exit 1
+    fi
+    if ! $listed; then
+      echo "plug in a YubiKey from recipients.txt as well, re-encrypting needs one to decrypt" >&2
+      exit 1
+    fi
+
+    if [ ${#recipients[@]} -eq 0 ]; then
+      echo "every plugged in YubiKey is already in recipients.txt"
+      read -rp "re-encrypt every .age file to recipients.txt as it is? [y/N] " ok
+      [ "$ok" = "y" ] || exit 1
+    else
+      for i in "${!labels[@]}"; do printf '%2d) %s\n' $((i + 1)) "${labels[i]}"; done
+      read -rp "add which one to recipients.txt and re-encrypt every .age file? [1-${#recipients[@]}, enter cancels] " n
+      if ! [[ $n =~ ^[0-9]+$ ]] || ((n < 1 || n > ${#recipients[@]})); then exit 1; fi
+      echo "${recipients[n - 1]}" >>recipients.txt
+      echo "added ${labels[n - 1]}"
+    fi
+
+    mapfile -t files < <(git ls-files --cached --others --exclude-standard '*.age')
+    identities=$(age-plugin-yubikey --identity 2>/dev/null)
+
+    for f in "${files[@]}"; do
+      # from one age straight into the other, the plaintext never touches the disk
+      age --decrypt --identity - "$f" <<<"$identities" \
+        | age --encrypt --recipients-file recipients.txt --output "$f.tmp"
+      # keep the modification time, encrypt and decrypt compare it with the plaintext's
+      touch -r "$f" "$f.tmp"
+      mv "$f.tmp" "$f"
+      echo "re-encrypted $f"
+    done
 
 _new-user:
     #!/usr/bin/env bash
@@ -513,9 +552,20 @@ _new-user:
     Then sign in with $username or $email.
     EOF
 
-# the secret goes to the client, its digest into Authelia's client config
-_new-oidc: (onpath 'incus')
-    @incus exec authelia -- authelia crypto rand --length 72 --charset rfc3986 \
-      | sed 's/^Random Value: /client id:     /'
-    @incus exec authelia -- authelia crypto hash generate pbkdf2 --variant sha512 --random --random.length 72 --random.charset rfc3986 \
-      | sed -e 's/^Random Password: /client secret: /' -e 's/^Digest: /digest:        /'
+_new-oidc service='service': (onpath 'incus')
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    id=$(incus exec authelia -- authelia crypto rand --length 72 --charset rfc3986 | sed -n 's/^Random Value: //p')
+    generated=$(incus exec authelia -- authelia crypto hash generate pbkdf2 --variant sha512 --random --random.length 72 --random.charset rfc3986)
+    secret=$(sed -n 's/^Random Password: //p' <<<"$generated")
+    digest=$(sed -n 's/^Digest: //p' <<<"$generated")
+    if [ -z "$id" ] || [ -z "$secret" ] || [ -z "$digest" ]; then
+      echo "couldn't read the values from authelia's output" >&2
+      exit 1
+    fi
+
+    printf '    %s_client_id = "%s"\n' {{ quote(service) }} "$id"
+    printf '    %s_client_secret_hash = "%s"\n' {{ quote(service) }} "$digest"
+    printf '    oidc_client_id = "%s"\n' "$id"
+    printf '    oidc_client_secret = "%s"\n' "$secret"

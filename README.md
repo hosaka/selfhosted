@@ -138,9 +138,9 @@ just encrypt
 just encrypt path/to/new.key
 ```
 
-After adding or removing a YubiKey in `recipients.txt`, re-encrypt everything to the new list. Removing one doesn't revoke it, the git history still holds files it can decrypt:
+To add a YubiKey to `recipients.txt`, or after removing one from it, re-encrypt everything to the new list. Adding one needs both the new YubiKey and one already in `recipients.txt` plugged in, the existing one decrypts the files to re-encrypt them. Removing one doesn't revoke it, the git history still holds files it can decrypt:
 ```bash
-just rekey
+just new key
 ```
 
 The state and saved plans are encrypted too (as configured in [state.tf](state.tf)), with a passphrase stored in `state.key.age`. OpenTofu gets it from [state.key.sh](state.key.sh) on every command that reads the state, so those need a YubiKey plugged in as well. `just state-key` generated it once, losing it means losing the state.
