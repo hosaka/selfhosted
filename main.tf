@@ -70,6 +70,7 @@ module "dns" {
   source        = "./dns"
   public_domain = var.public_domain
   address       = var.secrets.dns.address
+  address6      = var.secrets.dns.address6
   records       = var.dns
 
   names = merge(

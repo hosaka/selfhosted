@@ -1,7 +1,7 @@
 locals {
   ttl = 3600
 
-  rrsets = concat(
+  rrsets_ipv4 = concat(
     [
       { subname = "", type = "A", rdata = [var.address] },
       { subname = "*", type = "A", rdata = [var.address] },
@@ -17,6 +17,13 @@ locals {
       }
     ],
   )
+
+  # every A record gets an AAAA record with the VPS's IPv6 address
+  rrsets_ipv6 = var.address6 == null ? [] : [
+    for r in local.rrsets_ipv4 : { subname = r.subname, type = "AAAA", rdata = [var.address6] } if r.type == "A"
+  ]
+
+  rrsets = concat(local.rrsets_ipv4, local.rrsets_ipv6)
 
   acme_challenges = toset([for name in var.certificates : trimsuffix("_acme-challenge.${trimprefix(name, "*.")}", ".${var.public_domain}")])
 }

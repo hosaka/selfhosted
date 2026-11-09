@@ -12,6 +12,17 @@ variable "address" {
   }
 }
 
+# The VPS's IPv6 address, names with an A record get an AAAA record next to it
+variable "address6" {
+  type    = string
+  default = null
+
+  validation {
+    condition     = var.address6 == null ? true : can(cidrhost("${var.address6}/128", 0)) && strcontains(var.address6, ":")
+    error_message = "The address must be an IPv6 address."
+  }
+}
+
 # Public names that need their own records, collected from the modules' `dns` outputs.
 variable "names" {
   type = map(object({
