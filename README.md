@@ -52,16 +52,19 @@ just flash incus-os-node-1.img /dev/sdX
 
 Install the OS and repeat the same procedure for the remaining nodes in a cluster.
 
-Create an Incus cluster with all nodes (when prompted for "member name to identify this server" use `node-2` and `node-3` respectively). For more details see the [IncusOS Docs](https://linuxcontainers.org/incus-os/docs/main/tutorials/incus-cluster/).
+Decrypt the secrets and initialize OpenTofu:
 ```bash
-# pass the IP addresses for nodes 1..3
-just bootstrap cluster 10.10.0.101 10.10.0.102 10.10.0.103
+just decrypt
+just init
+```
+
+Create an Incus cluster with nodes 1..3, their names and addresses come from `cluster` in [environment.auto.tfvars](environment.auto.tfvars) (when prompted for "member name to identify this server" use `node-2` and `node-3` respectively). For more details see the [IncusOS Docs](https://linuxcontainers.org/incus-os/docs/main/tutorials/incus-cluster/).
+```bash
+just bootstrap cluster
 ```
 
 Bootstrap the cluster configuration:
 ```bash
-just decrypt
-just init
 just bootstrap server
 ```
 

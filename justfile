@@ -19,24 +19,31 @@ cwd := quote(invocation_directory() + "/")
 @onpath tool:
     echo 'using {{ require(tool) }}' > /dev/null
 
-[arg('what', pattern='image|cluster|server|linstor', help='image <node> [img|iso]: an IncusOS image for one node, cluster <ip-1> <ip-2> <ip-3>: form the cluster, server [tofu args]: the base resources, linstor: storage pools and linstor')]
+[arg('what', pattern='image|cluster|server|linstor', help='image <node> [img|iso]: an IncusOS image for one node, cluster: form the cluster from var.cluster, server [tofu args]: the base resources, linstor: storage pools and linstor')]
 [doc('set up the cluster from scratch, one step at a time')]
 bootstrap what *args:
     @just _bootstrap-{{ what }} {{ args }}
 
 [arg('format', pattern='iso|img', help='File format to generate')]
-[doc('prepare images for all nodes')]
+[doc('prepare images for all nodes in incus/')]
 images format='img':
-    @just _bootstrap-image node-1 {{ format }}
-    @just _bootstrap-image node-2 {{ format }}
-    @just _bootstrap-image node-3 {{ format }}
-    @just _bootstrap-image node-4 {{ format }}
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    for dir in incus/node-*/; do
+      just _bootstrap-image "$(basename "$dir")" {{ format }}
+    done
 
 [arg('format', pattern='iso|img', help='File format to generate')]
-[arg('node', pattern='node-1|node-2|node-3|node-4', help='Node to build the image for')]
+[arg('node', help='Node to build the image for, a directory in incus/ with its seed files')]
 _bootstrap-image node format='img': _flasher-tool (onpath 'tar')
     #!/usr/bin/env bash
     set -euo pipefail
+
+    if [ ! -d incus/{{ quote(node) }} ]; then
+      echo "incus/{{ node }}/ doesn't exist, nodes are: $(cd incus && echo node-*)" >&2
+      exit 1
+    fi
 
     apps=incus
     if [ -f incus/{{ node }}/applications.yml ]; then
@@ -60,26 +67,37 @@ flash image target:
 _flasher-tool: (onpath 'go')
     go install github.com/lxc/incus-os/incus-osd/cmd/flasher-tool@latest
 
-[arg('node-1', help='IP address of the first node')]
-[arg('node-2', help='IP address of the second node')]
-[arg('node-3', help='IP address of the third node')]
-_bootstrap-cluster node-1 node-2 node-3: (onpath 'incus')
+_bootstrap-cluster: (onpath 'incus') (onpath 'tofu')
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    # the cluster name, the founding nodes' names and addresses from var.cluster
+    read -r name node1 ip1 node2 ip2 node3 ip3 < <(tofu console -lock=false <<'EOF' | tr -d '"'
+    join(" ", [var.cluster.name, var.cluster.node-1.target, var.cluster.node-1.ipv4_address, var.cluster.node-2.target, var.cluster.node-2.ipv4_address, var.cluster.node-3.target, var.cluster.node-3.ipv4_address])
+    EOF
+    ) || true
+    if [ -z "${ip3:-}" ]; then
+      echo "couldn't read var.cluster, decrypt and init first" >&2
+      exit 1
+    fi
+    set -x
+
     # add individual nodes first
-    incus remote add node-1 {{ node-1 }}
-    incus remote add node-2 {{ node-2 }}
-    incus remote add node-3 {{ node-3 }}
+    incus remote add "$node1" "$ip1"
+    incus remote add "$node2" "$ip2"
+    incus remote add "$node3" "$ip3"
     # enable cluster and set it as default
-    incus config set node-1: cluster.https_address={{ node-1 }}:8443
-    incus cluster enable node-1: node-1
-    incus remote add cluster {{ node-1 }}
-    incus remote switch cluster
+    incus config set "$node1": cluster.https_address="$ip1":8443
+    incus cluster enable "$node1": "$node1"
+    incus remote add "$name" "$ip1"
+    incus remote switch "$name"
     # join the remaining nodes
-    incus cluster join cluster: node-2:
-    incus cluster join cluster: node-3:
+    incus cluster join "$name": "$node2":
+    incus cluster join "$name": "$node3":
     # remove individual nodes
-    incus remote remove node-1
-    incus remote remove node-2
-    incus remote remove node-3
+    incus remote remove "$node1"
+    incus remote remove "$node2"
+    incus remote remove "$node3"
 
 _bootstrap-server *args: (onpath 'tofu')
     tofu apply -target=null_resource.post_server {{ args }}
