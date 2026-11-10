@@ -3,4 +3,13 @@ name = "selfhosted"
 version = "0.1.0"
 description = "Selfhosted provision and build tools"
 requires-python = ">=3.14"
-dependencies = ["build123d==0.13.0", "pyinfra==3.11.0", "python-hcl2==8.2.0"]
+dependencies = ["selfhosted-fab", "pyinfra==3.11.0", "python-hcl2==8.2.0"]
+
+[tool.uv.sources]
+selfhosted-fab = { workspace = true }
+
+[tool.uv.workspace]
+members = ["hardware/fab"]
+
+[tool.ty.environment]
+root = ["hardware", "vps"]
