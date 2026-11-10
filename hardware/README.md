@@ -10,3 +10,8 @@ As I do not own a 3D printer (yet), and my tools barely go beyond a good solderi
 ## Parametric Rack
 
 While scouting for good rack mounted panels and enclosures made by a fantastic community of homelabbers I started making my own 3D printables using an excellent [build123d](https://github.com/gumyr/build123d) CAD programming library.
+
+Runtime dependencies:
+- `libglvnd` (libGL, libGLX, libEGL, libOpenGL)
+- OpenGL driver (`mesa` or the NVIDIA driver)
+- `libX11` plus `Xwayland` if running on Wayland
