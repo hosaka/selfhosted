@@ -8,6 +8,8 @@ locals {
   forgejo_anubis_ports = {
     proxy = 8923
   }
+
+  signing_key = "/var/lib/gitea/signing/id_ed25519"
 }
 
 resource "incus_instance" "forgejo_anubis" {
@@ -91,13 +93,14 @@ resource "incus_instance" "forgejo" {
       db_host         = var.addresses.forgejo_database.ipv4
       smtp_address    = var.secrets.smtp_address
       smtp_port       = var.smtp_port
-      mailer_from     = coalesce(var.mailer_from, "Code <noreply@code.${var.public_domain}>")
+      mailer_from     = coalesce(var.mailer_from, "Code <code@${var.public_domain}>")
       mailer_user     = sensitive(var.secrets.mailer_user)
       mailer_password = sensitive(var.secrets.mailer_password)
       internal_token  = sensitive(var.secrets.internal_token)
       trusted_proxies = join(",", var.trusted_proxies)
       secret_key      = sensitive(var.secrets.secret_key)
       lfs_jwt_secret  = sensitive(var.secrets.lfs_jwt_secret)
+      signing_key     = "${local.signing_key}.pub"
     })
 
     target_path        = "/var/lib/gitea/custom/conf/app.ini"
@@ -116,15 +119,32 @@ resource "incus_instance" "forgejo" {
     create_directories = true
   }
 
+  file {
+    content            = sensitive(file("${path.module}/signing.key"))
+    target_path        = local.signing_key
+    uid                = 1000
+    gid                = 1000
+    mode               = "0600"
+    create_directories = true
+  }
+
+  file {
+    content            = file("${path.module}/signing.key.pub")
+    target_path        = "${local.signing_key}.pub"
+    uid                = 1000
+    gid                = 1000
+    mode               = "0644"
+    create_directories = true
+  }
+
   wait_for {
     type = "ipv4"
   }
 
   config = {
-    "environment.USER_UID"  = "1000"
-    "environment.USER_GID"  = "1000"
-    "environment.GNUPGHOME" = "/var/lib/gitea/.gnupg"
-    "environment.TZ"        = var.timezone
+    "environment.USER_UID" = "1000"
+    "environment.USER_GID" = "1000"
+    "environment.TZ"       = var.timezone
   }
 
   exec = {

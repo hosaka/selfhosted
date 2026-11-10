@@ -41,8 +41,9 @@ LOCAL_COPY_PATH = /tmp/gitea/local-repo
 TEMP_PATH = /tmp/gitea/uploads
 
 [repository.signing]
-SIGNING_EMAIL = noreply@code.${public_domain}
-SIGNING_KEY = 31A01766256FED1F8E6DE35744D6E66B6C79E146
+FORMAT = ssh
+SIGNING_EMAIL = code@${public_domain}
+SIGNING_KEY = ${signing_key}
 SIGNING_NAME = Forgejo
 INITIAL_COMMIT = pubkey
 WIKI = pubkey
