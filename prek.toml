@@ -19,3 +19,12 @@ name = "check containerfiles"
 language = "system"
 entry = "hadolint"
 files = "(Containerfile|Dockerfile)$"
+
+[[repos]]
+repo = "local"
+[[repos.hooks]]
+id = "actionlint"
+name = "check ci actions"
+language = "system"
+entry = "actionlint"
+files = '^\.forgejo/workflows/.+\.ya?ml$'
