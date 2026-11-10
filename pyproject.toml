@@ -1,15 +1,13 @@
 [project]
 name = "selfhosted"
 version = "0.1.0"
-description = "Selfhosted provision and build tools"
+description = "Selfhosted provisioning, infrastructure and tools"
 requires-python = ">=3.14"
-dependencies = ["selfhosted-fab", "pyinfra==3.11.0", "python-hcl2==8.2.0"]
+dependencies = ["selfhosted-fab", "selfhosted-vps"]
 
 [tool.uv.sources]
 selfhosted-fab = { workspace = true }
+selfhosted-vps = { workspace = true }
 
 [tool.uv.workspace]
-members = ["hardware/fab"]
-
-[tool.ty.environment]
-root = ["hardware", "vps"]
+members = ["hardware/fab", "vps"]

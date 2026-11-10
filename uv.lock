@@ -6,6 +6,7 @@ requires-python = ">=3.14"
 members = [
     "selfhosted",
     "selfhosted-fab",
+    "selfhosted-vps",
 ]
 
 [[package]]
@@ -1499,16 +1500,14 @@ name = "selfhosted"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
-    { name = "pyinfra" },
-    { name = "python-hcl2" },
     { name = "selfhosted-fab" },
+    { name = "selfhosted-vps" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "pyinfra", specifier = "==3.11.0" },
-    { name = "python-hcl2", specifier = "==8.2.0" },
     { name = "selfhosted-fab", editable = "hardware/fab" },
+    { name = "selfhosted-vps", virtual = "vps" },
 ]
 
 [[package]]
@@ -1528,6 +1527,21 @@ requires-dist = [
     { name = "f3d", specifier = "==4.0.1" },
     { name = "imgui-bundle", specifier = "==1.93.0" },
     { name = "pyopengl", specifier = "==3.1.10" },
+]
+
+[[package]]
+name = "selfhosted-vps"
+version = "0.1.0"
+source = { virtual = "vps" }
+dependencies = [
+    { name = "pyinfra" },
+    { name = "python-hcl2" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "pyinfra", specifier = "==3.11.0" },
+    { name = "python-hcl2", specifier = "==8.2.0" },
 ]
 
 [[package]]
