@@ -17,8 +17,11 @@ def main(argv=None):
 
     sub.add_parser("edit", help="tune the part parameters next to a live viewport")
 
-    cmd = sub.add_parser("render", help="render the part to an image next to its file")
+    cmd = sub.add_parser(
+        "render", help="render the part next to its file as PNG and/or JPG"
+    )
     cmd.add_argument("--png", action="store_true", help="write <part>.png (default)")
+    cmd.add_argument("--jpg", action="store_true", help="write <part>.jpg")
 
     cmd = sub.add_parser(
         "export", help="write the part next to its file as STL and/or STEP"
