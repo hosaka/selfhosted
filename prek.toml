@@ -23,8 +23,8 @@ files = "(Containerfile|Dockerfile)$"
 [[repos]]
 repo = "local"
 [[repos.hooks]]
-id = "actionlint"
+id = "jactionlint"
 name = "check ci actions"
 language = "system"
-entry = "actionlint"
+entry = "jactionlint"
 files = '^\.forgejo/workflows/.+\.ya?ml$'

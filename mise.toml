@@ -3,11 +3,11 @@
 PROJECT_NAME = "{{ config_root | basename }}"
 
 [tools]
-actionlint = "1.7.12"
 age = "1.3.2"
 age-plugin-yubikey = "0.5.1"
 # go = "1.25.11"
 hadolint = "2.14.0"
+jactionlint = "2.5.0"
 just = "1.59.0"
 marksman = "2026-02-08"
 opentofu = "1.13.9"
