@@ -14,4 +14,4 @@ While scouting for good rack mounted panels and enclosures made by a fantastic c
 Runtime dependencies:
 - `libglvnd` (libGL, libGLX, libEGL, libOpenGL)
 - OpenGL driver (`mesa` or the NVIDIA driver)
-- `libX11` plus `Xwayland` if running on Wayland
+- `libX11` (plus `Xwayland` if running on Wayland)
