@@ -33,7 +33,7 @@ versions = {
   }
   home = {
     # renovate: datasource=docker depName=glanceapp/glance
-    glance = "0.8.7"
+    glance = "0.8.8"
   }
   homeassistant = {
     homeassistant = "2026.10.1"
