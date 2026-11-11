@@ -43,7 +43,7 @@ locals {
   ])
 
   caddyfile = join("\n", concat(
-    [templatefile("${path.module}/Caddyfile.tpl", {
+    [templatefile("${path.module}/Caddyfile.tftpl", {
       acme_email     = sensitive(var.secrets.acme_email)
       desec_token    = sensitive(var.desec_token)
       public_domain  = var.public_domain
@@ -53,7 +53,7 @@ locals {
     })],
   ))
 
-  frpc_toml = templatefile("${path.module}/frpc.toml.tpl", {
+  frpc_toml = templatefile("${path.module}/frpc.toml.tftpl", {
     frp_server_addr           = var.secrets.frp_server_addr
     frp_auth_token            = sensitive(var.secrets.frp_auth_token)
     frps_dashboard_secret_key = sensitive(var.secrets.frps_dashboard_secret_key)

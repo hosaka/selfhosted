@@ -11,7 +11,7 @@ locals {
   // enable-lifecycle allows reloading config by POSTing to `/-/reload`
   prometheus_command = "/bin/sh -c 'while [ ! -f /etc/prometheus/cluster.yml ]; do sleep 1; done; exec /bin/prometheus --config.file=/etc/prometheus/cluster.yml --storage.tsdb.path=/prometheus --web.enable-lifecycle --log.level=warn'"
 
-  prometheus_config = templatefile("${path.module}/prometheus.yml.tpl", {
+  prometheus_config = templatefile("${path.module}/prometheus.yml.tftpl", {
     metrics_targets  = local.metrics_targets
     smartctl_targets = local.smartctl_targets
     linstor_target   = var.linstor_address

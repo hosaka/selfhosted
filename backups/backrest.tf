@@ -156,7 +156,7 @@ locals {
     }
   })
 
-  start_script = templatefile("${path.module}/start.sh.tpl", {
+  start_script = templatefile("${path.module}/start.sh.tftpl", {
     wait_for = [
       "/config/config.json",
       local.restic_password,
@@ -173,17 +173,17 @@ locals {
   })
 
   scripts = {
-    mount-clones = templatefile("${path.module}/mount-clones.sh.tpl", {
+    mount-clones = templatefile("${path.module}/mount-clones.sh.tftpl", {
       instance  = "backrest"
       apps_path = local.apps_path
     })
-    unmount-clones = templatefile("${path.module}/unmount-clones.sh.tpl", {
+    unmount-clones = templatefile("${path.module}/unmount-clones.sh.tftpl", {
       instance = "backrest"
     })
-    dump-databases = templatefile("${path.module}/dump-databases.sh.tpl", {
+    dump-databases = templatefile("${path.module}/dump-databases.sh.tftpl", {
       dumps_path = local.dumps_path
     })
-    restore-volume = templatefile("${path.module}/restore-volume.sh.tpl", {
+    restore-volume = templatefile("${path.module}/restore-volume.sh.tftpl", {
       instance        = "backrest"
       apps_path       = local.apps_path
       restore_path    = local.restore_path

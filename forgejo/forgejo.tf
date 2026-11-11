@@ -82,7 +82,7 @@ resource "incus_instance" "forgejo" {
   }
 
   file {
-    content = templatefile("${path.module}/app.ini.tpl", {
+    content = templatefile("${path.module}/app.ini.tftpl", {
       public_domain = var.public_domain
       http_port     = local.forgejo_ports.webui
       ssh_port      = local.forgejo_ports.ssh

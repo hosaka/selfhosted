@@ -654,7 +654,7 @@ uci commit dhcp
 
 ### 10.1 Switch FRP back to plain TCP - DONE
 
-Prepare both sides first. In `ingress/frpc.toml.tpl`, replace the `https-cluster` and `http-cluster` proxies with plain TCP ones:
+Prepare both sides first. In `ingress/frpc.toml.tftpl`, replace the `https-cluster` and `http-cluster` proxies with plain TCP ones:
 ```toml
 [[proxies]]
 name = "https"

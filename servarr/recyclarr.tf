@@ -1,5 +1,5 @@
 locals {
-  recyclarr_config = templatefile("${path.module}/recyclarr.yml.tpl", {
+  recyclarr_config = templatefile("${path.module}/recyclarr.yml.tftpl", {
     radarr_url     = "http://${var.addresses.radarr.ipv4}:${local.radarr_ports.webui}"
     radarr_api_key = sensitive(var.secrets.radarr_api_key)
     sonarr_url     = "http://${var.addresses.sonarr.ipv4}:${local.sonarr_ports.webui}"

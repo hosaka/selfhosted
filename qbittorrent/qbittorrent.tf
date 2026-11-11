@@ -123,7 +123,7 @@ resource "incus_instance" "qbitmanage" {
   }
 
   file {
-    content = templatefile("${path.module}/qbitmanage.yml.tpl", {
+    content = templatefile("${path.module}/qbitmanage.yml.tftpl", {
       qbittorrent_host = "${var.addresses.qbittorrent.ipv4}:${local.qbittorrent_ports.webui}"
     })
     target_path        = "/config/config.yml"

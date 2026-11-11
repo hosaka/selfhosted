@@ -1,5 +1,5 @@
 locals {
-  # see each app's OIDC settings and the claims policies in auth/authelia.yml.tpl
+  # see each app's OIDC settings and the claims policies in auth/authelia.yml.tftpl
   app_groups = toset([
     "forgejo_admin",
     "forgejo_user",

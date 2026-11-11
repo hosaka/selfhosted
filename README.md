@@ -174,7 +174,7 @@ My backup solution is a mix of Incus snapshots and [Backrest](https://github.com
 
 A dedicated container is running [NUT](https://networkupstools.org/) with the UPS passed through to it (see [ups/](ups/)). It sits on `lan` with a static address, so it doesn't depend on OVN or the router's DHCP while the cluster goes down.
 
-When the low battery is detected, upsmon executes a [cluster-poweroff](ups/cluster-poweroff.sh.tpl) script. It powers off the cluster members one by one, waits until they are fully stopped and powers off itself last. For the nodes to start again after that, their BIOS has to power on when AC power comes back. So check the BIOS settings.
+When the low battery is detected, upsmon executes a [cluster-poweroff](ups/cluster-poweroff.sh.tftpl) script. It powers off the cluster members one by one, waits until they are fully stopped and powers off itself last. For the nodes to start again after that, their BIOS has to power on when AC power comes back. So check the BIOS settings.
 
 ## Todo
 

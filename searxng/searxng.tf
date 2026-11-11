@@ -5,7 +5,7 @@ locals {
   }
 
   searxng_settings = file("${path.module}/settings.yml")
-  searxng_limiter = templatefile("${path.module}/limiter.toml.tpl", {
+  searxng_limiter = templatefile("${path.module}/limiter.toml.tftpl", {
     trusted_proxies = var.trusted_proxies
   })
 }

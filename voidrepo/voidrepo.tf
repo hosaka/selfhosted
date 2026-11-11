@@ -44,7 +44,7 @@ resource "incus_instance" "voidrepo_sync" {
   }
 
   config = {
-    "cloud-init.user-data" = templatefile("${path.module}/user-data.yml.tpl", {
+    "cloud-init.user-data" = templatefile("${path.module}/user-data.yml.tftpl", {
       sync_sh       = file("${path.module}/sync.sh")
       cron_schedule = var.cron_schedule
       rsync_args    = var.rsync_args

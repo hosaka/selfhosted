@@ -79,7 +79,7 @@ resource "incus_instance" "ovn_central" {
           routes: [{ to: 0.0.0.0/0, via: ${local.lan_gateway} }]
           nameservers: { addresses: [${local.lan_gateway}] }
     EOT
-    "cloud-init.user-data" = templatefile("${path.module}/central.yml.tpl", {
+    "cloud-init.user-data" = templatefile("${path.module}/central.yml.tftpl", {
       zabbly_key      = chomp(file("${path.module}/zabbly.asc"))
       ovn_version     = var.versions.ovn
       address         = each.value

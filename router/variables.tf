@@ -42,7 +42,7 @@ variable "private_domain" {
   type = string
 }
 
-# Caddy's address, the private domain and the public names listed in dhcp.tpl resolve to it on the LAN
+# Caddy's address, the private domain and the public names listed in dhcp.tftpl resolve to it on the LAN
 variable "caddy_address" {
   type = string
 }

@@ -19,7 +19,7 @@ locals {
     if !local.known_services[name] || service.api_key != null
   }
 
-  glance_config = templatefile("${path.module}/glance.yml.tpl", {
+  glance_config = templatefile("${path.module}/glance.yml.tftpl", {
     public_domain     = var.public_domain
     private_domain    = var.private_domain
     has               = { for name, _ in local.known_services : name => contains(keys(local.services), name) }

@@ -7,7 +7,7 @@ locals {
 
   alloy_configs = {
     for node in var.log_collectors :
-    node => templatefile("${path.module}/alloy.alloy.tpl", {
+    node => templatefile("${path.module}/alloy.alloy.tftpl", {
       node        = node
       loki_url    = "http://${var.addresses.loki.ipv4}:${local.loki_ports.api}/loki/api/v1/push"
       syslog_port = local.alloy_ports.syslog

@@ -16,7 +16,7 @@ locals {
     turn_max = 60010
   }
 
-  # Caddy serves their certificates to snikket-server on this port, see fetch-certs.tpl
+  # Caddy serves their certificates to snikket-server on this port, see fetch-certs.tftpl
   certs_port = 2021
   cert_names = ["chat.${var.public_domain}", "groups.chat.${var.public_domain}", "share.chat.${var.public_domain}"]
 }
@@ -61,7 +61,7 @@ resource "incus_instance" "snikket_server" {
   }
 
   file {
-    content = templatefile("${path.module}/fetch-certs.tpl", {
+    content = templatefile("${path.module}/fetch-certs.tftpl", {
       names = join(", ", [for name in local.cert_names : "\"${name}\""])
       caddy = "http://${var.caddy_address}:${local.certs_port}"
     })

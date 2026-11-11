@@ -61,7 +61,7 @@ locals {
     POWERDOWNFLAG "/etc/killpower"
   EOT
 
-  poweroff_script = templatefile("${path.module}/cluster-poweroff.sh.tpl", {
+  poweroff_script = templatefile("${path.module}/cluster-poweroff.sh.tftpl", {
     self         = var.target
     self_address = trimprefix(var.cluster_address, "https://")
     incus_conf   = local.incus_conf
@@ -194,7 +194,7 @@ resource "incus_instance" "nut" {
           routes: [{ to: 0.0.0.0/0, via: ${local.lan_gateway} }]
           nameservers: { addresses: [${local.lan_gateway}] }
     EOT
-    "cloud-init.user-data" = templatefile("${path.module}/user-data.yml.tpl", {
+    "cloud-init.user-data" = templatefile("${path.module}/user-data.yml.tftpl", {
       nut_id = local.nut_id
     })
   }

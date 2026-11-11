@@ -1,4 +1,4 @@
-# the account Authelia binds with, see auth/authelia.yml.tpl
+# the account Authelia binds with, see auth/authelia.yml.tftpl
 resource "lldap_user" "authelia" {
   display_name = "Authelia"
   username     = "authelia"

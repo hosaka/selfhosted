@@ -6,7 +6,7 @@ locals {
     valkey  = 6379
   }
 
-  authelia_config = templatefile("${path.module}/authelia.yml.tpl", {
+  authelia_config = templatefile("${path.module}/authelia.yml.tftpl", {
     public_domain  = var.public_domain
     private_domain = var.private_domain
 

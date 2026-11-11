@@ -3,13 +3,13 @@ locals {
     webui = 3000
   }
 
-  grafana_config = templatefile("${path.module}/grafana.ini.tpl", {
+  grafana_config = templatefile("${path.module}/grafana.ini.tftpl", {
     public_domain      = var.public_domain
     oidc_client_id     = var.secrets.oidc_client_id
     oidc_client_secret = sensitive(var.secrets.oidc_client_secret)
   })
 
-  grafana_datasources = templatefile("${path.module}/datasources.yml.tpl", {
+  grafana_datasources = templatefile("${path.module}/datasources.yml.tftpl", {
     prometheus_address = var.addresses.prometheus.ipv4
     prometheus_port    = local.prometheus_ports.api
     loki_address       = var.addresses.loki.ipv4

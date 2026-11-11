@@ -1,5 +1,5 @@
 locals {
-  dhcp = templatefile("${path.module}/dhcp.tpl", {
+  dhcp = templatefile("${path.module}/dhcp.tftpl", {
     cluster         = var.cluster
     public_domain   = var.public_domain
     private_domain  = var.private_domain
@@ -7,7 +7,7 @@ locals {
     tessier_address = var.tessier_address
   })
 
-  network = templatefile("${path.module}/network.tpl", {
+  network = templatefile("${path.module}/network.tftpl", {
     address     = split("/", var.gateway)[0]
     netmask     = cidrnetmask(var.gateway)
     ovn_network = cidrhost(var.ovn.subnet, 0)

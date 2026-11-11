@@ -74,7 +74,7 @@ resource "incus_instance" "frigate" {
   }
 
   file {
-    content = templatefile("${path.module}/config.yml.tpl", {
+    content = templatefile("${path.module}/config.yml.tftpl", {
       mqtt_host        = var.mqtt_host
       mqtt_user        = var.secrets.mqtt_user
       mqtt_password    = sensitive(var.secrets.mqtt_password)
