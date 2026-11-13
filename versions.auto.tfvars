@@ -1,7 +1,7 @@
 versions = {
   atuin = {
     # renovate: datasource=github-releases depName=atuinsh/atuin
-    atuin = "18.24.5"
+    atuin = "18.24.6"
     db    = "18-alpine"
   }
   backups = {
