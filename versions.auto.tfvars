@@ -83,7 +83,7 @@ versions = {
   }
   opencloud = {
     # renovate: datasource=docker depName=opencloudeu/opencloud-rolling
-    opencloud = "9.0.0"
+    opencloud = "9.1.0"
   }
   ovn = {
     ovn = "26.09"
