@@ -1,0 +1,48 @@
+{{/*
+	Override of Forgejo templates/package/content/generic.tmpl
+*/}}
+{{if eq .PackageDescriptor.Package.Type "generic"}}
+	{{if and (eq .PackageDescriptor.Owner.Name "hosaka") (eq .PackageDescriptor.Package.Name "vast-packages")}}
+	<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.installation"}}</h4>
+	<div class="ui attached segment">
+		<div class="markup markdown">
+			<p>This is an <a href="https://voidlinux.org/">XBPS</a> binary repository for Void Linux (x86_64-glibc).
+			Packages are built from <a href="{{AppSubUrl}}/hosaka/vast-packages">hosaka/vast-packages</a>, then signed and published by CI.</p>
+			<p>Add the repository:</p>
+			<pre class="code-block"><code>echo "repository=https://hosaka.cc/void/current" &gt; /etc/xbps.d/42-hosaka.conf</code></pre>
+			<p>Install packages as usual:</p>
+			<pre class="code-block"><code>xbps-install -S &lt;package&gt;</code></pre>
+			<p>On first sync XBPS asks you to confirm the public key fingerprint:
+			<code>d4:fe:01:8b:18:0e:5c:ea:25:00:50:a5:b5:77:78:2c</code></p>
+			<p>List all available packages:</p>
+			<pre class="code-block"><code>xbps-query --repository=https://hosaka.cc/void/current -iMs ''</code></pre>
+		</div>
+		<details class="tw-mt-4">
+			<summary>{{svg "octicon-terminal"}} {{ctx.Locale.Tr "packages.generic.download"}}</summary>
+			<div class="markup"><pre class="code-block"><code>
+{{- range .PackageDescriptor.Files -}}
+curl -OJ <origin-url data-url="{{AppSubUrl}}/api/packages/{{$.PackageDescriptor.Owner.Name}}/generic/{{$.PackageDescriptor.Package.Name}}/{{$.PackageDescriptor.Version.Version}}/{{.File.Name}}"></origin-url>
+{{end -}}
+			</code></pre></div>
+		</details>
+	</div>
+	{{else}}
+	{{/* upstream v17.0.1 template, unchanged */}}
+	<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.installation"}}</h4>
+	<div class="ui attached segment">
+		<div class="ui form">
+			<div class="field">
+				<label>{{svg "octicon-terminal"}} {{ctx.Locale.Tr "packages.generic.download"}}</label>
+				<div class="markup"><pre class="code-block"><code>
+{{- range .PackageDescriptor.Files -}}
+curl -OJ <origin-url data-url="{{AppSubUrl}}/api/packages/{{$.PackageDescriptor.Owner.Name}}/generic/{{$.PackageDescriptor.Package.Name}}/{{$.PackageDescriptor.Version.Version}}/{{.File.Name}}"></origin-url>
+{{end -}}
+				</code></pre></div>
+			</div>
+			<div class="field">
+				<label>{{ctx.Locale.Tr "packages.registry.documentation" "Generic" (AppDocsURL "user/packages/generic/")}}</label>
+			</div>
+		</div>
+	</div>
+	{{end}}
+{{end}}

@@ -57,8 +57,8 @@ _bootstrap-image node format='img': _flasher-tool (onpath 'tar')
     mv IncusOS_*.{{ format }} incus-os-{{ node }}.{{ format }}
     rm seed-{{ node }}.tar
 
-[arg('target', pattern='/dev/.*', help='Path to IncusOS image')]
-[arg('image', pattern='.*\.img|.*\.iso', help='Target block device')]
+[arg('target', pattern='/dev/.*', help='Target block device')]
+[arg('image', pattern='.*\.img|.*\.iso', help='Path to IncusOS image')]
 [doc('flash an IncusOS image to a target device')]
 flash image target:
     doas dd bs=4M if={{ image }} of={{ target }} status=progress oflag=sync

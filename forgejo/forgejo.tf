@@ -120,6 +120,15 @@ resource "incus_instance" "forgejo" {
   }
 
   file {
+    content            = file("${path.module}/templates/package/content/generic.tmpl")
+    target_path        = "/var/lib/gitea/custom/templates/package/content/generic.tmpl"
+    uid                = 1000
+    gid                = 1000
+    mode               = "0600"
+    create_directories = true
+  }
+
+  file {
     content            = sensitive(file("${path.module}/signing.key"))
     target_path        = local.signing_key
     uid                = 1000
