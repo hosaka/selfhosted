@@ -67,7 +67,7 @@ versions = {
     # renovate: datasource=github-releases depName=grafana/grafana
     grafana = "13.3.1"
     # renovate: datasource=github-releases depName=grafana/loki
-    loki = "3.7.9"
+    loki = "3.7.10"
     # renovate: datasource=github-releases depName=prometheus/prometheus
     prometheus = "3.16.0"
     # renovate: datasource=docker depName=prometheuscommunity/smartctl-exporter
