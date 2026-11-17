@@ -20,7 +20,7 @@ locals {
   EOT
 }
 
-# Mirrors the x86_64 parts of the Void Linux repository on a schedule.
+# Mirrors the x86_64, x86_64-musl, aarch64 and aarch64-musl parts of the Void Linux repository on a schedule.
 resource "incus_instance" "voidrepo_sync" {
   name = "voidrepo-sync"
   type = "container"
