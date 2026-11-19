@@ -122,6 +122,10 @@ addresses = {
   wakapi = {
     wakapi = { hwaddr = "10:66:6a:62:f6:36", ipv4 = "10.42.0.46" }
   }
+  website = {
+    website       = { hwaddr = "02:8b:33:34:7d:dd", ipv4 = "10.42.0.16" }
+    website_build = { hwaddr = "02:6a:95:65:56:d9", ipv4 = "10.42.0.17" }
+  }
   whoami = {
     whoami = { hwaddr = "10:66:6a:db:01:fb", ipv4 = "10.42.0.21" }
   }

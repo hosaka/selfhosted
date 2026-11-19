@@ -159,6 +159,11 @@ versions = {
     # renovate: datasource=github-releases depName=muety/wakapi
     wakapi = "2.18.2"
   }
+  website = {
+    # renovate: datasource=github-releases depName=getzola/zola
+    zola  = "0.23.6"
+    caddy = "2.11.4"
+  }
   whoami = {
     whoami = "1.12.0"
   }

@@ -259,6 +259,11 @@ output "backups" {
   }
 }
 
+output "forgejo_address" {
+  description = "Forgejo's address inside the cluster, without Anubis in front"
+  value       = "http://${var.addresses.forgejo.ipv4}:${local.forgejo_ports.webui}"
+}
+
 output "ingress" {
   value = {
     name       = "code"

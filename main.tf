@@ -149,6 +149,7 @@ module "ingress" {
     module.vaultwarden.ingress,
     module.voidrepo.ingress,
     module.wakapi.ingress,
+    module.website.ingress,
     module.whoami.ingress,
   ]
 }
@@ -414,6 +415,7 @@ module "metrics" {
     vaultwarden  = module.vaultwarden.probes
     voidrepo     = module.voidrepo.probes
     wakapi       = module.wakapi.probes
+    website      = module.website.probes
     whoami       = module.whoami.probes
   }
   log_collectors = keys(local.members)
@@ -555,7 +557,6 @@ module "silverbullet" {
   target        = var.cluster.node-2.target
   snapshots     = local.daily_snapshot
   public_domain = var.public_domain
-  public_prefix = "/alex"
   depends_on    = [null_resource.post_server, module.linstor]
 }
 
@@ -634,6 +635,18 @@ module "wakapi" {
   private_domain = var.private_domain
   timezone       = var.timezone
   depends_on     = [null_resource.post_server, module.linstor]
+}
+
+module "website" {
+  source          = "./website"
+  versions        = var.versions.website
+  addresses       = local.ovn_addresses.website
+  target          = var.cluster.node-2.target
+  public_domain   = var.public_domain
+  public_prefix   = "/alex"
+  forgejo_address = module.forgejo.forgejo_address
+  repository      = "hosaka/website"
+  depends_on      = [null_resource.post_server]
 }
 
 module "whoami" {

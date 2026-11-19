@@ -4,7 +4,6 @@ locals {
   }
 
   silverbullet_url = "https://silver.${var.public_domain}"
-  public_url       = "https://${var.public_domain}${var.public_prefix}"
   authelia_url     = "https://auth.${var.public_domain}"
 
   // this is actually undocumented and might well break in next releases
@@ -119,7 +118,6 @@ resource "null_resource" "silverbullet_restart" {
 output "probes" {
   value = [
     "${local.silverbullet_url}/.instance",
-    "${local.public_url}/",
   ]
 }
 
@@ -135,23 +133,8 @@ output "backups" {
 
 output "ingress" {
   value = {
-    name       = "silverbullet"
-    caddy_apex = <<-EOT
-			handle / {
-				redir * ${var.public_prefix}/ 302
-			}
-			handle /robots.txt {
-				respond <<TXT
-					User-agent: *
-					Disallow:
-					Sitemap: ${local.public_url}/sitemap.xml
-					TXT 200
-			}
-			handle {
-				reverse_proxy ${var.addresses.silverbullet.ipv4}:${local.silverbullet_ports.webui}
-			}
-    EOT
-    caddy      = <<-EOT
+    name  = "silverbullet"
+    caddy = <<-EOT
 			silver.${var.public_domain} {
 				reverse_proxy ${var.addresses.silverbullet.ipv4}:${local.silverbullet_ports.webui}
 			}
