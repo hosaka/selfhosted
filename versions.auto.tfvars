@@ -119,7 +119,7 @@ versions = {
     # renovate: datasource=github-releases depName=Prowlarr/Prowlarr
     prowlarr = "2.7.0.5723"
     # renovate: datasource=github-releases depName=Radarr/Radarr
-    radarr = "6.4.4.10685"
+    radarr = "7.0.3.10918"
     # renovate: datasource=github-releases depName=recyclarr/recyclarr
     recyclarr = "8.8.1"
     # renovate: datasource=github-releases depName=seerr-team/seerr
