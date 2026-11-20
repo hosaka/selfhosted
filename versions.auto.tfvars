@@ -141,7 +141,7 @@ versions = {
   }
   syncstorage = {
     # renovate: datasource=github-releases depName=mozilla-services/syncstorage-rs
-    syncstorage = "0.24.1"
+    syncstorage = "0.25.0"
     db          = "18-alpine"
   }
   ups = {
