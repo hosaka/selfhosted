@@ -133,4 +133,5 @@ packages:
   - python3-setuptools
 
 runcmd:
+  - apt-mark hold linstor-controller linstor-common
   - systemctl enable --now linstor-controller

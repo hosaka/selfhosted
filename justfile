@@ -54,6 +54,8 @@ destroy module *args: (onpath 'tofu')
 # the VPS in front of the cluster
 mod vps 'vps/vps.just'
 
+# IncusOS management and automated updates
+mod os 'incus/os.just'
 
 # the public zone on deSEC
 mod dns 'dns/dns.just'

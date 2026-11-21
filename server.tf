@@ -55,6 +55,30 @@ resource "null_resource" "os_kernel" {
   }
 }
 
+# Prevents IncusOS from downloading a newer incus-linstor application, so a reboot never starts a
+# LINSTOR satellite the controller cannot run due to a version mismatch.
+resource "null_resource" "os_linstor_pin" {
+  for_each = local.members
+
+  triggers = {
+    target = each.key
+    config = jsonencode({
+      config = {
+        pin_current_versions = true
+      }
+    })
+  }
+
+  provisioner "local-exec" {
+    command = "incus query -X PUT --data '${self.triggers.config}' '/os/1.0/applications/incus-linstor?target=${self.triggers.target}'"
+  }
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = "incus query -X PUT --data '{\"config\": {\"pin_current_versions\": false}}' '/os/1.0/applications/incus-linstor?target=${self.triggers.target}'"
+  }
+}
+
 resource "null_resource" "post_server" {
   depends_on = [
     incus_server.this_per_node,
