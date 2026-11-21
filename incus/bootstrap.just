@@ -68,7 +68,12 @@ cluster: (onpath 'incus') (onpath 'tofu')
 
     # the cluster name, the founding nodes' names and addresses from var.cluster
     read -r name node1 ip1 node2 ip2 node3 ip3 < <(tofu console -lock=false <<'EOF' | tr -d '"'
-    join(" ", [var.cluster.name, var.cluster.node-1.target, var.cluster.node-1.ipv4_address, var.cluster.node-2.target, var.cluster.node-2.ipv4_address, var.cluster.node-3.target, var.cluster.node-3.ipv4_address])
+    join(" ", [
+      var.cluster.name,
+      var.cluster.node-1.target, var.cluster.node-1.ipv4_address,
+      var.cluster.node-2.target, var.cluster.node-2.ipv4_address,
+      var.cluster.node-3.target, var.cluster.node-3.ipv4_address,
+    ])
     EOF
     ) || true
     if [ -z "${ip3:-}" ]; then
@@ -99,7 +104,7 @@ server *args: (onpath 'tofu')
     tofu apply -target=null_resource.post_server {{ args }}
 
 [doc('create the LINSTOR storage pools and controller')]
-linstor: (onpath 'incus') (onpath 'tofu') (onpath 'yq')
+linstor: (onpath 'incus') (onpath 'tofu') (onpath 'yq') (onpath 'jq')
     #!/usr/bin/env bash
     set -euo pipefail
     {{ logger }}
@@ -153,7 +158,7 @@ linstor: (onpath 'incus') (onpath 'tofu') (onpath 'yq')
         [ -n "${disks[$node]:-}" ] || continue
 
         # wipe the drives beforehand (if a ZFS volume already exists, creating one will fail)
-        incus admin os system storage wipe-drive -d "{\"id\":\"${disks[$node]}\"}" --target "$node"
+        incus admin os system storage wipe-drive -d "$(jq -nc --arg id "${disks[$node]}" '{id: $id}')" --target "$node"
 
         # make sure the linstor service is enabled in incus
         incus admin os service show linstor --target "$node" \
@@ -162,18 +167,21 @@ linstor: (onpath 'incus') (onpath 'tofu') (onpath 'yq')
 
         # create a ZFS pool with devices
         incus admin os system storage show --target "$node" \
-          | yq ".config.pools = ((.config.pools // []) | map(select(.name != \"nvme\")) + [{\"name\":\"nvme\",\"type\":\"zfs-raid0\",\"devices\":[\"${disks[$node]}\"]}])" \
+          | disk=${disks[$node]} yq '.config.pools = [(.config.pools // [])[] | select(.name != "nvme")]
+            + [{"name": "nvme", "type": "zfs-raid0", "devices": [strenv(disk)]}]' \
           | incus admin os system storage edit --target "$node"
 
         # create a ZFS volume on top of the pool that will be used by linstor
-        incus admin os system storage create-volume -d '{"pool":"nvme","name":"linstor","use":"linstor"}' --target "$node" || true
+        incus admin os system storage create-volume --target "$node" \
+          -d '{"pool": "nvme", "name": "linstor", "use": "linstor"}' || true
       done
     fi
 
     tofu apply -auto-approve -target=module.linstor.null_resource.post_linstor_controller
 
     for node in "${NODES[@]}"; do
-      incus exec --project=internal linstor-controller -- linstor storage-pool create zfsthin "$node" nvme nvme/linstor || true
+      incus exec --project=internal linstor-controller -- \
+        linstor storage-pool create zfsthin "$node" nvme nvme/linstor || true
     done
 
     tofu apply -auto-approve -target=module.linstor.null_resource.post_linstor

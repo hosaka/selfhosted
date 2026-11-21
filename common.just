@@ -7,8 +7,10 @@ tag := if module_file() == justfile() { file_name(justfile_directory()) } else {
 # stderr so output piped elsewhere remains unformatted
 logger := 'tag=' + quote(tag) + "\n" + '''
 if [ -t 2 ]; then
-  bold=$(tput bold 2>/dev/null || :) red=$(tput setaf 1 2>/dev/null || :) green=$(tput setaf 2 2>/dev/null || :)
-  yellow=$(tput setaf 3 2>/dev/null || :) blue=$(tput setaf 4 2>/dev/null || :) magenta=$(tput setaf 5 2>/dev/null || :) reset=$(tput sgr0 2>/dev/null || :)
+  bold=$(tput bold 2>/dev/null || :) red=$(tput setaf 1 2>/dev/null || :)
+  green=$(tput setaf 2 2>/dev/null || :) yellow=$(tput setaf 3 2>/dev/null || :)
+  blue=$(tput setaf 4 2>/dev/null || :) magenta=$(tput setaf 5 2>/dev/null || :)
+  reset=$(tput sgr0 2>/dev/null || :)
 else
   bold='' red='' green='' yellow='' blue='' magenta='' reset=''
 fi

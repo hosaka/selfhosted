@@ -34,7 +34,7 @@ update: (onpath 'incus') (onpath 'jq') (onpath 'tofu')
     controller=$({{ just }} os::_controller-version)
     staged=$(for m in $(incus cluster list -f csv -c n); do {{ just }} os::_staged "$m" || exit 1; done | sort -u)
     if [ "$(wc -l <<<"$staged")" -gt 1 ]; then
-      error "the members have different LINSTOR versions staged:" $staged", run: just os stage"
+      error "the members have different LINSTOR versions staged: ${staged//$'\n'/ }, run: just os stage"
     fi
 
     pending=()
@@ -53,7 +53,8 @@ update: (onpath 'incus') (onpath 'jq') (onpath 'tofu')
     {{ just }} os::drift || true
     header "reboot ${todo[*]} into IncusOS $target, in that order"
     if [ "$staged" != "$controller" ]; then
-      warning "upgrade the LINSTOR controller from $controller to $staged first, satellites show VERSION_MISMATCH until their member reboots"
+      warning "upgrade the LINSTOR controller from $controller to $staged first," \
+        "satellites show VERSION_MISMATCH until their member reboots"
     fi
     yono 'go ahead?' || exit 1
 
@@ -71,7 +72,8 @@ reboot member: (onpath 'incus') (onpath 'jq') (_wait 'LINSTOR to be in sync' 'sy
     #!/usr/bin/env bash
     set -euo pipefail
     {{ logger }}
-    instances=$(incus list --all-projects -f csv -c e,n,L,s | awk -F, '$3 == "{{ member }}" && $4 == "RUNNING" { print $1 "/" $2 }')
+    instances=$(incus list --all-projects -f csv -c e,n,L,s \
+      | awk -F, '$3 == "{{ member }}" && $4 == "RUNNING" { print $1 "/" $2 }')
     info "rebooting {{ member }}, $(wc -w <<<"$instances") instances run there"
     incus query -X POST --data '{}' '/os/1.0/system/:reboot?target={{ member }}' >/dev/null
     {{ just }} os::_wait '{{ member }} to go down' _down {{ member }}
@@ -90,7 +92,8 @@ upgrade-controller version: (onpath 'incus') (_wait 'LINSTOR to be in sync' 'syn
     set -euo pipefail
     {{ logger }}
     {{ ctl }} apt-get update -qq
-    pkg=$({{ ctl }} apt-cache madison linstor-controller | awk -v v='{{ version }}-' 'index($3, v) == 1 { print $3; exit }')
+    pkg=$({{ ctl }} apt-cache madison linstor-controller \
+      | awk -v v='{{ version }}-' 'index($3, v) == 1 { print $3; exit }')
     if [ -z "$pkg" ]; then
       error "linstor-controller {{ version }} isn't in LINBIT's repository yet"
     fi
@@ -109,24 +112,31 @@ synced: (onpath 'incus') (onpath 'jq')
     #!/usr/bin/env bash
     set -euo pipefail
     {{ logger }}
+    # one jq run reads both lists, the resource list is too big to pass as an argument
     problems=$({ {{ linstor }} node list && {{ linstor }} resource list; } 2>/dev/null | jq -rn '
-      input as $nodes | input as $resources
-      | [$nodes[0][] | select(.connection_status == "ONLINE") | .name] as $online
-      | ($nodes[0][] | select(.connection_status | IN("ONLINE", "VERSION_MISMATCH") | not)
-          | "\(.name): satellite \(.connection_status)"),
-        ($resources[0][] | select(.node_name | IN($online[]))
-          | "\(.node_name) \(.name)" as $id
-          | (select(.flags // [] | any(test("DELETE"))) | "\($id): being deleted"),
-            (.volumes[]?.state.disk_state // "unknown" | select(IN("UpToDate", "Diskless") | not) | "\($id): \(.)"),
-            (.layer_object.drbd.connections // {} | to_entries[] | select(.value.connected | not)
-              | "\($id) to \(.key): \(.value.message)"),
-            (.volumes[]?.state.replication_states // {} | to_entries[] | select(.value.replication_state != "Established")
-              | "\($id) to \(.key): \(.value.replication_state)"))
+      # a satellite that is down, VERSION_MISMATCH only means its member still has to reboot
+      def down: select(.connection_status | IN("ONLINE", "VERSION_MISMATCH") | not)
+        | "\(.name): satellite \(.connection_status)";
+
+      # a replica being deleted, with its disk not in sync, or with a peer that is not connected or still syncing
+      def deleting: select(.flags // [] | any(test("DELETE"))) | "is being deleted";
+      def disk: .volumes[]?.state.disk_state // "unknown" | select(IN("UpToDate", "Diskless") | not) | "is \(.)";
+      def peers: .layer_object.drbd.connections // {} | to_entries[] | select(.value.connected | not)
+        | "to \(.key): \(.value.message)";
+      def syncing: .volumes[]?.state.replication_states // {} | to_entries[]
+        | select(.value.replication_state != "Established") | "to \(.key): \(.value.replication_state)";
+      def unsynced: "\(.node_name) \(.name)" as $replica | (deleting, disk, peers, syncing) | "\($replica) \(.)";
+
+      # replicas are only known on online satellites
+      input[0] as $nodes | input[0] as $resources
+      | [$nodes[] | select(.connection_status == "ONLINE") | .name] as $online
+      | ($nodes[] | down), ($resources[] | select(.node_name | IN($online[])) | unsynced)
     ') || { echo "the LINSTOR controller doesn't answer"; exit 1; }
     if [ -n "$problems" ]; then
       echo "$problems"
       if grep -q StandAlone <<<"$problems"; then
-        echo "StandAlone connections never recover by waiting, the members' kernel logs say why (incus query '/os/1.0/debug/log?target=<member>&entries=40000')"
+        echo "StandAlone connections never recover by waiting, the members' kernel logs say why:" \
+          "incus query '/os/1.0/debug/log?target=<member>&entries=40000'"
         exit 2
       fi
       exit 1
@@ -143,7 +153,7 @@ drift: (onpath 'incus') (onpath 'jq')
     {{ logger }}
     drifted=$({{ just }} os::_drifted)
     if [ -n "$drifted" ]; then
-      while IFS=$'\t' read -r rd name over on; do
+      while IFS=$'\t' read -r _ name over on; do
         warning "$name grew $over KiB past its exact size on$on, a reboot lets it keep that size"
       done <<<"$drifted"
       exit 1
@@ -182,9 +192,11 @@ _release channel='stable':
     read -r version date manifest < <(curl -fsS {{ images }}/index.json | jq -r --arg channel {{ channel }} '
       [.updates[] | select(.channels | index($channel))] | max_by(.version)
       | [.version, .published_at[:10], .url + "/" + (.files[]
-          | select(.component == "incus-linstor" and .type == "image-manifest" and .architecture == "x86_64") | .filename)]
+          | select(.component == "incus-linstor" and .type == "image-manifest" and .architecture == "x86_64")
+          | .filename)]
       | @tsv')
-    linstor=$(curl -fsS "{{ images }}$manifest" | gunzip | jq -r '.packages[] | select(.name == "linstor-satellite") | .version')
+    linstor=$(curl -fsS "{{ images }}$manifest" | gunzip \
+      | jq -r '.packages[] | select(.name == "linstor-satellite") | .version')
     info "Newest IncusOS on {{ channel }}: $version from $date with LINSTOR ${linstor%-*}"
 
 # lifts the pin while it downloads, the new incus-linstor only starts at the next boot
@@ -192,7 +204,10 @@ _stage member:
     #!/usr/bin/env bash
     set -euo pipefail
     {{ logger }}
-    pin() { incus query -X PUT --data "{\"config\": {\"pin_current_versions\": $1}}" '/os/1.0/applications/incus-linstor?target={{ member }}'; }
+    pin() {
+      incus query -X PUT --data "$(jq -nc --argjson pin "$1" '{config: {pin_current_versions: $pin}}')" \
+        '/os/1.0/applications/incus-linstor?target={{ member }}'
+    }
     info "{{ member }}: downloading the newest incus-linstor and IncusOS"
     pin false
     trap 'pin true' EXIT
@@ -221,12 +236,13 @@ _target:
     set -euo pipefail
     {{ logger }}
     builds=$(for m in $(incus cluster list -f csv -c n); do
-      incus query "/os/1.0?target=$m" | jq -r --arg m "$m" '"\($m) \(.environment.os_version) \(.environment.os_version_next)"' || exit 1
+      incus query "/os/1.0?target=$m" \
+        | jq -r --arg m "$m" '"\($m) \(.environment.os_version) \(.environment.os_version_next)"' || exit 1
     done)
     target=$(awk '{ print $2; print $3 }' <<<"$builds" | sort | tail -1)
     behind=$(awk -v t="$target" '$2 != t && $3 != t { print $1 }' <<<"$builds")
     if [ -n "$behind" ]; then
-      error "$target isn't staged on" $behind", run: just os stage"
+      error "$target isn't staged on ${behind//$'\n'/ }, run: just os stage"
     fi
     echo "$target"
 
@@ -260,17 +276,20 @@ _drifted:
     set -euo pipefail
     {{ logger }}
     defined=$({{ linstor }} volume-definition list | jq -r '.[0][] | select(.props["DrbdOptions/ExactSize"] == "true")
-      | .name as $rd | (.props["Aux/Incus/name"] // .name | sub("^incus-(volume-)?"; "")) as $name | .volume_definitions[]
+      | .name as $rd | (.props["Aux/Incus/name"] // .name | sub("^incus-(volume-)?"; "")) as $name
+      | .volume_definitions[]
       | [(.layer_data[] | select(.type == "DRBD") | .data.minor_number), .size_kib, $rd, $name] | @tsv')
     if [ -z "$defined" ]; then exit 0; fi
 
     # any running container sees its member's block devices in /sys, file pull needs no shell in it
     instances=$(incus list --all-projects -f csv -c e,n,L,s,t)
     sizes=$(for m in $(incus cluster list -f csv -c n); do
-      if ! read -r project probe < <(awk -F, -v m="$m" '$3 == m && $4 == "RUNNING" && $5 ~ /^CONTAINER/ { print $1, $2; exit }' <<<"$instances"); then
+      if ! read -r project probe < <(awk -F, -v m="$m" \
+        '$3 == m && $4 == "RUNNING" && $5 ~ /^CONTAINER/ { print $1, $2; exit }' <<<"$instances"); then
         error "no running container on $m to read its DRBD devices through"
       fi
-      cut -f1 <<<"$defined" | xargs -P 8 -I{} sh -c "s=\$(incus file pull --project $project $probe/sys/block/drbd{}/size - 2>/dev/null) && echo $m {} \$s; exit 0"
+      cut -f1 <<<"$defined" | xargs -P 8 -I{} sh -c \
+        "s=\$(incus file pull --project $project $probe/sys/block/drbd{}/size - 2>/dev/null) && echo $m {} \$s; exit 0"
     done)
     if [ -z "$sizes" ]; then
       error "couldn't read the size of any DRBD device"
@@ -286,7 +305,7 @@ _undrift:
     #!/usr/bin/env bash
     set -euo pipefail
     {{ logger }}
-    {{ just }} os::_drifted | while IFS=$'\t' read -r rd name over on; do
+    {{ just }} os::_drifted | while IFS=$'\t' read -r rd name over _; do
       info "$name keeps the $over KiB it grew past its exact size"
       {{ ctl }} linstor rd sp "$rd" DrbdOptions/ExactSize </dev/null >/dev/null
     done
@@ -314,35 +333,43 @@ _wait what check *args:
 
 [no-exit-message]
 @_down member:
-    if timeout 30 incus query '/os/1.0?target={{ member }}' >/dev/null 2>&1; then echo "{{ member }} is still up"; exit 1; fi
+    if timeout 30 incus query '/os/1.0?target={{ member }}' >/dev/null 2>&1; then \
+      echo "{{ member }} is still up"; exit 1; \
+    fi
 
 [no-exit-message]
 @_up member:
-    timeout 30 incus query '/os/1.0?target={{ member }}' 2>/dev/null | jq -e .environment.system_is_ready >/dev/null 2>&1 || { echo "{{ member }} is starting"; exit 1; }
+    timeout 30 incus query '/os/1.0?target={{ member }}' 2>/dev/null \
+      | jq -e .environment.system_is_ready >/dev/null 2>&1 || { echo "{{ member }} is starting"; exit 1; }
 
 [no-exit-message]
 @_online member:
-    incus cluster list -f csv -c n,s 2>/dev/null | grep -qx '{{ member }},ONLINE' || { echo "{{ member }} isn't back in the cluster"; exit 1; }
+    incus cluster list -f csv -c n,s 2>/dev/null | grep -qx '{{ member }},ONLINE' \
+      || { echo "{{ member }} isn't back in the cluster"; exit 1; }
 
 [no-exit-message]
 @_satellite member:
-    status=$({{ linstor }} node list 2>/dev/null | jq -r '.[0][] | select(.name == "{{ member }}") | .connection_status' || true); [ "$status" = ONLINE ] || { echo "{{ member }}'s satellite is ${status:-unknown}"; exit 1; }
+    status=$({{ linstor }} node list 2>/dev/null \
+      | jq -r '.[0][] | select(.name == "{{ member }}") | .connection_status' || true); \
+    [ "$status" = ONLINE ] || { echo "{{ member }}'s satellite is ${status:-unknown}"; exit 1; }
 
 [no-exit-message]
+[positional-arguments]
 _running *instances:
     #!/usr/bin/env bash
     set -euo pipefail
     list=$(incus list --all-projects -f csv -c e,n,s)
-    missing=$(for i in {{ instances }}; do grep -qxF "${i%%/*},${i#*/},RUNNING" <<<"$list" || echo "$i"; done)
+    missing=$(for i in "$@"; do grep -qxF "${i%%/*},${i#*/},RUNNING" <<<"$list" || echo "$i"; done)
     if [ -n "$missing" ]; then
-      echo "not running yet:" $missing
+      echo "not running yet: ${missing//$'\n'/ }"
       exit 1
     fi
 
 # the member runs the build, and its satellite the controller's LINSTOR
 [no-exit-message]
 @_current member target: (_satellite member)
-    running=$(incus query '/os/1.0?target={{ member }}' | jq -r .environment.os_version); [ "$running" = '{{ target }}' ] || { echo "{{ member }} runs $running, not {{ target }}"; exit 1; }
+    running=$(incus query '/os/1.0?target={{ member }}' | jq -r .environment.os_version); \
+    [ "$running" = '{{ target }}' ] || { echo "{{ member }} runs $running, not {{ target }}"; exit 1; }
 
 [no-exit-message]
 @_controller-version:
@@ -350,8 +377,11 @@ _running *instances:
 
 [no-exit-message]
 @_controller-is version:
-    [ "$({{ just }} os::_controller-version 2>/dev/null)" = '{{ version }}' ] || { echo "the controller doesn't run LINSTOR {{ version }} yet"; exit 1; }
+    [ "$({{ just }} os::_controller-version 2>/dev/null)" = '{{ version }}' ] \
+      || { echo "the controller doesn't run LINSTOR {{ version }} yet"; exit 1; }
 
 [no-exit-message]
 @_checked member before:
-    incus query '/os/1.0/system/update?target={{ member }}' | jq -e --arg before '{{ before }}' '.state.last_check != $before and (.state.status | startswith("Checking") | not)' >/dev/null || { echo "{{ member }} is still checking"; exit 1; }
+    incus query '/os/1.0/system/update?target={{ member }}' | jq -e --arg before '{{ before }}' \
+      '.state.last_check != $before and (.state.status | startswith("Checking") | not)' >/dev/null \
+      || { echo "{{ member }} is still checking"; exit 1; }

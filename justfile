@@ -28,10 +28,39 @@ init *args: (onpath 'tofu') (onpath 'prek') (onpath 'git')
 
 [arg('args', help='Passed to tofu validate')]
 [doc('format, validate and lint the configuration')]
-lint *args: (onpath 'tofu') (onpath 'git')
+lint *args: (onpath 'tofu') (onpath 'git') && _lint-just
     git ls-files --cached --others --exclude-standard '*.tf' '*.tfvars' '*.tftest.hcl' \
       | xargs tofu fmt -check -diff
     tofu validate -lint=all {{ args }}
+
+# shellcheck every recipe of the justfile and its modules, keeps recipe bodies under 120 columns
+_lint-just: (onpath 'shellcheck') (onpath 'jq') (onpath 'git')
+    #!/usr/bin/env bash
+    set -euo pipefail
+    {{ logger }}
+    failed=0 checked=0
+
+    while IFS= read -r -d '' recipe && IFS= read -r -d '' script; do
+      if ! shellcheck -s bash -f gcc - <<<"$script" | sed "s|^-:|$recipe:|"; then failed=1; fi
+      checked=$((checked + 1))
+    done < <(just --dump --dump-format json | jq --raw-output0 '
+      def line: map(if type == "string" then . else "_just_" end) | join("");
+      # a linewise recipe line may start with just prefixes
+      def script($shebang): [.body[] | line | if $shebang then . else sub("^[@-]+"; "") end] | join("\n");
+      def recipes($prefix): (.recipes[] | $prefix + .name, script(.shebang)),
+        (.modules | to_entries[] | .key as $module | .value | recipes($prefix + $module + "::"));
+      recipes("")')
+    if [ "$checked" -eq 0 ]; then error "couldn't read the recipes from just --dump"; fi
+
+    long=$(git ls-files '*.just' justfile \
+      | xargs awk 'length > 120 && /^[ \t]/ { print FILENAME ":" FNR ": " length " columns" }')
+    if [ -n "$long" ]; then
+      echo "$long"
+      failed=1
+    fi
+
+    if [ "$failed" -ne 0 ]; then error "the justfiles need fixing"; fi
+    success "every recipe passes shellcheck"
 
 [arg('args', help='Passed to tofu plan')]
 [arg('module', help='Module to plan, every one when empty')]
@@ -97,10 +126,11 @@ prune: (onpath 'incus') (onpath 'jq')
       if [ -n "${used[$project/$fingerprint]:-}" ]; then continue; fi
       prune+=("$project $fingerprint")
       total=$((total + size))
-      printf '%-9s %.12s %5s MiB  last used %s  %s\n' "$project" "$fingerprint" $((size / 1048576)) "$last_used" "$source"
+      printf '%-9s %.12s %5s MiB  last used %s  %s\n' \
+        "$project" "$fingerprint" $((size / 1048576)) "$last_used" "$source"
     done < <(for project in $(printf '%s\n' "${image_project[@]}" | sort -u); do
-      incus image list --project "$project" -f json | jq -r --arg project "$project" \
-        '.[] | select(.cached) | [$project, .fingerprint, .size, .last_used_at[0:10], .update_source.alias // ""] | @tsv'
+      incus image list --project "$project" -f json | jq -r --arg project "$project" '.[] | select(.cached)
+        | [$project, .fingerprint, .size, .last_used_at[0:10], .update_source.alias // ""] | @tsv'
     done | sort -t $'\t' -k5,5)
 
     if [ ${#prune[@]} -eq 0 ]; then

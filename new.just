@@ -47,7 +47,8 @@ oidc service='service': (onpath 'incus')
     {{ logger }}
 
     id=$(incus exec authelia -- authelia crypto rand --length 72 --charset rfc3986 | sed -n 's/^Random Value: //p')
-    generated=$(incus exec authelia -- authelia crypto hash generate pbkdf2 --variant sha512 --random --random.length 72 --random.charset rfc3986)
+    generated=$(incus exec authelia -- authelia crypto hash generate pbkdf2 \
+      --variant sha512 --random --random.length 72 --random.charset rfc3986)
     secret=$(sed -n 's/^Random Password: //p' <<<"$generated")
     digest=$(sed -n 's/^Digest: //p' <<<"$generated")
     if [ -z "$id" ] || [ -z "$secret" ] || [ -z "$digest" ]; then

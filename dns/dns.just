@@ -11,7 +11,9 @@ status: (onpath 'tofu') (onpath 'curl')
     set -euo pipefail
 
     # the token goes from tofu straight into curl's headers and is never printed
-    read -r domain token < <(tofu console -lock=false <<<'"${var.public_domain} ${var.secrets.dns.desec_token}"' | tr -d '"')
+    # shellcheck disable=SC2016 # an HCL template, tofu console expands it
+    read -r domain token < <(tofu console -lock=false <<<'"${var.public_domain} ${var.secrets.dns.desec_token}"' \
+      | tr -d '"')
     curl -sS --fail-with-body -H @- "https://desec.io/api/v1/domains/$domain/zonefile/" <<<"Authorization: Token $token"
 
 [doc('list recipes')]
