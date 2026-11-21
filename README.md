@@ -152,11 +152,47 @@ To add a YubiKey to `recipients.txt`, or after removing one from it, re-encrypt 
 just new key
 ```
 
-The state and saved plans are encrypted too (as configured in [state.tf](state.tf)), with a passphrase stored in `state.key.age`. OpenTofu gets it from [state.key.sh](state.key.sh) on every command that reads the state, so those need a YubiKey plugged in as well. `just bootstrap passphrase` generated it once, losing it means losing the state.
+The state and saved plans are encrypted too (as configured in [state.tf](state.tf)) with a passphrase stored in `state.key.age`. OpenTofu gets it from [state.key.sh](state.key.sh) on every command that reads the state, so those need a YubiKey plugged in as well. `just bootstrap passphrase` generates it once, losing it means losing the state.
 
 The state lives in a versioned S3 bucket, so every clone works from the latest one and earlier versions stay recoverable. The bucket, its endpoint and the credentials are in `state.s3.tfbackend`, encrypted like the secrets, and `just init` passes it to `tofu init`.
 
 > I have previously used `sops` to manage secrets but plain age turned out to be enough.
+
+## Updating
+
+IncusOS downloads updates in the background and applies them on the next reboot. Because the Linstor controller only accepts satellites that match it's version exactly, the `incus-linstor` application has it's version pinned. An update either keeps the Linstor version and then performs a rolling reboot of the cluster members, or it brings a newer version, then the controller is upgraded first (after a snapshot) and each satellite comes back online when a member reboots. The steps are the same either way. See [incus/os.just](incus/os.just) for details on how this all works.
+
+> [!WARNING]
+> It is a very good idea to make sure the OS updates are performed outside of automated backup schedule.
+> See [docs/backups.md](docs/backups.md) for backup schedules and more info.
+
+See what versions are being used, what's staged and the newest IncusOS release with its Linstor version:
+```bash
+just os
+```
+
+Download the newest IncusOS and Linstor to every member. Nothing is restarted or applied at this stage:
+```bash
+just os stage
+```
+
+Reboot the members one by one:
+```bash
+just os update
+```
+
+Before each reboot the script waits until every Linstor replica is in sync and checks the DRBD device sizes against their volumes. If it interrupted half-way, running `just os update` again carries on with the members that still need a reboot. But it's definitely worth investigating if the update process get's stuck on a step for too long or outputs something that sounds like trouble.
+
+### Failures and Recovery
+
+1. Upgrading `linstor-controller` fails or keeps showing errors:
+
+   `just os update` keeps waiting for the controller to run the new Linstor version. No member has rebooted at this point, so stop the update and restore the controller's old package and database from the snapshot taken before the upgrade:
+   ```bash
+   incus snapshot restore --project internal linstor-controller linstor-<old version>
+   ```
+
+   The satellites still run the old version and reconnect, `just os synced` confirms it. Don't update until a fixed Linstor release is out, then `just os stage` and `just os update` as usual. Once a member has rebooted onto the new satellite version, restoring the snapshot no longer helps.
 
 ## Backups
 
