@@ -55,3 +55,8 @@ diff *args: (onpath 'uv')
 [doc('deploy, asks before changing anything')]
 deploy *args: (onpath 'uv')
     uv run pyinfra inventory.py deploy.py --diff {{ args }}
+
+# ufw allows 6 new SSH connections per 30s, so pyinfra reconnects every 10s instead of every second
+[doc('reboot the VPS and wait until it is back, asks first, drops the tunnel for a minute')]
+reboot: (onpath 'uv') && status
+    uv run pyinfra inventory.py server.reboot delay=30 interval=10
