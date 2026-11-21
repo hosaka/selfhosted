@@ -1,6 +1,6 @@
 #!/usr/bin/env just --justfile
 
-cwd := quote(invocation_directory() + "/")
+import 'common.just'
 
 [doc('list recipes (default)')]
 @help:
@@ -10,228 +10,59 @@ cwd := quote(invocation_directory() + "/")
 @list:
     just --list --no-aliases --list-submodules
 
-[doc('show a recipe usage')]
+[arg('args', help='Recipe, or module and recipe, e.g. os reboot')]
+[doc('show how to call a recipe')]
 [no-exit-message]
 @usage +args:
     just --usage {{ args }}
 
-[private]
-@onpath tool:
-    echo 'using {{ require(tool) }}' > /dev/null
+# cluster setup from scratch, one step at a time
+mod bootstrap 'incus/bootstrap.just'
 
-[arg('what', pattern='image|cluster|server|linstor', help='image <node> [img|iso]: an IncusOS image for one node, cluster: form the cluster from var.cluster, server [tofu args]: the base resources, linstor: storage pools and linstor')]
-[doc('set up the cluster from scratch, one step at a time')]
-bootstrap what *args:
-    @just _bootstrap-{{ what }} {{ args }}
-
-[arg('format', pattern='iso|img', help='File format to generate')]
-[doc('prepare images for all nodes in incus/')]
-images format='img':
-    #!/usr/bin/env bash
-    set -euo pipefail
-
-    for dir in incus/node-*/; do
-      just _bootstrap-image "$(basename "$dir")" {{ format }}
-    done
-
-[arg('node', help='Node to build the image for, a directory in incus/ with its seed files')]
-[arg('format', pattern='iso|img', help='File format to generate')]
-_bootstrap-image node format='img': _flasher-tool (onpath 'tar')
-    #!/usr/bin/env bash
-    set -euo pipefail
-
-    if [ ! -d incus/{{ quote(node) }} ]; then
-      echo "incus/{{ node }}/ doesn't exist, nodes are: $(cd incus && echo node-*)" >&2
-      exit 1
-    fi
-
-    apps=incus
-    if [ -f incus/{{ node }}/applications.yml ]; then
-      apps=incus/{{ node }}
-    fi
-
-    tar -cvf seed-{{ node }}.tar --directory=incus/ incus.yml update.yml
-    tar -rvf seed-{{ node }}.tar --directory="$apps"/ applications.yml
-    tar -rvf seed-{{ node }}.tar --directory=incus/{{ node }}/ install.yml network.yml services.yml
-    flasher-tool --channel=stable --format={{ format }} --seed=seed-{{ node }}.tar
-    mv IncusOS_*.{{ format }} incus-os-{{ node }}.{{ format }}
-    rm seed-{{ node }}.tar
-
-[arg('target', pattern='/dev/.*', help='Target block device')]
-[arg('image', pattern='.*\.img|.*\.iso', help='Path to IncusOS image')]
-[doc('flash an IncusOS image to a target device')]
-flash image target:
-    doas dd bs=4M if={{ image }} of={{ target }} status=progress oflag=sync
-
-[private]
-_flasher-tool: (onpath 'go')
-    go install github.com/lxc/incus-os/incus-osd/cmd/flasher-tool@latest
-
-_bootstrap-cluster: (onpath 'incus') (onpath 'tofu')
-    #!/usr/bin/env bash
-    set -euo pipefail
-
-    # the cluster name, the founding nodes' names and addresses from var.cluster
-    read -r name node1 ip1 node2 ip2 node3 ip3 < <(tofu console -lock=false <<'EOF' | tr -d '"'
-    join(" ", [var.cluster.name, var.cluster.node-1.target, var.cluster.node-1.ipv4_address, var.cluster.node-2.target, var.cluster.node-2.ipv4_address, var.cluster.node-3.target, var.cluster.node-3.ipv4_address])
-    EOF
-    ) || true
-    if [ -z "${ip3:-}" ]; then
-      echo "couldn't read var.cluster, decrypt and init first" >&2
-      exit 1
-    fi
-    set -x
-
-    # add individual nodes first
-    incus remote add "$node1" "$ip1"
-    incus remote add "$node2" "$ip2"
-    incus remote add "$node3" "$ip3"
-    # enable cluster and set it as default
-    incus config set "$node1": cluster.https_address="$ip1":8443
-    incus cluster enable "$node1": "$node1"
-    incus remote add "$name" "$ip1"
-    incus remote switch "$name"
-    # join the remaining nodes
-    incus cluster join "$name": "$node2":
-    incus cluster join "$name": "$node3":
-    # remove individual nodes
-    incus remote remove "$node1"
-    incus remote remove "$node2"
-    incus remote remove "$node3"
-
-_bootstrap-server *args: (onpath 'tofu')
-    tofu apply -target=null_resource.post_server {{ args }}
-
-_bootstrap-linstor: (onpath 'incus') (onpath 'tofu') (onpath 'yq')
-    #!/usr/bin/env bash
-    set -euo pipefail
-
-    NODES=(node-1 node-2 node-3)
-
-    declare -A disks
-
-    for node in "${NODES[@]}"; do
-      show=$(incus admin os system storage show --target "$node")
-
-      if echo "$show" | yq -e '.state.pools[] | select(.name == "nvme")' >/dev/null 2>&1; then
-        echo "$node: nvme pool already exists, skipping"
-        continue
-      fi
-
-      mapfile -t free < <(echo "$show" | yq -r '
-        .state.drives[]
-        | select((.member_pool // "") == "")
-        | select(.boot != true)
-        | .id')
-
-      case ${#free[@]} in
-        0)
-          echo "$node: no unallocated drives" >&2
-          exit 1
-          ;;
-        1)
-          disks[$node]="${free[0]}"
-          ;;
-        *)
-          echo "$node:"
-          printf '%s\n' "${free[@]}" | nl -w2 -s') '
-          while :; do
-            read -rp "select drive for $node [1-${#free[@]}]: " n
-            if [[ "$n" =~ ^[0-9]+$ ]] && (( n >= 1 && n <= ${#free[@]} )); then
-              disks[$node]="${free[$((n-1))]}"
-              break
-            fi
-          done
-          ;;
-      esac
-    done
-
-    if [ -n "${disks[*]:-}" ]; then
-      for node in "${NODES[@]}"; do
-        if [ -n "${disks[$node]:-}" ]; then echo "$node: ${disks[$node]}"; fi
-      done
-      read -rp "wipe these drives and use them for linstor pool (double check the drive ids)? [y/N] " ok
-      [ "$ok" = "y" ] || exit 1
-
-      for node in "${NODES[@]}"; do
-        [ -n "${disks[$node]:-}" ] || continue
-
-        # wipe the drives beforehand (if a ZFS volume already exists, creating one will fail)
-        incus admin os system storage wipe-drive -d "{\"id\":\"${disks[$node]}\"}" --target "$node"
-
-        # make sure the linstor service is enabled in incus
-        incus admin os service show linstor --target "$node" \
-          | yq '.config.enabled = true' \
-          | incus admin os service edit linstor --target "$node"
-
-        # create a ZFS pool with devices
-        incus admin os system storage show --target "$node" \
-          | yq ".config.pools = ((.config.pools // []) | map(select(.name != \"nvme\")) + [{\"name\":\"nvme\",\"type\":\"zfs-raid0\",\"devices\":[\"${disks[$node]}\"]}])" \
-          | incus admin os system storage edit --target "$node"
-
-        # create a ZFS volume on top of the pool that will be used by linstor
-        incus admin os system storage create-volume -d '{"pool":"nvme","name":"linstor","use":"linstor"}' --target "$node" || true
-      done
-    fi
-
-    tofu apply -auto-approve -target=module.linstor.null_resource.post_linstor_controller
-
-    for node in "${NODES[@]}"; do
-      incus exec --project=internal linstor-controller -- linstor storage-pool create zfsthin "$node" nvme nvme/linstor || true
-    done
-
-    tofu apply -auto-approve -target=module.linstor.null_resource.post_linstor
-
-[doc('initialize tofu with the S3 state backend, decrypt state.s3.tfbackend first')]
+[arg('args', help='Passed to tofu init')]
+[doc('initialize tofu with the S3 state backend, `just decrypt` first')]
 init *args: (onpath 'tofu')
     prek install
     git config remote.origin.prune true
     tofu init -backend-config=state.s3.tfbackend {{ args }}
 
+[arg('args', help='Passed to tofu validate')]
 [doc('format, validate and lint the configuration')]
 lint *args: (onpath 'tofu') (onpath 'git')
     git ls-files --cached --others --exclude-standard '*.tf' '*.tfvars' '*.tftest.hcl' \
       | xargs tofu fmt -check -diff
     tofu validate -lint=all {{ args }}
 
+[arg('args', help='Passed to tofu plan')]
+[arg('module', help='Module to plan, every one when empty')]
 [doc('plan changes, optionally for one module')]
 plan module='' *args: (onpath 'tofu')
     tofu plan {{ if module != '' { '-target=module.' + module } else { '' } }} {{ args }}
 
+[arg('args', help='Passed to tofu apply')]
+[arg('module', help='Module to apply, every one when empty')]
 [doc('apply changes, optionally for one module')]
 apply module='' *args: (onpath 'tofu')
     tofu apply {{ if module != '' { '-target=module.' + module } else { '' } }} {{ args }}
 
-[doc('destroy module changes')]
+[arg('args', help='Passed to tofu destroy')]
+[arg('module', help='Module to destroy')]
+[doc('destroy the resources of a module')]
 destroy module *args: (onpath 'tofu')
     tofu destroy -target=module.{{ module }} {{ args }}
 
-[arg('what', pattern='diff|deploy', help='diff: show what deploying would change, deploy: deploy, asks before changing anything')]
-[doc('show or deploy changes to the VPS')]
-vps what *args:
-    @just _vps-{{ what }} {{ args }}
+# the VPS in front of the cluster
+mod vps 'vps/vps.just'
 
-_vps-diff *args: (onpath 'uv')
-    uv run pyinfra --chdir vps inventory.py deploy.py --dry --diff {{ args }}
 
-_vps-deploy *args: (onpath 'uv')
-    uv run pyinfra --chdir vps inventory.py deploy.py --diff {{ args }}
-
-[arg('what', pattern='dns', help='What to show: dns is the public zone as deSEC serves it')]
-[doc('show live state from outside services')]
-show what: (onpath 'tofu') (onpath 'curl')
-    #!/usr/bin/env bash
-    set -euo pipefail
-
-    # the token goes from tofu straight into curl's headers and is never printed
-    read -r domain token < <(tofu console -lock=false <<<'"${var.public_domain} ${var.secrets.dns.desec_token}"' | tr -d '"')
-    curl -sS --fail-with-body -H @- "https://desec.io/api/v1/domains/$domain/zonefile/" <<<"Authorization: Token $token"
+# the public zone on deSEC
+mod dns 'dns/dns.just'
 
 [doc('follow logs of an instance')]
 logs instance: (onpath 'incus')
     incus console --show-log {{ instance }}
 
-[doc('bring an instance down')]
+[doc('stop an instance')]
 stop instance: (onpath 'incus')
     incus stop {{ instance }}
 
@@ -239,11 +70,12 @@ stop instance: (onpath 'incus')
 restart instance: (onpath 'incus')
     incus restart {{ instance }}
 
-[doc('delete cached images no instance was created from, Incus would expire them after 10 days')]
+[doc('delete cached images no instance was created from')]
 prune: (onpath 'incus') (onpath 'jq')
     #!/usr/bin/env bash
     set -euo pipefail
 
+    # Incus would expire them after 10 days, this frees the space now
     # projects without their own images use the default project's
     declare -A image_project
     while IFS=$'\t' read -r project own; do
@@ -282,18 +114,11 @@ prune: (onpath 'incus') (onpath 'jq')
     done
     echo "deleted ${#prune[@]} images"
 
-[arg('what', pattern='restore', help='restore <volume> <snapshot ID|latest>: restore a volume in place from the nas repo, replacing its contents (destructive)')]
-[doc('work with the backups')]
-backup what *args:
-    @just _backup-{{ what }} {{ args }}
+# restores from the backups
+mod backup 'backups/backup.just'
 
-[arg('volume', help='Volume to restore, e.g. gotify-data')]
-[arg('snapshot', help='Snapshot ID from the Backrest UI, or latest')]
-_backup-restore volume snapshot: (onpath 'incus')
-    incus exec -t backrest -- restore-volume {{ volume }} {{ snapshot }}
-
-[arg('files', help='Plaintext files or their .age copies, every .age file in the repo by default')]
-[doc('encrypt files to the YubiKeys in recipients.txt as <file>.age, by default the ones changed since')]
+[arg('files', help='Plaintext files or their .age copies, by default every plaintext edited since it was decrypted')]
+[doc('encrypt files to the YubiKeys in recipients.txt')]
 [positional-arguments]
 encrypt *files: (onpath 'age') (onpath 'git')
     #!/usr/bin/env bash
@@ -323,8 +148,8 @@ encrypt *files: (onpath 'age') (onpath 'git')
       echo "encrypted $f"
     done
 
-[arg('files', help='Plaintext files or their .age copies, every .age file in the repo by default')]
-[doc('decrypt <file>.age files with a connected YubiKey, by default the ones changed since')]
+[arg('files', help='Plaintext files or their .age copies, by default every .age file newer than its plaintext')]
+[doc('decrypt .age files with a plugged in YubiKey')]
 [positional-arguments]
 decrypt *files: (onpath 'age') (onpath 'age-plugin-yubikey') (onpath 'git')
     #!/usr/bin/env bash
@@ -352,220 +177,5 @@ decrypt *files: (onpath 'age') (onpath 'age-plugin-yubikey') (onpath 'git')
       echo "decrypted $f"
     done
 
-[doc('generate the passphrase state and plan files are encrypted with (state.tf), only needed once')]
-state-key: (onpath 'age') (onpath 'openssl')
-    #!/usr/bin/env bash
-    set -euo pipefail
-
-    # a new passphrase can't decrypt the existing state
-    if [ -e state.key.age ]; then
-      echo "state.key.age already exists, replacing it would make the state unreadable" >&2
-      exit 1
-    fi
-
-    # piped straight into age, the passphrase is never shown or written to disk
-    openssl rand -base64 48 | tr -d '\n' | age --encrypt --recipients-file recipients.txt --output state.key.age
-    echo "created state.key.age"
-
-[arg('what', pattern='service|oidc|user|key', help='service [name]: a free OVN address and MAC for addresses.auto.tfvars, oidc [service]: an OIDC client id, secret and digest for secrets.auto.tfvars, user: an entry for users in secrets.auto.tfvars, key: add a plugged in YubiKey to recipients.txt and re-encrypt every .age file')]
-[doc('generate values for a new service, OIDC client or user, or add a YubiKey')]
-new what *args:
-    @just _new-{{ what }} {{ args }}
-
-_new-service name='service': (onpath 'tofu') (onpath 'openssl') (onpath 'git')
-    #!/usr/bin/env bash
-    set -euo pipefail
-
-    # the lowest free address in the static range: from .10 up to where the DHCP range starts
-    ipv4=$(tofu console -lock=false <<'EOF' | tr -d '"'
-    try([
-      for i in range(
-        10,
-        index(
-          [for j in range(pow(2, 32 - tonumber(split("/", var.ovn.subnet)[1]))) : cidrhost(var.ovn.subnet, j)],
-          split("-", var.ovn.dhcp_range)[0],
-        ),
-      ) : cidrhost(var.ovn.subnet, i)
-      if !contains(flatten([for m in values(var.addresses) : values(m)[*].ipv4]), cidrhost(var.ovn.subnet, i))
-    ][0], "")
-    EOF
-    )
-    if [ -z "$ipv4" ]; then
-      echo "no free address left in the static range" >&2
-      exit 1
-    fi
-
-    # a random locally administered MAC, rolled again if any file in the repo already has it
-    while
-      hwaddr="02:$(openssl rand -hex 5 | sed 's/../&:/g; s/:$//')"
-      git grep -qiF --untracked "$hwaddr"
-    do :; done
-
-    printf '%s = { hwaddr = "%s", ipv4 = "%s" }\n' {{ quote(name) }} "$hwaddr" "$ipv4"
-
-_new-key: (onpath 'age') (onpath 'age-plugin-yubikey') (onpath 'git')
-    #!/usr/bin/env bash
-    set -euo pipefail
-
-    # the plugged in YubiKeys' recipients that aren't listed yet
-    recipients=() labels=() listed=false
-    serial='' slot='' name='' pin='' touch=''
-    while IFS= read -r line; do
-      case $line in
-        '#'*'Serial: '*) serial=${line#*Serial: } serial=${serial%%,*} slot=${line##*Slot: } ;;
-        '#'*'Name: '*) name=${line#*Name: } ;;
-        '#'*'PIN policy: '*) pin=${line#*PIN policy: } pin=${pin%% *} ;;
-        '#'*'Touch policy: '*) touch=${line#*Touch policy: } touch=${touch%% *} ;;
-        age1yubikey1*)
-          if grep -qxF "$line" recipients.txt; then
-            listed=true
-          else
-            recipients+=("$line")
-            labels+=("YubiKey $serial slot $slot: $name (PIN ${pin,,}, touch ${touch,,})")
-          fi
-          ;;
-      esac
-    done < <(age-plugin-yubikey --list 2>/dev/null)
-
-    if [ ${#recipients[@]} -eq 0 ] && ! $listed; then
-      echo "no YubiKey with an age identity is plugged in, age-plugin-yubikey --generate sets one up" >&2
-      exit 1
-    fi
-    if ! $listed; then
-      echo "plug in a YubiKey from recipients.txt as well, re-encrypting needs one to decrypt" >&2
-      exit 1
-    fi
-
-    if [ ${#recipients[@]} -eq 0 ]; then
-      echo "every plugged in YubiKey is already in recipients.txt"
-      read -rp "re-encrypt every .age file to recipients.txt as it is? [y/N] " ok
-      [ "$ok" = "y" ] || exit 1
-    else
-      for i in "${!labels[@]}"; do printf '%2d) %s\n' $((i + 1)) "${labels[i]}"; done
-      read -rp "add which one to recipients.txt and re-encrypt every .age file? [1-${#recipients[@]}, enter cancels] " n
-      if ! [[ $n =~ ^[0-9]+$ ]] || ((n < 1 || n > ${#recipients[@]})); then exit 1; fi
-      echo "${recipients[n - 1]}" >>recipients.txt
-      echo "added ${labels[n - 1]}"
-    fi
-
-    mapfile -t files < <(git ls-files --cached --others --exclude-standard '*.age')
-    identities=$(age-plugin-yubikey --identity 2>/dev/null)
-
-    for f in "${files[@]}"; do
-      # from one age straight into the other, the plaintext never touches the disk
-      age --decrypt --identity - "$f" <<<"$identities" \
-        | age --encrypt --recipients-file recipients.txt --output "$f.tmp"
-      # keep the modification time, encrypt and decrypt compare it with the plaintext's
-      touch -r "$f" "$f.tmp"
-      mv "$f.tmp" "$f"
-      echo "re-encrypted $f"
-    done
-
-_new-user:
-    #!/usr/bin/env bash
-    set -euo pipefail
-
-    # an HCL string, with tfvars' template sequences escaped
-    str() {
-      local s=${1//\\/\\\\}
-      s=${s//\"/\\\"}
-      s=${s//\$\{/\$\$\{}
-      s=${s//%\{/%%\{}
-      printf '"%s"' "$s"
-    }
-
-    mapfile -t groups < <(sed -n '/app_groups = toset(\[/,/\])/s/^ *"\([^"]*\)",$/\1/p' users/groups.tf)
-    if [ ${#groups[@]} -eq 0 ]; then
-      echo "no groups found in users/groups.tf" >&2
-      exit 1
-    fi
-
-    domain=$(sed -n 's/^public_domain *= *"\(.*\)"$/\1/p' environment.auto.tfvars)
-    if [ -z "$domain" ]; then
-      echo "no public_domain found in environment.auto.tfvars" >&2
-      exit 1
-    fi
-
-    username='' email=''
-    until [ -n "$username" ]; do read -erp 'username: ' username; done
-    until [[ $email == ?*@?* ]]; do read -erp 'email: ' email; done
-    read -erp 'first name: ' first
-    read -erp 'last name: ' last
-    display="$first $last"
-    display=${display# }
-    read -erp 'display name: ' -i "${display% }" display
-
-    chosen=()
-    cur=0
-    draw() {
-      for i in "${!groups[@]}"; do
-        pointer=' ' mark=' '
-        if [ "$i" -eq "$cur" ]; then pointer='>'; fi
-        if [ -n "${chosen[i]:-}" ]; then mark=x; fi
-        printf '%s [%s] %s\e[K\n' "$pointer" "$mark" "${groups[i]}"
-      done >&2
-    }
-
-    echo 'groups (↑/↓ or j/k move, space toggles, enter confirms):' >&2
-    printf '\e[?25l' >&2
-    trap 'printf "\e[?25h" >&2' EXIT
-    draw
-    while IFS= read -rsn1 key; do
-      if [ "$key" = $'\e' ]; then
-        read -rsn2 -t 0.05 rest || true
-        key+=${rest:-}
-      fi
-      case $key in
-        $'\e[A' | $'\eOA' | k) cur=$(((cur + ${#groups[@]} - 1) % ${#groups[@]})) ;;
-        $'\e[B' | $'\eOB' | j) cur=$(((cur + 1) % ${#groups[@]})) ;;
-        ' ') if [ -n "${chosen[cur]:-}" ]; then unset 'chosen[cur]'; else chosen[cur]=1; fi ;;
-        '') break ;;
-      esac
-      printf '\e[%dA' ${#groups[@]} >&2
-      draw
-    done
-
-    key=$username
-    if [[ ! $username =~ ^[A-Za-z_][A-Za-z0-9_-]*$ ]]; then key=$(str "$username"); fi
-
-    echo >&2
-    printf '  %s = {\n' "$key"
-    printf '    email        = %s\n' "$(str "$email")"
-    printf '    display_name = %s\n' "$(str "$display")"
-    printf '    first_name   = %s\n' "$(str "$first")"
-    printf '    last_name    = %s\n' "$(str "$last")"
-    if [ ${#chosen[@]} -eq 0 ]; then
-      printf '    groups       = []\n'
-    else
-      printf '    groups = [\n'
-      for i in "${!chosen[@]}"; do printf '      "%s",\n' "${groups[i]}"; done
-      printf '    ]\n'
-    fi
-    printf '  }\n'
-
-    cat >&2 <<EOF
-
-    Add the new user in secrets.auto.tfvars, run \`just apply users\` and tell them to:
-
-    Go to https://auth.$domain, click "Reset password?" and enter $email.
-    Open the link in the email within 5 minutes and choose a password.
-    Then sign in with $username or $email.
-    EOF
-
-_new-oidc service='service': (onpath 'incus')
-    #!/usr/bin/env bash
-    set -euo pipefail
-
-    id=$(incus exec authelia -- authelia crypto rand --length 72 --charset rfc3986 | sed -n 's/^Random Value: //p')
-    generated=$(incus exec authelia -- authelia crypto hash generate pbkdf2 --variant sha512 --random --random.length 72 --random.charset rfc3986)
-    secret=$(sed -n 's/^Random Password: //p' <<<"$generated")
-    digest=$(sed -n 's/^Digest: //p' <<<"$generated")
-    if [ -z "$id" ] || [ -z "$secret" ] || [ -z "$digest" ]; then
-      echo "couldn't read the values from authelia's output" >&2
-      exit 1
-    fi
-
-    printf '    %s_client_id = "%s"\n' {{ quote(service) }} "$id"
-    printf '    %s_client_secret_hash = "%s"\n' {{ quote(service) }} "$digest"
-    printf '    oidc_client_id = "%s"\n' "$id"
-    printf '    oidc_client_secret = "%s"\n' "$secret"
+# values for new services, OIDC clients and users, and new YubiKeys
+mod new 'new.just'

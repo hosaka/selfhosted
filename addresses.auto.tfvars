@@ -1,4 +1,4 @@
-# Fixed addresses on the ovn network, with the MAC of each instance's NIC, per module. See docs/ovn-migration.md.
+# Fixed addresses on the ovn network, with the MAC of each instance's NIC, per module.
 addresses = {
   atuin = {
     atuin          = { hwaddr = "10:66:6a:fe:55:8a", ipv4 = "10.42.0.23" }

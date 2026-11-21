@@ -51,12 +51,12 @@ M920q PCs are clustered together using [IncusOS](https://linuxcontainers.org/inc
 
 Prepare images for nodes in the cluster:
 ```bash
-just images
+just bootstrap image
 ```
 
 Flash an image onto a USB drive:
 ```bash
-just flash incus-os-node-1.img /dev/sdX
+just bootstrap flash incus-os-node-1.img /dev/sdX
 ```
 
 Install the OS and repeat the same procedure for the remaining nodes in a cluster.
@@ -99,7 +99,7 @@ A [frp server](https://github.com/fatedier/frp) on a VPS is the entrypoint with 
 
 #### OVN
 
-Every instance sits on one [OVN](https://www.ovn.org/) network, `ovn` (`10.42.0.0/24`), with a single `eth0` and a fixed address. OVN's database runs in three containers on node-1~3 (the `ovn/` module), every IncusOS node runs the OVN agent, and the network's router reaches the LAN through `lan` from one of the tinies at `10.10.0.240`, failing over between them. OpenWrt routes `10.42.0.0/24` to that address, so the LAN and the nodes reach instances directly, and instances reach the internet through OpenWrt. See [docs/ovn-migration](docs/ovn-migration.md) for how it is put together and why.
+Every instance sits on one [OVN](https://www.ovn.org/) network, `ovn` (`10.42.0.0/24`), with a single `eth0` and a fixed address. OVN's database runs in three containers on node-1~3 (the `ovn/` module), every IncusOS node runs the OVN agent, and the network's router reaches the LAN through `lan` from one of the tinies at `10.10.0.240`, failing over between them. OpenWrt routes `10.42.0.0/24` to that address, so the LAN and the nodes reach instances directly, and instances reach the internet through OpenWrt.
 
 Addresses live in [addresses.auto.tfvars](addresses.auto.tfvars), a MAC and an IP per module and instance. `local.ovn_addresses` in `network.tf` turns each entry into the address and the NIC, modules take them as `addresses`:
 
@@ -152,7 +152,7 @@ To add a YubiKey to `recipients.txt`, or after removing one from it, re-encrypt 
 just new key
 ```
 
-The state and saved plans are encrypted too (as configured in [state.tf](state.tf)), with a passphrase stored in `state.key.age`. OpenTofu gets it from [state.key.sh](state.key.sh) on every command that reads the state, so those need a YubiKey plugged in as well. `just state-key` generated it once, losing it means losing the state.
+The state and saved plans are encrypted too (as configured in [state.tf](state.tf)), with a passphrase stored in `state.key.age`. OpenTofu gets it from [state.key.sh](state.key.sh) on every command that reads the state, so those need a YubiKey plugged in as well. `just bootstrap passphrase` generated it once, losing it means losing the state.
 
 The state lives in a versioned S3 bucket, so every clone works from the latest one and earlier versions stay recoverable. The bucket, its endpoint and the credentials are in `state.s3.tfbackend`, encrypted like the secrets, and `just init` passes it to `tofu init`.
 
