@@ -11,6 +11,7 @@ import 'common.just'
 service name='service': (onpath 'tofu') (onpath 'openssl') (onpath 'git')
     #!/usr/bin/env bash
     set -euo pipefail
+    {{ logger }}
 
     # the lowest free address in the static range: from .10 up to where the DHCP range starts
     ipv4=$(tofu console -lock=false <<'EOF' | tr -d '"'
@@ -27,8 +28,7 @@ service name='service': (onpath 'tofu') (onpath 'openssl') (onpath 'git')
     EOF
     )
     if [ -z "$ipv4" ]; then
-      echo "no free address left in the static range" >&2
-      exit 1
+      error "no free address left in the static range"
     fi
 
     # a random locally administered MAC, rolled again if any file in the repo already has it
@@ -44,14 +44,14 @@ service name='service': (onpath 'tofu') (onpath 'openssl') (onpath 'git')
 oidc service='service': (onpath 'incus')
     #!/usr/bin/env bash
     set -euo pipefail
+    {{ logger }}
 
     id=$(incus exec authelia -- authelia crypto rand --length 72 --charset rfc3986 | sed -n 's/^Random Value: //p')
     generated=$(incus exec authelia -- authelia crypto hash generate pbkdf2 --variant sha512 --random --random.length 72 --random.charset rfc3986)
     secret=$(sed -n 's/^Random Password: //p' <<<"$generated")
     digest=$(sed -n 's/^Digest: //p' <<<"$generated")
     if [ -z "$id" ] || [ -z "$secret" ] || [ -z "$digest" ]; then
-      echo "couldn't read the values from authelia's output" >&2
-      exit 1
+      error "couldn't read the values from authelia's output"
     fi
 
     printf '    %s_client_id = "%s"\n' {{ quote(service) }} "$id"
@@ -63,6 +63,7 @@ oidc service='service': (onpath 'incus')
 user:
     #!/usr/bin/env bash
     set -euo pipefail
+    {{ logger }}
 
     # an HCL string, with tfvars' template sequences escaped
     str() {
@@ -75,14 +76,12 @@ user:
 
     mapfile -t groups < <(sed -n '/app_groups = toset(\[/,/\])/s/^ *"\([^"]*\)",$/\1/p' users/groups.tf)
     if [ ${#groups[@]} -eq 0 ]; then
-      echo "no groups found in users/groups.tf" >&2
-      exit 1
+      error "no groups found in users/groups.tf"
     fi
 
     domain=$(sed -n 's/^public_domain *= *"\(.*\)"$/\1/p' environment.auto.tfvars)
     if [ -z "$domain" ]; then
-      echo "no public_domain found in environment.auto.tfvars" >&2
-      exit 1
+      error "no public_domain found in environment.auto.tfvars"
     fi
 
     username='' email=''
@@ -105,7 +104,7 @@ user:
       done >&2
     }
 
-    echo 'groups (↑/↓ or j/k move, space toggles, enter confirms):' >&2
+    info 'groups (↑/↓ or j/k move, space toggles, enter confirms):'
     printf '\e[?25l' >&2
     trap 'printf "\e[?25h" >&2' EXIT
     draw
@@ -155,6 +154,7 @@ user:
 key: (onpath 'age') (onpath 'age-plugin-yubikey') (onpath 'git')
     #!/usr/bin/env bash
     set -euo pipefail
+    {{ logger }}
 
     # the plugged in YubiKeys' recipients that aren't listed yet
     recipients=() labels=() listed=false
@@ -177,24 +177,21 @@ key: (onpath 'age') (onpath 'age-plugin-yubikey') (onpath 'git')
     done < <(age-plugin-yubikey --list 2>/dev/null)
 
     if [ ${#recipients[@]} -eq 0 ] && ! $listed; then
-      echo "no YubiKey with an age identity is plugged in, age-plugin-yubikey --generate sets one up" >&2
-      exit 1
+      error "no YubiKey with an age identity is plugged in, age-plugin-yubikey --generate sets one up"
     fi
     if ! $listed; then
-      echo "plug in a YubiKey from recipients.txt as well, re-encrypting needs one to decrypt" >&2
-      exit 1
+      error "plug in a YubiKey from recipients.txt as well, re-encrypting needs one to decrypt"
     fi
 
     if [ ${#recipients[@]} -eq 0 ]; then
-      echo "every plugged in YubiKey is already in recipients.txt"
-      read -rp "re-encrypt every .age file to recipients.txt as it is? [y/N] " ok
-      [ "$ok" = "y" ] || exit 1
+      info "every plugged in YubiKey is already in recipients.txt"
+      yono "re-encrypt every .age file to recipients.txt as it is?" || exit 1
     else
       for i in "${!labels[@]}"; do printf '%2d) %s\n' $((i + 1)) "${labels[i]}"; done
       read -rp "add which one to recipients.txt and re-encrypt every .age file? [1-${#recipients[@]}, enter cancels] " n
       if ! [[ $n =~ ^[0-9]+$ ]] || ((n < 1 || n > ${#recipients[@]})); then exit 1; fi
       echo "${recipients[n - 1]}" >>recipients.txt
-      echo "added ${labels[n - 1]}"
+      success "added ${labels[n - 1]}"
     fi
 
     mapfile -t files < <(git ls-files --cached --others --exclude-standard '*.age')
@@ -207,5 +204,5 @@ key: (onpath 'age') (onpath 'age-plugin-yubikey') (onpath 'git')
       # keep the modification time, encrypt and decrypt compare it with the plaintext's
       touch -r "$f" "$f.tmp"
       mv "$f.tmp" "$f"
-      echo "re-encrypted $f"
+      info "re-encrypted $f"
     done

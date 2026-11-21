@@ -76,6 +76,7 @@ restart instance: (onpath 'incus')
 prune: (onpath 'incus') (onpath 'jq')
     #!/usr/bin/env bash
     set -euo pipefail
+    {{ logger }}
 
     # Incus would expire them after 10 days, this frees the space now
     # projects without their own images use the default project's
@@ -103,18 +104,17 @@ prune: (onpath 'incus') (onpath 'jq')
     done | sort -t $'\t' -k5,5)
 
     if [ ${#prune[@]} -eq 0 ]; then
-      echo "no unused images"
+      success "no unused images"
       exit 0
     fi
 
-    read -rp "delete these ${#prune[@]} images ($((total / 1048576)) MiB)? [y/N] " ok
-    [ "$ok" = "y" ] || exit 1
+    yono "delete these ${#prune[@]} images ($((total / 1048576)) MiB)?" || exit 1
 
     for entry in "${prune[@]}"; do
       read -r project fingerprint <<<"$entry"
       incus image delete --project "$project" "$fingerprint"
     done
-    echo "deleted ${#prune[@]} images"
+    success "deleted ${#prune[@]} images"
 
 # restores from the backups
 mod backup 'backups/backup.just'
@@ -125,6 +125,7 @@ mod backup 'backups/backup.just'
 encrypt *files: (onpath 'age') (onpath 'git')
     #!/usr/bin/env bash
     set -euo pipefail
+    {{ logger }}
 
     if [ $# -gt 0 ]; then
       files=("${@%.age}")
@@ -138,16 +139,15 @@ encrypt *files: (onpath 'age') (onpath 'git')
         # not decrypted in this clone, or state.key which never is
         if [ ! -e "$f" ]; then continue; fi
         # a newer version came in with git that isn't decrypted yet, encrypting would undo it
-        if [ "$f.age" -nt "$f" ]; then echo "skipped $f: $f.age is newer, decrypt it first" >&2; continue; fi
+        if [ "$f.age" -nt "$f" ]; then warning "skipped $f: $f.age is newer, decrypt it first"; continue; fi
         if [ ! "$f" -nt "$f.age" ]; then continue; fi
       fi
       if ! git check-ignore -q "$f"; then
-        echo "$f is not ignored by git, add it to .gitignore before encrypting it" >&2
-        exit 1
+        error "$f is not ignored by git, add it to .gitignore before encrypting it"
       fi
       age --encrypt --recipients-file recipients.txt --output "$f.age" "$f"
       touch -r "$f" "$f.age"
-      echo "encrypted $f"
+      info "encrypted $f"
     done
 
 [arg('files', help='Plaintext files or their .age copies, by default every .age file newer than its plaintext')]
@@ -157,6 +157,7 @@ decrypt *files: (onpath 'age') (onpath 'age-plugin-yubikey') (onpath 'git')
     #!/usr/bin/env bash
     set -euo pipefail
     umask 077
+    {{ logger }}
 
     if [ $# -gt 0 ]; then
       files=("${@%.age}")
@@ -165,18 +166,18 @@ decrypt *files: (onpath 'age') (onpath 'age-plugin-yubikey') (onpath 'git')
     fi
 
     identities=$(age-plugin-yubikey --identity 2>/dev/null)
-    if [[ $identities != *AGE-PLUGIN-YUBIKEY-* ]]; then echo "no YubiKey with an age identity is plugged in" >&2; exit 1; fi
+    if [[ $identities != *AGE-PLUGIN-YUBIKEY-* ]]; then error "no YubiKey with an age identity is plugged in"; fi
 
     for f in "${files[@]}"; do
       # only state.key.sh decrypts it, and never to disk
       if [ "$f" = state.key ]; then continue; fi
       if [ $# -eq 0 ] && [ -e "$f" ]; then
-        if [ "$f" -nt "$f.age" ]; then echo "skipped $f: it has changes, encrypt it first" >&2; continue; fi
+        if [ "$f" -nt "$f.age" ]; then warning "skipped $f: it has changes, encrypt it first"; continue; fi
         if [ ! "$f.age" -nt "$f" ]; then continue; fi
       fi
       age --decrypt --identity - --output "$f" "$f.age" <<<"$identities"
       touch -r "$f.age" "$f"
-      echo "decrypted $f"
+      info "decrypted $f"
     done
 
 # values for new services, OIDC clients and users, and new YubiKeys

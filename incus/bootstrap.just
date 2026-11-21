@@ -12,16 +12,16 @@ set working-directory := '..'
 passphrase: (onpath 'age') (onpath 'openssl')
     #!/usr/bin/env bash
     set -euo pipefail
+    {{ logger }}
 
     # a new passphrase can't decrypt the existing state
     if [ -e state.key.age ]; then
-      echo "state.key.age already exists, replacing it would make the state unreadable" >&2
-      exit 1
+      error "state.key.age already exists, replacing it would make the state unreadable"
     fi
 
     # piped straight into age, the passphrase is never shown or written to disk
     openssl rand -base64 48 | tr -d '\n' | age --encrypt --recipients-file recipients.txt --output state.key.age
-    echo "created state.key.age"
+    success "created state.key.age"
 
 [arg('node', help='Node to build the image for, a directory in incus/ with its seed files, every incus/node-* when empty')]
 [arg('format', long='format', pattern='iso|img', help='Image format')]
@@ -29,6 +29,7 @@ passphrase: (onpath 'age') (onpath 'openssl')
 image node='' format='img': _flasher-tool (onpath 'tar')
     #!/usr/bin/env bash
     set -euo pipefail
+    {{ logger }}
 
     nodes={{ quote(node) }}
     if [ -z "$nodes" ]; then
@@ -37,8 +38,7 @@ image node='' format='img': _flasher-tool (onpath 'tar')
 
     for node in $nodes; do
       if [ ! -d "incus/$node" ]; then
-        echo "incus/$node/ doesn't exist, nodes are: $(cd incus && echo node-*)" >&2
-        exit 1
+        error "incus/$node/ doesn't exist, nodes are: $(cd incus && echo node-*)"
       fi
 
       apps=incus
@@ -64,6 +64,7 @@ flash image target:
 cluster: (onpath 'incus') (onpath 'tofu')
     #!/usr/bin/env bash
     set -euo pipefail
+    {{ logger }}
 
     # the cluster name, the founding nodes' names and addresses from var.cluster
     read -r name node1 ip1 node2 ip2 node3 ip3 < <(tofu console -lock=false <<'EOF' | tr -d '"'
@@ -71,8 +72,7 @@ cluster: (onpath 'incus') (onpath 'tofu')
     EOF
     ) || true
     if [ -z "${ip3:-}" ]; then
-      echo "couldn't read var.cluster, decrypt and init first" >&2
-      exit 1
+      error "couldn't read var.cluster, decrypt and init first"
     fi
     set -x
 
@@ -102,6 +102,7 @@ server *args: (onpath 'tofu')
 linstor: (onpath 'incus') (onpath 'tofu') (onpath 'yq')
     #!/usr/bin/env bash
     set -euo pipefail
+    {{ logger }}
 
     NODES=(node-1 node-2 node-3)
 
@@ -111,7 +112,7 @@ linstor: (onpath 'incus') (onpath 'tofu') (onpath 'yq')
       show=$(incus admin os system storage show --target "$node")
 
       if echo "$show" | yq -e '.state.pools[] | select(.name == "nvme")' >/dev/null 2>&1; then
-        echo "$node: nvme pool already exists, skipping"
+        info "$node: nvme pool already exists, skipping"
         continue
       fi
 
@@ -123,14 +124,13 @@ linstor: (onpath 'incus') (onpath 'tofu') (onpath 'yq')
 
       case ${#free[@]} in
         0)
-          echo "$node: no unallocated drives" >&2
-          exit 1
+          error "$node: no unallocated drives"
           ;;
         1)
           disks[$node]="${free[0]}"
           ;;
         *)
-          echo "$node:"
+          header "$node:"
           printf '%s\n' "${free[@]}" | nl -w2 -s') '
           while :; do
             read -rp "select drive for $node [1-${#free[@]}]: " n
@@ -145,10 +145,9 @@ linstor: (onpath 'incus') (onpath 'tofu') (onpath 'yq')
 
     if [ -n "${disks[*]:-}" ]; then
       for node in "${NODES[@]}"; do
-        if [ -n "${disks[$node]:-}" ]; then echo "$node: ${disks[$node]}"; fi
+        if [ -n "${disks[$node]:-}" ]; then header "$node: ${disks[$node]}"; fi
       done
-      read -rp "wipe these drives and use them for linstor pool (double check the drive ids)? [y/N] " ok
-      [ "$ok" = "y" ] || exit 1
+      yono "wipe these drives and use them for linstor pool (double check the drive ids)?" || exit 1
 
       for node in "${NODES[@]}"; do
         [ -n "${disks[$node]:-}" ] || continue

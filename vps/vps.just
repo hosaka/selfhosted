@@ -6,6 +6,7 @@ import '../common.just'
 status: (onpath 'uv') (onpath 'ssh')
     #!/usr/bin/env bash
     set -euo pipefail
+    {{ logger }}
 
     # where it is from the pyinfra inventory, the frp version it should run from versions.auto.tfvars
     read -r host port user pinned < <(uv run --quiet python -c '
@@ -13,7 +14,7 @@ status: (onpath 'uv') (onpath 'ssh')
     from tfvars import tfvars
     host, data = vps[0]
     print(host, data["ssh_port"], data["ssh_user"], tfvars("versions")["versions"]["ingress"]["frpc"])')
-    echo "address   $host $(getent ahosts "$host" | awk '{ print $1 }' | sort -u | paste -sd ' ')"
+    info "address   $host $(getent ahosts "$host" | awk '{ print $1 }' | sort -u | paste -sd ' ')"
 
     # one connection, ufw rate limits the SSH port
     services='frps frpc-dashboard microsocks cluster-watchdog.timer postfix fail2ban'
@@ -22,23 +23,24 @@ status: (onpath 'uv') (onpath 'ssh')
       /usr/local/bin/frpc --version
       systemctl is-active $services | paste -sd ' '
       cat /run/reboot-required.pkgs 2>/dev/null | sort -u | paste -sd ' '"); then
-      echo "ssh       no answer on port $port"
-      exit 1
+      error "ssh       no answer on port $port"
     fi
     mapfile -t r <<<"$remote"
 
-    echo "ssh       online, ${r[0]}"
-    frp="frps ${r[1]}, frpc ${r[2]}"
-    if [ "${r[1]}" != "$pinned" ] || [ "${r[2]}" != "$pinned" ]; then frp+=", the repo pins $pinned: just vps deploy"; fi
-    echo "frp       $frp"
+    info "ssh       online, ${r[0]}"
+    if [ "${r[1]}" = "$pinned" ] && [ "${r[2]}" = "$pinned" ]; then
+      info "frp       frps ${r[1]}, frpc ${r[2]}"
+    else
+      warning "frp       frps ${r[1]}, frpc ${r[2]}, the repo pins $pinned: just vps deploy"
+    fi
     read -ra names <<<"$services"
     read -ra states <<<"${r[3]}"
     down=''
     for i in "${!names[@]}"; do
       if [ "${states[i]:-}" != active ]; then down+=" ${names[i]} (${states[i]:-unknown})"; fi
     done
-    echo "services  ${down:+not active:}${down:-$services active}"
-    echo "reboot    ${r[4]:+needed for }${r[4]:-not needed}"
+    if [ -z "$down" ]; then info "services  $services active"; else warning "services  not active:$down"; fi
+    if [ -z "${r[4]}" ]; then info "reboot    not needed"; else warning "reboot    needed for ${r[4]}"; fi
 
 [doc('list recipes')]
 @help:
