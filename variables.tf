@@ -17,13 +17,23 @@ variable "secrets" {
 
 # LLDAP users by username, see users/variables.tf. Set in secrets.auto.tfvars next to `secrets`.
 variable "users" {
-  type    = any
+  type = map(object({
+    email        = string
+    display_name = optional(string, "")
+    first_name   = optional(string, "")
+    last_name    = optional(string, "")
+    groups       = optional(set(string), [])
+  }))
   default = {}
 }
 
 # Public DNS records pointing at external services, see dns/variables.tf. Set in secrets.auto.tfvars next to `secrets`.
 variable "dns" {
-  type = any
+  type = object({
+    mx    = list(string)
+    txt   = map(list(string))
+    cname = map(string)
+  })
 }
 
 variable "cluster" {
