@@ -21,7 +21,7 @@ mod bootstrap 'incus/bootstrap.just'
 
 [arg('args', help='Passed to tofu init')]
 [doc('initialize tofu with the S3 state backend, `just decrypt` first')]
-init *args: (onpath 'tofu')
+init *args: (onpath 'tofu') (onpath 'prek') (onpath 'git')
     prek install
     git config remote.origin.prune true
     tofu init -backend-config=state.s3.tfbackend {{ args }}

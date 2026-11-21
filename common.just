@@ -7,7 +7,8 @@ tag := if module_file() == justfile() { file_name(justfile_directory()) } else {
 # stderr so output piped elsewhere remains unformatted
 logger := 'tag=' + quote(tag) + "\n" + '''
 if [ -t 2 ]; then
-  bold=$(tput bold) red=$(tput setaf 1) green=$(tput setaf 2) yellow=$(tput setaf 3) blue=$(tput setaf 4) magenta=$(tput setaf 5) reset=$(tput sgr0)
+  bold=$(tput bold 2>/dev/null || :) red=$(tput setaf 1 2>/dev/null || :) green=$(tput setaf 2 2>/dev/null || :)
+  yellow=$(tput setaf 3 2>/dev/null || :) blue=$(tput setaf 4 2>/dev/null || :) magenta=$(tput setaf 5 2>/dev/null || :) reset=$(tput sgr0 2>/dev/null || :)
 else
   bold='' red='' green='' yellow='' blue='' magenta='' reset=''
 fi
@@ -24,6 +25,15 @@ yono() {
   case ${answer:-$default} in [Yy] | [Yy][Ee][Ss]) return 0 ;; *) return 1 ;; esac
 }
 ''' + ':'
+
+# privilege escalation prefix, nothing when already root
+sudo := ```
+  if [ "$(id -u)" -eq 0 ]; then :
+  elif command -v sudo >/dev/null 2>&1; then echo sudo
+  elif command -v doas >/dev/null 2>&1 && [ -f /etc/doas.conf ]; then echo doas
+  else echo "su root -c '\"\$0\" \"\$@\"'"
+  fi
+```
 
 [private]
 @onpath tool:

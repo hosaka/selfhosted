@@ -26,7 +26,7 @@ passphrase: (onpath 'age') (onpath 'openssl')
 [arg('node', help='Node to build the image for, a directory in incus/ with its seed files, every incus/node-* when empty')]
 [arg('format', long='format', pattern='iso|img', help='Image format')]
 [doc('build the IncusOS image a node installs from, every node by default')]
-image node='' format='img': _flasher-tool (onpath 'tar')
+image node='' format='img': _flasher-tool (onpath 'flasher-tool') (onpath 'tar')
     #!/usr/bin/env bash
     set -euo pipefail
     {{ logger }}
@@ -58,7 +58,7 @@ image node='' format='img': _flasher-tool (onpath 'tar')
 [arg('image', pattern='.*\.img|.*\.iso', help='Path to IncusOS image')]
 [doc('flash an IncusOS image to a USB drive')]
 flash image target:
-    doas dd bs=4M if={{ image }} of={{ target }} status=progress oflag=sync
+    {{ sudo }} dd bs=4M if={{ image }} of={{ target }} status=progress oflag=sync
 
 [doc('form the cluster from var.cluster once the nodes run IncusOS')]
 cluster: (onpath 'incus') (onpath 'tofu')

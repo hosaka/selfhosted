@@ -12,7 +12,7 @@ images := 'https://images.linuxcontainers.org/os'
 linbit := 'https://packages.linbit.com/public/dists/proxmox-9/drbd-9/binary-amd64/Packages.gz'
 
 [doc('IncusOS and LINSTOR versions and replica health (default)')]
-status: _members && _controller _release
+status: (onpath 'incus') (onpath 'jq') (onpath 'curl') (onpath 'column') _members && _controller _release
     -@{{ just }} os::synced
     -@{{ just }} os::drift
 
@@ -21,12 +21,12 @@ status: _members && _controller _release
     just --justfile {{ quote(justfile()) }} --list os --unsorted --no-aliases
 
 [doc('download the newest IncusOS and LINSTOR to every member')]
-stage:
+stage: (onpath 'incus') (onpath 'jq')
     for m in $(incus cluster list -f csv -c n); do {{ just }} os::_stage "$m"; done
     {{ just }} os::status
 
 [doc('reboot every member into what is staged, one at a time')]
-update:
+update: (onpath 'incus') (onpath 'jq') (onpath 'tofu')
     #!/usr/bin/env bash
     set -euo pipefail
     {{ logger }}
@@ -67,7 +67,7 @@ update:
 [arg('member', help='Cluster member, e.g. node-2')]
 [confirm('Reboot it?')]
 [doc('reboot one member and wait until it is back in sync')]
-reboot member: (_wait 'LINSTOR to be in sync' 'synced') _undrift (_linstor-matches member)
+reboot member: (onpath 'incus') (onpath 'jq') (_wait 'LINSTOR to be in sync' 'synced') _undrift (_linstor-matches member)
     #!/usr/bin/env bash
     set -euo pipefail
     {{ logger }}
@@ -85,7 +85,7 @@ reboot member: (_wait 'LINSTOR to be in sync' 'synced') _undrift (_linstor-match
 [arg('version', help='LINSTOR version, e.g. 1.35.4')]
 [confirm('Upgrade the LINSTOR controller? The satellites show VERSION_MISMATCH until their member reboots.')]
 [doc('snapshot and upgrade the LINSTOR controller')]
-upgrade-controller version: (_wait 'LINSTOR to be in sync' 'synced') && (_wait 'the controller to run LINSTOR ' + version '_controller-is' version)
+upgrade-controller version: (onpath 'incus') (_wait 'LINSTOR to be in sync' 'synced') && (_wait 'the controller to run LINSTOR ' + version '_controller-is' version)
     #!/usr/bin/env bash
     set -euo pipefail
     {{ logger }}
@@ -105,7 +105,7 @@ upgrade-controller version: (_wait 'LINSTOR to be in sync' 'synced') && (_wait '
 
 [doc('check that every LINSTOR replica is in sync')]
 [no-exit-message]
-synced:
+synced: (onpath 'incus') (onpath 'jq')
     #!/usr/bin/env bash
     set -euo pipefail
     {{ logger }}
@@ -137,7 +137,7 @@ synced:
 # whenever a replica re-attaches, which an instance holding it open on another member refuses: StandAlone
 [doc('check that no DRBD device grew past the exact size of its volume')]
 [no-exit-message]
-drift:
+drift: (onpath 'incus') (onpath 'jq')
     #!/usr/bin/env bash
     set -euo pipefail
     {{ logger }}
