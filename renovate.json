@@ -22,6 +22,13 @@
         "/^[^/]+\\.[^/]+\\//"
       ],
       "minimumReleaseAge": null
+    },
+    {
+      "description": "Some release are published as release candidates, skip them",
+      "matchPackageNames": [
+        "*"
+      ],
+      "allowedVersions": "!/-rc/"
     }
   ],
   "customManagers": [
