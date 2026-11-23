@@ -110,7 +110,7 @@ versions = {
     sabnzbd = "5.1.3"
   }
   searxng = {
-    searxng = "2026.11.17-b99cf7496"
+    searxng = "2026.11.23-a7163d091"
     cache   = "8-alpine"
   }
   servarr = {
