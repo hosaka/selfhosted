@@ -26,5 +26,5 @@ repo = "local"
 id = "jactionlint"
 name = "check ci actions"
 language = "system"
-entry = "jactionlint"
+entry = "jactionlint -c .forgejo/jactionlint.yaml"
 files = '^\.forgejo/workflows/.+\.ya?ml$'

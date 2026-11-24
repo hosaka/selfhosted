@@ -1,0 +1,7 @@
+platform: forgejo
+self-hosted-runner:
+  labels:
+    - linux-amd64
+rules:
+  # Forgejo has no permissions key
+  missing-permissions: off
