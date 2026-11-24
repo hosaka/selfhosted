@@ -22,8 +22,7 @@ versions = {
     cache = "8-alpine"
   }
   forgejo = {
-    # renovate: datasource=github-releases depName=TecharoHQ/anubis
-    anubis = "1.28.2"
+    go_away = "latest@sha256:68e27b10e95b0de30fc653150d141407101079511cea67a73e95be80dd19f913"
     # renovate: datasource=forgejo-releases depName=forgejo/forgejo registryUrl=https://codeberg.org
     forgejo = "17.0.2"
     db      = "18-alpine"

@@ -53,7 +53,7 @@ variable "public_domain" {
 
 variable "versions" {
   type = object({
-    anubis  = string
+    go_away = string
     forgejo = string
     db      = string
   })

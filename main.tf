@@ -19,7 +19,7 @@ locals {
     if contains([var.cluster.node-1.target, var.cluster.node-2.target, var.cluster.node-3.target], k)
   }
 
-  # where proxied requests come from, Caddy and Anubis are on the OVN network
+  # where proxied requests come from, Caddy is on the OVN network
   trusted_proxies = [var.ovn.subnet]
 }
 

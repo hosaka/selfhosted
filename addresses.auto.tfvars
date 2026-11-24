@@ -17,7 +17,7 @@ addresses = {
   }
   forgejo = {
     forgejo          = { hwaddr = "10:66:6a:3b:e5:1e", ipv4 = "10.42.0.25" }
-    forgejo_anubis   = { hwaddr = "10:66:6a:1b:e3:3d", ipv4 = "10.42.0.26" }
+    forgejo_goaway   = { hwaddr = "10:66:6a:1b:e3:3d", ipv4 = "10.42.0.26" }
     forgejo_database = { hwaddr = "10:66:6a:35:22:69", ipv4 = "10.42.0.27" }
   }
   frigate = {

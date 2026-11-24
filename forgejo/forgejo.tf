@@ -5,30 +5,31 @@ locals {
     db    = 5432
   }
 
-  forgejo_anubis_ports = {
-    proxy = 8923
+  forgejo_goaway_ports = {
+    proxy = 8080
   }
 
+  forgejo_url = "http://${var.addresses.forgejo.ipv4}:${local.forgejo_ports.webui}"
   signing_key = "/var/lib/gitea/signing/id_ed25519"
 }
 
-resource "incus_instance" "forgejo_anubis" {
-  name = "forgejo-anubis"
+resource "incus_instance" "forgejo_goaway" {
+  name = "forgejo-goaway"
   type = "container"
 
   target   = var.target
   profiles = ["default", "oci"]
-  image    = "ghcr:techarohq/anubis:v${var.versions.anubis}"
+  image    = "ghcr:weebdatahoarder/go-away:${var.versions.go_away}"
 
   device {
     name       = "eth0"
     type       = "nic"
-    properties = var.addresses.forgejo_anubis.nic
+    properties = var.addresses.forgejo_goaway.nic
   }
 
   file {
-    content            = file("${path.module}/anubis.yml")
-    target_path        = "/data/botPolicies.yaml"
+    content            = templatefile("${path.module}/go-away.yml.tftpl", { forgejo_url = local.forgejo_url })
+    target_path        = "/policy.yml"
     mode               = "0600"
     create_directories = true
   }
@@ -38,12 +39,25 @@ resource "incus_instance" "forgejo_anubis" {
   }
 
   config = {
-    "environment.TARGET"           = "http://${var.addresses.forgejo.ipv4}:${local.forgejo_ports.webui}"
-    "environment.SERVE_ROBOTS_TXT" = "true"
-    "environment.DIFFICULTY"       = "6"
+    "oci.entrypoint" = "/bin/sh -c 'while [ ! -f /policy.yml ]; do sleep 1; done; exec /docker-entrypoint.sh'"
+
+    "environment.GOAWAY_BACKEND"            = "code.${var.public_domain}=${local.forgejo_url}"
+    "environment.GOAWAY_CHALLENGE_TEMPLATE" = "forgejo"
+    "environment.GOAWAY_CLIENT_IP_HEADER"   = "X-Real-Ip"
   }
 
   depends_on = [incus_instance.forgejo]
+}
+
+resource "null_resource" "forgejo_goaway_restart" {
+  triggers = {
+    config = sha1(jsonencode(incus_instance.forgejo_goaway.config))
+    files  = sha1(jsonencode([for f in incus_instance.forgejo_goaway.file : [f.target_path, f.content]]))
+  }
+
+  provisioner "local-exec" {
+    command = "incus restart ${incus_instance.forgejo_goaway.name}"
+  }
 }
 
 resource "incus_storage_volume" "forgejo_data" {
@@ -260,8 +274,8 @@ output "backups" {
 }
 
 output "forgejo_address" {
-  description = "Forgejo's address inside the cluster, without Anubis in front"
-  value       = "http://${var.addresses.forgejo.ipv4}:${local.forgejo_ports.webui}"
+  description = "Forgejo's address inside the cluster"
+  value       = local.forgejo_url
 }
 
 output "ingress" {
@@ -283,9 +297,8 @@ output "ingress" {
     EOT
     caddy      = <<-EOT
 			code.${var.public_domain} {
-				reverse_proxy ${var.addresses.forgejo_anubis.ipv4}:${local.forgejo_anubis_ports.proxy} {
+				reverse_proxy ${var.addresses.forgejo_goaway.ipv4}:${local.forgejo_goaway_ports.proxy} {
 					header_up X-Real-IP {remote_host}
-					header_up X-Http-Version {http.request.proto}
 				}
 			}
     EOT
