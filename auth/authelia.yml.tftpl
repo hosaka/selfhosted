@@ -97,6 +97,8 @@ identity_providers:
             attribute: immich_role
       romm:
         id_token: ["email", "email_verified", "groups", "preferred_username"]
+      wakapi:
+        id_token: ["email", "preferred_username"]
       vaultwarden:
         id_token: ["vaultwarden_role"]
         custom_claims:
@@ -334,6 +336,7 @@ identity_providers:
       - client_name: wakapi
         client_id: "${wakapi_client_id}"
         client_secret: "${wakapi_client_secret_hash}"
+        claims_policy: wakapi
         public: false
         authorization_policy: wakapi
         consent_mode: implicit
