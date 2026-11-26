@@ -15,6 +15,7 @@ locals {
     "opencloud_admin",
     "opencloud_family",
     "opencloud_user",
+    "paperless_admin",
     "paperless_user",
     "romm_admin",
     "romm_user",

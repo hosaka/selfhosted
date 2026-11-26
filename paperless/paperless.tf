@@ -73,10 +73,11 @@ resource "incus_instance" "paperless" {
     # automatically signup SSO users using retrieved email/username
     "environment.PAPERLESS_SOCIAL_AUTO_SIGNUP" = "False"
     # allow SSO users to signup for a new paperless account with a confirmation form
-    "environment.PAPERLESS_SOCIALACCOUNT_ALLOW_SIGNUPS" = "True"
+    "environment.PAPERLESS_SOCIALACCOUNT_ALLOW_SIGNUPS"         = "True"
+    "environment.PAPERLESS_SOCIAL_ACCOUNT_SYNC_SUPERUSER_GROUP" = "paperless_admin"
     "environment.PAPERLESS_SOCIALACCOUNT_PROVIDERS" = jsonencode({
       openid_connect = {
-        SCOPE              = ["openid", "profile", "email"]
+        SCOPE              = ["openid", "profile", "email", "groups"]
         OAUTH_PKCE_ENABLED = true
         APPS = [{
           provider_id = "authelia"
@@ -106,6 +107,16 @@ resource "incus_instance" "paperless" {
   }
 
   depends_on = [incus_instance.paperless_database, incus_instance.paperless_valkey]
+}
+
+resource "null_resource" "paperless_restart" {
+  triggers = {
+    config = nonsensitive(sha1(jsonencode(incus_instance.paperless.config)))
+  }
+
+  provisioner "local-exec" {
+    command = "incus restart ${incus_instance.paperless.name}"
+  }
 }
 
 resource "incus_storage_volume" "paperless_db" {

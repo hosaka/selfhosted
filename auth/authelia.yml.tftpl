@@ -142,6 +142,7 @@ identity_providers:
         rules:
           - policy: two_factor
             subject:
+              - group:paperless_admin
               - group:paperless_user
       romm:
         default_policy: deny
