@@ -8,6 +8,7 @@ locals {
     "grafana_admin",
     "grafana_user",
     "immich_admin",
+    "immich_user",
     "jellyfin_admin",
     "jellyfin_user",
     "kavita_user",

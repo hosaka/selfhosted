@@ -117,6 +117,13 @@ identity_providers:
           - opencloud_groups
 
     authorization_policies:
+      immich:
+        default_policy: deny
+        rules:
+          - policy: one_factor
+            subject:
+              - group:immich_admin
+              - group:immich_user
       kavita:
         default_policy: deny
         rules:
@@ -149,6 +156,13 @@ identity_providers:
           - policy: two_factor
             subject:
               - group:silverbullet_user
+      vaultwarden:
+        default_policy: deny
+        rules:
+          - policy: one_factor
+            subject:
+              - group:vaultwarden_admin
+              - group:vaultwarden_user
       wakapi:
         default_policy: deny
         rules:
@@ -271,7 +285,7 @@ identity_providers:
         client_secret: "${immich_client_secret_hash}"
         claims_policy: immich
         public: false
-        authorization_policy: one_factor
+        authorization_policy: immich
         consent_mode: implicit
         require_pkce: true
         pkce_challenge_method: S256
@@ -411,7 +425,7 @@ identity_providers:
         client_secret: "${vaultwarden_client_secret_hash}"
         claims_policy: vaultwarden
         public: false
-        authorization_policy: one_factor
+        authorization_policy: vaultwarden
         consent_mode: implicit
         require_pkce: true
         pkce_challenge_method: S256
