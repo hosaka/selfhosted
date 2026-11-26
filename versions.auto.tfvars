@@ -128,7 +128,7 @@ versions = {
   }
   silverbullet = {
     # renovate: datasource=github-releases depName=silverbulletmd/silverbullet
-    silverbullet = "2.12.1"
+    silverbullet = "3.0.1"
   }
   slskd = {
     # renovate: datasource=github-releases depName=slskd/slskd
