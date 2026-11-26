@@ -67,6 +67,11 @@ identity_validation:
   reset_password:
     jwt_secret: "${jwt_secret}"
 
+password_policy:
+  zxcvbn:
+    enabled: true
+    min_score: 3
+
 definitions:
   user_attributes:
     immich_role:
