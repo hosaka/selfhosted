@@ -82,8 +82,9 @@ resource "incus_instance" "silverbullet" {
   }
 
   config = {
-    "oci.entrypoint"       = "/bin/sh -c 'while [ ! -f /data/spaces.json ]; do sleep 1; done; exec /sbin/tini -- /docker-entrypoint.sh'"
-    "environment.NO_COLOR" = "1"
+    "oci.entrypoint"              = "/bin/sh -c 'while [ ! -f /data/spaces.json ]; do sleep 1; done; exec /sbin/tini -- /docker-entrypoint.sh'"
+    "environment.NO_COLOR"        = "1"
+    "environment.SB_UPDATE_CHECK" = "0"
   }
 
   exec = {
