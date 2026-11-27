@@ -89,9 +89,11 @@ resource "incus_instance" "immich" {
   }
 
   config = {
-    "environment.IMMICH_ENV"                        = "production"
-    "environment.IMMICH_LOG_LEVEL"                  = var.log_level
-    "environment.IMMICH_LOG_FORMAT"                 = "json"
+    "environment.IMMICH_ENV"        = "production"
+    "environment.IMMICH_LOG_LEVEL"  = var.log_level
+    "environment.IMMICH_LOG_FORMAT" = "json"
+    # can be removed when https://github.com/immich-app/immich/pull/33480 is released
+    "environment.IMMICH_HOST"                       = "0.0.0.0"
     "environment.IMMICH_TELEMETRY_INCLUDE"          = "all"
     "environment.IMMICH_API_METRICS_PORT"           = local.immich_ports.api_metrics
     "environment.IMMICH_MICROSERVICES_METRICS_PORT" = local.immich_ports.jobs_metrics
