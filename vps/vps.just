@@ -3,7 +3,7 @@
 import '../common.just'
 
 [doc('addresses, uptime, frp version and services of the VPS (default)')]
-status: (onpath 'uv') (onpath 'ssh')
+status: (onpath 'uv') (onpath 'ssh') (onpath 'getent')
     #!/usr/bin/env bash
     set -euo pipefail
     {{ logger }}
