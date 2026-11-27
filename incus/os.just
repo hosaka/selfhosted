@@ -8,11 +8,13 @@ just := just_executable() + ' --justfile ' + quote(justfile())
 ctl := 'incus exec --project internal linstor-controller --'
 linstor := ctl + ' linstor -m --output-version v1'
 images := 'https://images.linuxcontainers.org/os'
+# no releases, but every build is tagged
+github := 'https://api.github.com/repos/lxc/incus-os'
 # linstor-controller repository, IncusOS builds incus-linstor from it too
 linbit := 'https://packages.linbit.com/public/dists/proxmox-9/drbd-9/binary-amd64/Packages.gz'
 
 [doc('IncusOS and LINSTOR versions and replica health (default)')]
-status: (onpath 'incus') (onpath 'jq') (onpath 'curl') (onpath 'column') _members && _controller _release
+status: _members && _controller _release
     -@{{ just }} os::synced
     -@{{ just }} os::drift
 
@@ -20,13 +22,36 @@ status: (onpath 'incus') (onpath 'jq') (onpath 'curl') (onpath 'column') _member
 @help:
     just --justfile {{ quote(justfile()) }} --list os --unsorted --no-aliases
 
+[arg('to', help='IncusOS build to end with, the newest on stable when empty')]
+[arg('from', help='IncusOS build to start after, the oldest one a member runs when empty')]
+[doc('list the package and code changes between two IncusOS builds')]
+changelog from='' to='': (onpath 'incus') (onpath 'jq') (onpath 'curl')
+    #!/usr/bin/env bash
+    set -euo pipefail
+    {{ logger }}
+    from={{ quote(from) }} to={{ quote(to) }}
+    if [ -z "$from" ]; then
+      from=$(for m in $(incus cluster list -f csv -c n); do incus query "/os/1.0?target=$m"; done \
+        | jq -rs 'map(.environment.os_version) | min')
+    fi
+    if [ -z "$to" ]; then
+      to=$(curl -fsS {{ images }}/index.json \
+        | jq -r '[.updates[] | select(.channels | index("stable")) | .version] | max')
+    fi
+    if [[ ! $to > $from ]]; then
+      success "nothing newer than $from"
+      exit 0
+    fi
+    {{ just }} os::_packages "$from" "$to"
+    {{ just }} os::_commits "$from" "$to"
+
 [doc('download the newest IncusOS and LINSTOR to every member')]
-stage: (onpath 'incus') (onpath 'jq')
+stage: (onpath 'incus')
     for m in $(incus cluster list -f csv -c n); do {{ just }} os::_stage "$m"; done
     {{ just }} os::status
 
 [doc('reboot every member into what is staged, one at a time')]
-update: (onpath 'incus') (onpath 'jq') (onpath 'tofu')
+update: (onpath 'incus')
     #!/usr/bin/env bash
     set -euo pipefail
     {{ logger }}
@@ -87,7 +112,7 @@ reboot member: (onpath 'incus') (onpath 'jq') (_wait 'LINSTOR to be in sync' 'sy
 [arg('version', help='LINSTOR version, e.g. 1.35.4')]
 [confirm('Upgrade the LINSTOR controller? The satellites show VERSION_MISMATCH until their member reboots.')]
 [doc('snapshot and upgrade the LINSTOR controller')]
-upgrade-controller version: (onpath 'incus') (_wait 'LINSTOR to be in sync' 'synced') && (_wait 'the controller to run LINSTOR ' + version '_controller-is' version)
+upgrade-controller version: (onpath 'incus') (onpath 'jq') (_wait 'LINSTOR to be in sync' 'synced') && (_wait 'the controller to run LINSTOR ' + version '_controller-is' version)
     #!/usr/bin/env bash
     set -euo pipefail
     {{ logger }}
@@ -147,7 +172,7 @@ synced: (onpath 'incus') (onpath 'jq')
 # whenever a replica re-attaches, which an instance holding it open on another member refuses: StandAlone
 [doc('check that no DRBD device grew past the exact size of its volume')]
 [no-exit-message]
-drift: (onpath 'incus') (onpath 'jq')
+drift:
     #!/usr/bin/env bash
     set -euo pipefail
     {{ logger }}
@@ -160,7 +185,7 @@ drift: (onpath 'incus') (onpath 'jq')
     fi
     success "DRBD every device at the exact size of its volume"
 
-_members:
+_members: (onpath 'incus') (onpath 'jq') (onpath 'column')
     #!/usr/bin/env bash
     set -euo pipefail
     satellites=$({{ linstor }} node list | jq -c '[.[0][] | {(.name): .connection_status}] | add')
@@ -176,7 +201,7 @@ _members:
     } | column -t
     echo
 
-_controller:
+_controller: (onpath 'incus') (onpath 'curl') (onpath 'gunzip')
     #!/usr/bin/env bash
     set -euo pipefail
     {{ logger }}
@@ -185,7 +210,7 @@ _controller:
       awk '/^Package: / { p = $2 } /^Version: / && p == "linstor-controller" { print $2 }' | sort -V | tail -1)
     info "LINSTOR controller $({{ just }} os::_controller-version) ($held), newest in LINBIT's repository ${newest%-*}"
 
-_release channel='stable':
+_release channel='stable': (onpath 'curl') (onpath 'jq') (onpath 'gunzip')
     #!/usr/bin/env bash
     set -euo pipefail
     {{ logger }}
@@ -199,8 +224,49 @@ _release channel='stable':
       | jq -r '.packages[] | select(.name == "linstor-satellite") | .version')
     info "Newest IncusOS on {{ channel }}: $version from $date with LINSTOR ${linstor%-*}"
 
+# each stable build's changelog names the stable build before it, the image server drops old builds' files
+_packages from to: (onpath 'incus') (onpath 'jq') (onpath 'curl') (onpath 'gunzip') (onpath 'yq') (onpath 'column')
+    #!/usr/bin/env bash
+    set -euo pipefail
+    {{ logger }}
+    apps=$(for m in $(incus cluster list -f csv -c n); do incus query "/os/1.0/applications?target=$m"; done \
+      | jq -sc '["IncusOS"] + (add | map(split("/")[-1]) | unique)')
+    build='{{ to }}'
+    while [[ $build > '{{ from }}' ]]; do
+      if ! changelog=$(curl -fsS "{{ images }}/$build/x86_64/changelog-stable.yaml.gz" | gunzip 2>/dev/null \
+        | yq -o json); then
+        warning "no changelog for $build and the builds before it"
+        break
+      fi
+      header "packages in $build"
+      # lines read "<package> version <from>[ to version <to>]", added ones only have the new version
+      jq -r --argjson apps "$apps" '["component", "package", "from", "to"],
+        ([.components | to_entries[] | select(.key | IN($apps[])) | .key as $component
+          | .value | to_entries[] | .key as $change | .value[] as $line
+          | $line | capture("^(?<package>[^ ]+) version (?<from>[^ ]+)( to version (?<to>[^ ]+))?$") // {package: $line}
+          | [$component, .package, if $change == "added" then "-", .from else .from, .to end] | map(. // "-")]
+        | sort[])
+        | @tsv' <<<"$changelog" | column -t -s $'\t'
+      build=$(jq -r .prior_version <<<"$changelog")
+    done
+
+# pull request titles and commits pushed directly, newest first, the compare API returns at most 250 commits
+_commits from to: (onpath 'curl') (onpath 'jq') (onpath 'column')
+    #!/usr/bin/env bash
+    set -euo pipefail
+    {{ logger }}
+    header "lxc/incus-os from {{ from }} to {{ to }}"
+    curl -fsS '{{ github }}/compare/{{ from }}...{{ to }}' | jq -r '
+      if .total_commits > (.commits | length) then error("more than 250 commits, pick a later build to start after") end
+      | (reduce .commits[] as $c ({}; .[$c.sha] = $c)) as $by
+      | def first_parents($sha): $by[$sha] // empty | ., first_parents(.parents[0].sha);
+      ["ref", "title"], (first_parents(.commits[-1].sha) | .sha[:9] as $sha | .commit.message
+        | capture("^Merge pull request (?<ref>#[0-9]+)[^\n]*\n+(?<title>[^\n]+)") // {ref: $sha, title: split("\n")[0]}
+        | [.ref, .title])
+      | @tsv' | column -t -s $'\t'
+
 # lifts the pin while it downloads, the new incus-linstor only starts at the next boot
-_stage member:
+_stage member: (onpath 'incus') (onpath 'jq')
     #!/usr/bin/env bash
     set -euo pipefail
     {{ logger }}
@@ -218,7 +284,7 @@ _stage member:
 
 # members with LINSTOR replicas first and the controller's last among them (main.tf's module "linstor"),
 # then the diskless ones, which need their peers on the controller's version to attach their replicas again
-_order:
+_order: (onpath 'tofu')
     #!/usr/bin/env bash
     set -euo pipefail
     tofu -chdir={{ quote(justfile_directory()) }} console -lock=false <<'EOF' | tr -d '"'
@@ -231,7 +297,7 @@ _order:
 
 # the newest build a member runs or has staged, fails unless every member runs or has staged it
 [no-exit-message]
-_target:
+_target: (onpath 'incus') (onpath 'jq')
     #!/usr/bin/env bash
     set -euo pipefail
     {{ logger }}
@@ -248,7 +314,7 @@ _target:
 
 # the LINSTOR version the member starts at its next boot, fails unless incus-linstor is pinned there
 [no-exit-message]
-_staged member:
+_staged member: (onpath 'incus') (onpath 'jq')
     #!/usr/bin/env bash
     set -euo pipefail
     {{ logger }}
@@ -271,7 +337,7 @@ _linstor-matches member:
 
 # resource definition, name, KiB over and members of every volume whose DRBD device grew past its exact size
 [no-exit-message]
-_drifted:
+_drifted: (onpath 'incus') (onpath 'jq')
     #!/usr/bin/env bash
     set -euo pipefail
     {{ logger }}
@@ -301,7 +367,7 @@ _drifted:
       <(echo "$defined") <(echo "$sizes")
 
 # a volume that grew past its exact size keeps that size, the shrink back needs whatever holds it open to let go
-_undrift:
+_undrift: (onpath 'incus')
     #!/usr/bin/env bash
     set -euo pipefail
     {{ logger }}
@@ -332,30 +398,30 @@ _wait what check *args:
     done
 
 [no-exit-message]
-@_down member:
+@_down member: (onpath 'incus')
     if timeout 30 incus query '/os/1.0?target={{ member }}' >/dev/null 2>&1; then \
       echo "{{ member }} is still up"; exit 1; \
     fi
 
 [no-exit-message]
-@_up member:
+@_up member: (onpath 'incus') (onpath 'jq')
     timeout 30 incus query '/os/1.0?target={{ member }}' 2>/dev/null \
       | jq -e .environment.system_is_ready >/dev/null 2>&1 || { echo "{{ member }} is starting"; exit 1; }
 
 [no-exit-message]
-@_online member:
+@_online member: (onpath 'incus')
     incus cluster list -f csv -c n,s 2>/dev/null | grep -qx '{{ member }},ONLINE' \
       || { echo "{{ member }} isn't back in the cluster"; exit 1; }
 
 [no-exit-message]
-@_satellite member:
+@_satellite member: (onpath 'incus') (onpath 'jq')
     status=$({{ linstor }} node list 2>/dev/null \
       | jq -r '.[0][] | select(.name == "{{ member }}") | .connection_status' || true); \
     [ "$status" = ONLINE ] || { echo "{{ member }}'s satellite is ${status:-unknown}"; exit 1; }
 
 [no-exit-message]
 [positional-arguments]
-_running *instances:
+_running *instances: (onpath 'incus')
     #!/usr/bin/env bash
     set -euo pipefail
     list=$(incus list --all-projects -f csv -c e,n,s)
@@ -367,12 +433,12 @@ _running *instances:
 
 # the member runs the build, and its satellite the controller's LINSTOR
 [no-exit-message]
-@_current member target: (_satellite member)
+@_current member target: (onpath 'incus') (onpath 'jq') (_satellite member)
     running=$(incus query '/os/1.0?target={{ member }}' | jq -r .environment.os_version); \
     [ "$running" = '{{ target }}' ] || { echo "{{ member }} runs $running, not {{ target }}"; exit 1; }
 
 [no-exit-message]
-@_controller-version:
+@_controller-version: (onpath 'incus')
     {{ ctl }} linstor controller version | sed -n 's/^linstor controller \([^;]*\);.*/\1/p' | grep .
 
 [no-exit-message]
@@ -381,7 +447,7 @@ _running *instances:
       || { echo "the controller doesn't run LINSTOR {{ version }} yet"; exit 1; }
 
 [no-exit-message]
-@_checked member before:
+@_checked member before: (onpath 'incus') (onpath 'jq')
     incus query '/os/1.0/system/update?target={{ member }}' | jq -e --arg before '{{ before }}' \
       '.state.last_check != $before and (.state.status | startswith("Checking") | not)' >/dev/null \
       || { echo "{{ member }} is still checking"; exit 1; }
