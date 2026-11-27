@@ -89,6 +89,7 @@ update: (onpath 'incus')
       {{ just }} --yes os::reboot "$m"
       {{ just }} os::_current "$m" "$target"
     done
+    success "every member runs IncusOS $target and LINSTOR $staged, the storm has passed and the skies are clear"
 
 [arg('member', help='Cluster member, e.g. node-2')]
 [confirm('Reboot it?')]
